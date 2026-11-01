@@ -150,3 +150,26 @@ def ui_dispatch_deal(
             raise HTTPException(status_code=400, detail=str(e)) from e
 
     return RedirectResponse(url=f"/ui/deals/{deal_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@deal_screen_router.post("/ui/deals/{deal_id}/cancel")
+def ui_cancel_deal(
+    deal_id: str,
+    authenticated: bool = Depends(check_auth),
+) -> RedirectResponse:
+    """Cancel active deal from UI."""
+    from datetime import UTC, datetime
+
+    from nextlife.storage.models import Deal, Lot
+
+    with get_db_session() as session:
+        deal = session.get(Deal, deal_id)
+        if not deal:
+            raise HTTPException(status_code=404, detail="Deal not found")
+        deal.status = "CANCELLED"
+        deal.closed_at = datetime.now(UTC)
+        lot = session.get(Lot, deal.lot_id) if deal.lot_id else None
+        item_code = lot.code if lot else None
+        session.commit()
+    target = f"/ui/stock/{item_code}#sale" if item_code else f"/ui/deals/{deal_id}"
+    return RedirectResponse(url=target, status_code=status.HTTP_303_SEE_OTHER)

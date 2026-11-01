@@ -7,6 +7,11 @@ from nextlife.core.exceptions import NextLifeError
 
 class ItemStatus(StrEnum):
     DRAFT = "DRAFT"
+    NEW = "NEW"
+    ESTIMATED = "ESTIMATED"
+    PHOTOGRAPHED = "PHOTOGRAPHED"
+    DESCRIBED = "DESCRIBED"
+    IN_WARRANTY = "IN_WARRANTY"
     RESEARCHED = "RESEARCHED"
     MEDIA_READY = "MEDIA_READY"
     READY_FOR_SALE = "READY_FOR_SALE"
@@ -52,6 +57,57 @@ class InvalidStatusTransitionError(NextLifeError):
 # - Из любого статуса разрешён переход в DELETED.
 # - DELETED освобождает код так же, как ARCHIVED (через code_release_days).
 TRANSITIONS: dict[ItemStatus, frozenset[ItemStatus]] = {
+    ItemStatus.NEW: frozenset(
+        {
+            ItemStatus.ESTIMATED,
+            ItemStatus.PHOTOGRAPHED,
+            ItemStatus.DESCRIBED,
+            ItemStatus.READY_FOR_SALE,
+            ItemStatus.SOLD,
+            ItemStatus.DISPOSED,
+            ItemStatus.DELETED,
+            ItemStatus.CANCELLED,
+        }
+    ),
+    ItemStatus.ESTIMATED: frozenset(
+        {
+            ItemStatus.PHOTOGRAPHED,
+            ItemStatus.DESCRIBED,
+            ItemStatus.READY_FOR_SALE,
+            ItemStatus.SOLD,
+            ItemStatus.DISPOSED,
+            ItemStatus.DELETED,
+            ItemStatus.CANCELLED,
+        }
+    ),
+    ItemStatus.PHOTOGRAPHED: frozenset(
+        {
+            ItemStatus.DESCRIBED,
+            ItemStatus.READY_FOR_SALE,
+            ItemStatus.SOLD,
+            ItemStatus.DISPOSED,
+            ItemStatus.DELETED,
+            ItemStatus.CANCELLED,
+        }
+    ),
+    ItemStatus.DESCRIBED: frozenset(
+        {
+            ItemStatus.READY_FOR_SALE,
+            ItemStatus.SOLD,
+            ItemStatus.DISPOSED,
+            ItemStatus.DELETED,
+            ItemStatus.CANCELLED,
+        }
+    ),
+    ItemStatus.IN_WARRANTY: frozenset(
+        {
+            ItemStatus.RETURNED,
+            ItemStatus.ARCHIVED,
+            ItemStatus.DISPOSED,
+            ItemStatus.DELETED,
+            ItemStatus.CANCELLED,
+        }
+    ),
     ItemStatus.DRAFT: frozenset(
         {
             ItemStatus.RESEARCHED,
@@ -228,6 +284,11 @@ def validate_transition(current_status: str | ItemStatus, target_status: str | I
 # Сырые токены — внутренняя механика (Э-6): пользователь видит только
 # осмысленные названия. Неизвестный токен выводится как есть (не выдумываем).
 STATUS_LABELS_RU: dict[str, str] = {
+    "NEW": "Новый",
+    "ESTIMATED": "Оценён",
+    "PHOTOGRAPHED": "С фото",
+    "DESCRIBED": "С описанием",
+    "IN_WARRANTY": "На гарантии",
     "DRAFT": "Черновик",
     "RESEARCHED": "Разведка",
     "MEDIA_READY": "Медиа готово",

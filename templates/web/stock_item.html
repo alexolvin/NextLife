@@ -390,13 +390,25 @@
 
       {% if item.deal %}
         <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
-          <h3 style="margin-top: 0; color: #166534; font-size: 1rem;">Сделка завершена</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h3 style="margin: 0; color: #166534; font-size: 1rem;">
+              {{ 'Сделка завершена' if item.deal.status in ('COMPLETED', 'ARCHIVED') else 'Сделка (' + (item.deal.status | deal_status_ru) + ')' }}
+            </h3>
+            <span class="badge" style="font-size: 0.8rem; background: #e2e8f0; color: #334155;">{{ item.deal.status | deal_status_ru }}</span>
+          </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.9rem; margin-top: 10px;">
             <div>Итоговая цена: <strong>{{ item.deal.agreed_price }} {{ item.deal.currency }}</strong></div>
             <div>Покупатель: <strong>{{ item.deal.buyer }}</strong></div>
             <div>Способ: <strong>{{ item.deal.delivery_method or 'Личная встреча' }}</strong></div>
             <div>Статус оплаты: <strong>{{ item.deal.status }}</strong></div>
           </div>
+          {% if item.deal.status in ('ACTIVE', 'OPEN', 'IN_PROGRESS', 'PAID', 'SHIPPED') %}
+            <form method="POST" action="/ui/deals/{{ item.deal.id }}/cancel" style="margin-top: 14px;">
+              <button type="submit" class="btn btn-sm" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 6px 12px; border-radius: 6px;" onclick="return confirm('Отменить активную сделку?')">
+                ✕ Отменить сделку
+              </button>
+            </form>
+          {% endif %}
         </div>
       {% else %}
         <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 16px;">
@@ -469,10 +481,15 @@
 
 <script>
   function confirmDeleteItem(code) {
-    fetch('/api/stock/' + code + '?confirm_listings=true', {
+    fetch('/api/stock/' + code + '?confirm_listings=true&confirm_deals=true', {
       method: 'DELETE',
       credentials: 'same-origin'
-    }).then(r => r.json()).then(res => {
+    }).then(async r => {
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        alert(data.detail || 'Не удалось удалить предмет');
+        return;
+      }
       window.location.href = '/ui/stock?notice=deleted';
     }).catch(err => {
       alert('Ошибка при удалении: ' + err);

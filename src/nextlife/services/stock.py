@@ -510,6 +510,7 @@ def delete_stock_item(
     session: Session,
     code: str,
     confirm_listings: bool,
+    confirm_deals: bool = False,
     actor: str = "OWNER",
 ) -> dict[str, Any]:
     """Удаление предмета Склада (§1.3, §3.4).
@@ -523,7 +524,34 @@ def delete_stock_item(
     # Активная сделка блокирует удаление (can_delete_lot).
     can_delete, reason = can_delete_lot(session, code)
     if not can_delete:
-        raise LotDeletionBlockedError(reason or "Активная сделка.")
+        if confirm_deals:
+            from sqlalchemy import or_
+
+            from nextlife.storage.models import Deal
+
+            item_id = lot.item_id if lot else code
+            listings = session.scalars(select(Listing).where(Listing.item_code == item_id)).all()
+            listing_ids = [lst.id for lst in listings]
+            conditions = []
+            if listing_ids:
+                conditions.append(Deal.listing_id.in_(listing_ids))
+            if lot:
+                conditions.append(Deal.lot_id == lot.id)
+            if conditions:
+                active_deals = session.scalars(
+                    select(Deal).where(
+                        or_(*conditions),
+                        Deal.status.in_(["ACTIVE", "OPEN", "IN_PROGRESS", "PAID", "SHIPPED"]),
+                        Deal.closed_at.is_(None),
+                    )
+                ).all()
+                now_utc = datetime.now(UTC)
+                for d in active_deals:
+                    d.status = "CANCELLED"
+                    d.closed_at = now_utc
+            session.flush()
+        else:
+            raise LotDeletionBlockedError(reason or "Активная сделка.")
 
     active_listings = _active_listings(session, code)
     if active_listings and not confirm_listings:

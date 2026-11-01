@@ -207,3 +207,71 @@ def test_photo_gallery_renders_both_rotate_buttons():
     # In photo editor toolbar:
     assert 'data-testid="btn-editor-rotate-left"' in body
     assert 'data-testid="btn-editor-rotate"' in body
+
+
+def test_item_status_transitions_to_deleted():
+    from nextlife.core.status import ItemStatus, can_transition
+
+    for st in (ItemStatus.NEW, ItemStatus.ESTIMATED, ItemStatus.PHOTOGRAPHED, ItemStatus.DESCRIBED, ItemStatus.IN_WARRANTY):
+        assert can_transition(st, ItemStatus.DELETED) is True
+
+
+def test_delete_stock_item_cancels_active_deals_when_confirmed():
+    from nextlife.services.stock import delete_stock_item
+    from nextlife.storage.models import Deal, Item, Lot
+
+    session = MagicMock()
+    item = Item(code="106", kind="SELL", title="Test Item", category_key="c", condition_key="used", status="DRAFT")
+    lot = Lot(code="106", item_id="106", status="DRAFT")
+    deal = Deal(id="d1", status="ACTIVE", closed_at=None, agreed_price=Decimal("100"), currency="CZK", price_base=Decimal("100"), delivery_method="x", payment_method="y")
+
+    session.get.return_value = item
+    session.scalar.return_value = lot
+
+    with patch("nextlife.services.stock._get_item", return_value=item), \
+         patch("nextlife.services.stock.can_delete_lot", return_value=(False, "Active deal")), \
+         patch("nextlife.services.stock._active_listings", return_value=[]), \
+         patch("nextlife.services.stock.unpublish_listings_now", return_value=[]), \
+         patch("nextlife.services.stock.delete_photo_and_derived", return_value=[]), \
+         patch("nextlife.services.stock.record_audit_event"):
+
+        session.scalars.side_effect = [
+            MagicMock(all=lambda: []),  # listings
+            MagicMock(all=lambda: [deal]),  # active_deals
+            MagicMock(all=lambda: []),  # photos
+        ]
+
+        res = delete_stock_item(session, "106", confirm_listings=True, confirm_deals=True)
+        assert res["status"] == "DELETED"
+        assert deal.status == "CANCELLED"
+        assert deal.closed_at is not None
+        assert item.status == "DELETED"
+        assert lot.status == "DELETED"
+
+
+def test_ui_cancel_deal_endpoint():
+    from nextlife.api.routes_deal_screen import ui_cancel_deal
+    from nextlife.storage.models import Deal, Lot
+
+    session = MagicMock()
+    deal = Deal(id="d1", status="ACTIVE", closed_at=None, lot_id="l1", agreed_price=Decimal("100"), currency="CZK", price_base=Decimal("100"), delivery_method="x", payment_method="y")
+    lot = Lot(id="l1", code="106")
+
+    def mock_get(model, pk):
+        if model == Deal and pk == "d1":
+            return deal
+        if model == Lot and pk == "l1":
+            return lot
+        return None
+
+    session.get.side_effect = mock_get
+
+    with patch("nextlife.api.routes_deal_screen.get_db_session") as mock_db:
+        mock_db.return_value.__enter__.return_value = session
+        resp = ui_cancel_deal("d1", authenticated=True)
+
+        assert resp.status_code == 303
+        assert resp.headers["location"] == "/ui/stock/106#sale"
+        assert deal.status == "CANCELLED"
+        assert deal.closed_at is not None
+

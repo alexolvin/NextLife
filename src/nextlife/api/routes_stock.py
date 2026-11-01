@@ -531,11 +531,14 @@ def api_stock_delete_preview(
 def api_stock_delete(
     code: str,
     confirm_listings: bool = Query(default=False),
+    confirm_deals: bool = Query(default=False),
     auth: bool = Depends(check_auth),
 ) -> JSONResponse:
     with get_db_session() as session:
         try:
-            result = delete_stock_item(session, code, confirm_listings=confirm_listings)
+            result = delete_stock_item(
+                session, code, confirm_listings=confirm_listings, confirm_deals=confirm_deals
+            )
             session.commit()
             return JSONResponse({"status": "DELETED", **result})
         except StockItemNotFoundError as exc:
