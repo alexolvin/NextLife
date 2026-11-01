@@ -33,10 +33,9 @@ from nextlife.services.sell import build_draft
 from nextlife.services.stock import update_stock_item
 from nextlife.storage.db import get_db_session
 from nextlife.storage.models import Item
+from nextlife.version import get_version_str
 
 router = APIRouter()
-
-from nextlife.version import get_version_str
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent.parent / "templates" / "web"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -50,6 +49,25 @@ templates.env.globals["app_version"] = get_version_str()
 # TZ-NextLife-UI-N2 §4 V4 (P-E15): статусы — только по-русски (Э-6).
 templates.env.filters["status_ru"] = status_label_ru
 templates.env.filters["deal_status_ru"] = deal_status_label_ru
+
+
+def format_date_dmy(val: Any) -> str:
+    """Безопасное форматирование даты ДД.ММ.ГГГГ для шаблонов."""
+    if not val:
+        return ""
+    if hasattr(val, "strftime"):
+        return val.strftime("%d.%m.%Y")
+    if isinstance(val, str):
+        try:
+            from datetime import datetime
+            dt = datetime.fromisoformat(val.replace("Z", "+00:00"))
+            return dt.strftime("%d.%m.%Y")
+        except Exception:
+            return val[:10]
+    return str(val)
+
+
+templates.env.filters["date_dmy"] = format_date_dmy
 
 def resolve_photo_url(path: str | None) -> str:
     """Resolve photo file path to a valid web URL under /media/."""

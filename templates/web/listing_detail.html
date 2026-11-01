@@ -28,10 +28,10 @@
       </div>
       <div style="font-size: 0.85rem; color: #64748b; text-align: right;">
         {% if listing.first_published_at %}
-          <div>Первое размещение: {{ listing.first_published_at.strftime('%d.%m.%Y') }}</div>
+          <div>Первое размещение: {{ listing.first_published_at | date_dmy }}</div>
         {% endif %}
         {% if listing.expires_at %}
-          <div>Срок показа до: {{ listing.expires_at.strftime('%d.%m.%Y') }}</div>
+          <div>Срок показа до: {{ listing.expires_at | date_dmy }}</div>
         {% endif %}
       </div>
     </div>
@@ -60,11 +60,9 @@
                class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;" data-testid="input-listing-price">
       </div>
       <div>
-        <form method="post" action="/ui/listings/{{ listing.id }}/free" style="margin: 0;">
-          <button type="submit" class="btn btn-secondary" style="padding: 10px 14px;" data-testid="btn-give-free">
-            🎁 Отдать бесплатно
-          </button>
-        </form>
+        <button type="submit" formaction="/ui/listings/{{ listing.id }}/free" formmethod="post" class="btn btn-secondary" style="padding: 10px 14px;" data-testid="btn-give-free">
+          🎁 Отдать бесплатно
+        </button>
       </div>
     </div>
 

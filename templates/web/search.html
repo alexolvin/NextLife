@@ -21,18 +21,18 @@
   </div>
 
   {% if results %}
-    {% if results.total == 0 %}
+    {% if results['total'] == 0 %}
       <p style="color: #64748b; font-size: 1rem; margin-top: 24px;">По запросу «{{ query }}» ничего не найдено.</p>
     {% else %}
       {% if scope == 'all' %}
-        {% if results.items %}
+        {% if results['items'] %}
           <div style="margin-bottom: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <h2 style="font-size: 1.1rem; font-weight: 600;">Предметы ({{ results.items|length }})</h2>
+              <h2 style="font-size: 1.1rem; font-weight: 600;">Предметы ({{ results['items']|length }})</h2>
               <a href="/ui/search?q={{ query }}&scope=items" style="color: #2563eb; font-size: 0.85rem; text-decoration: none;">Все предметы →</a>
             </div>
             <div style="display: flex; flex-direction: column; gap: 8px;">
-              {% for it in results.items %}
+              {% for it in results['items'] %}
                 <a href="{{ it.url }}" style="display: block; padding: 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: inherit;">
                   <div style="display: flex; justify-content: space-between;">
                     <span style="font-weight: 600;">#{{ it.code }} {{ it.title }}</span>
@@ -47,14 +47,14 @@
           </div>
         {% endif %}
 
-        {% if results.listings %}
+        {% if results['listings'] %}
           <div style="margin-bottom: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <h2 style="font-size: 1.1rem; font-weight: 600;">Объявления ({{ results.listings|length }})</h2>
+              <h2 style="font-size: 1.1rem; font-weight: 600;">Объявления ({{ results['listings']|length }})</h2>
               <a href="/ui/search?q={{ query }}&scope=listings" style="color: #2563eb; font-size: 0.85rem; text-decoration: none;">Все объявления →</a>
             </div>
             <div style="display: flex; flex-direction: column; gap: 8px;">
-              {% for l in results.listings %}
+              {% for l in results['listings'] %}
                 <a href="{{ l.url }}" style="display: block; padding: 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: inherit;">
                   <div style="display: flex; justify-content: space-between;">
                     <span style="font-weight: 600;">{{ l.title }}</span>
@@ -69,14 +69,14 @@
           </div>
         {% endif %}
 
-        {% if results.messages %}
+        {% if results['messages'] %}
           <div style="margin-bottom: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <h2 style="font-size: 1.1rem; font-weight: 600;">Сообщения ({{ results.messages|length }})</h2>
+              <h2 style="font-size: 1.1rem; font-weight: 600;">Сообщения ({{ results['messages']|length }})</h2>
               <a href="/ui/search?q={{ query }}&scope=messages" style="color: #2563eb; font-size: 0.85rem; text-decoration: none;">Все сообщения →</a>
             </div>
             <div style="display: flex; flex-direction: column; gap: 8px;">
-              {% for m in results.messages %}
+              {% for m in results['messages'] %}
                 <a href="{{ m.url }}" style="display: block; padding: 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: inherit;">
                   <div style="font-size: 0.95rem; color: #1e293b;">{{ m.title }}</div>
                   <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">{{ m.direction }} • {{ m.sent_at or '' }}</div>
@@ -89,7 +89,7 @@
       {% else %}
         <!-- Specific scope results -->
         <div style="display: flex; flex-direction: column; gap: 8px;">
-          {% for r in results.results %}
+          {% for r in results['results'] %}
             <a href="{{ r.url }}" style="display: block; padding: 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: inherit;">
               <div style="display: flex; justify-content: space-between;">
                 <span style="font-weight: 600;">{{ r.title }}</span>

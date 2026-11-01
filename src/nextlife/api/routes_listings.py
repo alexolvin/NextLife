@@ -6,7 +6,9 @@ Rule K-1: Module must strictly be <= 400 lines.
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from types import SimpleNamespace
 from typing import Any
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -169,12 +171,36 @@ def screen_listing_detail(
             for p in photos
         ]
 
+        listing_data = SimpleNamespace(
+            id=str(listing.id),
+            item_code=str(listing.item_code),
+            marketplace_key=str(listing.marketplace_key),
+            external_id=listing.external_id,
+            external_url=listing.external_url,
+            price=str(listing.price) if listing.price is not None else "0",
+            currency=str(listing.currency or "CZK"),
+            status=str(listing.status or "DRAFT"),
+            title=listing.title or "",
+            description=listing.description or "",
+            category_path=listing.category_path or "",
+            category_key=listing.category_key or "",
+            category_auto=bool(listing.category_auto),
+            lang=listing.lang or "cs",
+            photo_ids=list(listing.photo_ids or []),
+            first_published_at=listing.first_published_at,
+            expires_at=listing.expires_at,
+        )
+        item_data = SimpleNamespace(
+            code=item.code,
+            title=item.title or "",
+        ) if item else None
+
     return templates.TemplateResponse(
         request=request,
         name="listing_detail.html",
         context={
-            "listing": listing,
-            "item": item,
+            "listing": listing_data,
+            "item": item_data,
             "caps": caps,
             "photos": photos_data,
             "notice": notice,
@@ -217,7 +243,7 @@ def ui_approve_listing(
             session.commit()
         except ListingValidationError as exc:
             return RedirectResponse(
-                url=f"/ui/listings/{listing_id}?notice=err&reason={exc}",
+                url=f"/ui/listings/{listing_id}?notice=err&reason={quote(str(exc))}",
                 status_code=status.HTTP_303_SEE_OTHER,
             )
     return RedirectResponse(
@@ -264,7 +290,7 @@ def ui_unpublish_listing(
         session.commit()
         if not res.get("supported"):
             return RedirectResponse(
-                url=f"/ui/listings/{listing_id}?notice=unsupported&reason={res.get('message')}",
+                url=f"/ui/listings/{listing_id}?notice=unsupported&reason={quote(str(res.get('message') or ''))}",
                 status_code=status.HTTP_303_SEE_OTHER,
             )
     return RedirectResponse(
@@ -283,7 +309,7 @@ def ui_relist_listing(
         session.commit()
         if not res.get("supported"):
             return RedirectResponse(
-                url=f"/ui/listings/{listing_id}?notice=unsupported&reason={res.get('message')}",
+                url=f"/ui/listings/{listing_id}?notice=unsupported&reason={quote(str(res.get('message') or ''))}",
                 status_code=status.HTTP_303_SEE_OTHER,
             )
     return RedirectResponse(

@@ -8,7 +8,7 @@ P-R08: 2-3 редактируемых чешских варианта по на�
 сохраняется через существующую семантику черновика (final_text, P-E12).
 """
 
-from fastapi import APIRouter, Depends, Form, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy import select
 
@@ -48,13 +48,28 @@ def api_run_research(item_code: str, auth: bool = Depends(check_auth)) -> JSONRe
     return JSONResponse(content={"run_id": run_id, "total_found": len(found)})
 
 
-@research_router.post("/ui/items/{item_code}/research")
-def ui_run_research(
+@research_router.api_route(
+    "/ui/items/{item_code}/research", methods=["GET", "POST"]
+)
+@research_router.api_route(
+    "/ui/stock/{item_code}/research", methods=["GET", "POST"]
+)
+async def ui_run_research(
+    request: Request,
     item_code: str,
-    next_url: str = Form(default="", alias="next"),
     auth: bool = Depends(check_auth),
 ) -> RedirectResponse:
-    """Запустить разведку (UI-кнопка) и вернуться на исходный экран."""
+    """Запустить разведку (UI-кнопка/ссылка) и вернуться на экран предмета."""
+    next_url = ""
+    if request.method == "POST":
+        try:
+            form = await request.form()
+            next_url = str(form.get("next") or "")
+        except Exception:
+            pass
+    if not next_url:
+        next_url = str(request.query_params.get("next") or "")
+
     with get_db_session() as session:
         item = session.get(Item, item_code)
         if not item:
@@ -67,7 +82,7 @@ def ui_run_research(
         except Exception:
             session.rollback()
             notice = "research_failed"
-    target = next_url if next_url.startswith("/ui/") else f"/ui/items/{item_code}"
+    target = next_url if next_url.startswith("/ui/") else f"/ui/stock/{item_code}#price"
     sep = "&" if "?" in target else "?"
     return RedirectResponse(
         url=f"{target}{sep}notice={notice}", status_code=status.HTTP_303_SEE_OTHER

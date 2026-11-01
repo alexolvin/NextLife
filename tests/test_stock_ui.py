@@ -292,3 +292,71 @@ def test_stock_delete_preview_endpoint(client, clean_db):
     assert r.status_code == 200
     assert r.json()["code"] == code
     assert r.json()["listings_count"] == 0
+
+
+# --- Исследования и поиск ----------------------------------------------------
+
+
+def test_ui_item_research_get_and_post(client, clean_db):
+    """GET и POST на /ui/items/{code}/research и /ui/stock/{code}/research возвращают 303 (не 405)."""
+    with get_db_session() as session:
+        c = create_item_and_lot(session, title="Видеокарта тест", category_key="gpu", price=Decimal("1000"), currency="CZK")
+        code = c["item_code"]
+        session.commit()
+
+    # GET /ui/items/{code}/research
+    r1 = client.get(f"/ui/items/{code}/research", headers=_auth(), follow_redirects=False)
+    assert r1.status_code == 303
+    assert f"/ui/stock/{code}" in r1.headers["location"]
+
+    # GET /ui/stock/{code}/research
+    r2 = client.get(f"/ui/stock/{code}/research", headers=_auth(), follow_redirects=False)
+    assert r2.status_code == 303
+    assert f"/ui/stock/{code}" in r2.headers["location"]
+
+    # POST /ui/stock/{code}/research с указанием next
+    r3 = client.post(
+        f"/ui/stock/{code}/research",
+        data={"next": f"/ui/stock/{code}#price"},
+        headers=_auth(),
+        follow_redirects=False,
+    )
+    assert r3.status_code == 303
+    assert f"/ui/stock/{code}#price" in r3.headers["location"]
+
+
+def test_ui_search_renders_results(client, clean_db):
+    """Поиск /ui/search?q=... корректно рендерит страницу без ошибки dict.items."""
+    with get_db_session() as session:
+        create_item_and_lot(session, title="Тестовый поиск GPU", category_key="gpu", price=Decimal("1000"), currency="CZK")
+        session.commit()
+
+    r = client.get("/ui/search?q=поиск", headers=_auth())
+    assert r.status_code == 200
+    assert "Тестовый поиск GPU" in r.text
+
+
+def test_ui_listing_detail_screen_renders(client, clean_db):
+    """Экран детальной карточки объявления /ui/listings/{id} рендерится со статусом 200."""
+    with get_db_session() as session:
+        c = create_item_and_lot(session, title="Предмет листинга", category_key="gpu", price=Decimal("2000"), currency="CZK")
+        code = c["item_code"]
+        listing = Listing(
+            item_code=code,
+            marketplace_key="bazos_cz",
+            price=Decimal("2000"),
+            currency="CZK",
+            price_base=Decimal("2000"),
+            status="PUBLISHED",
+            title="Заголовок объявления",
+            description="Описание объявления",
+        )
+        session.add(listing)
+        session.commit()
+        listing_id = listing.id
+
+    r = client.get(f"/ui/listings/{listing_id}", headers=_auth())
+    assert r.status_code == 200
+    assert "bazos_cz" in r.text
+    assert "Заголовок объявления" in r.text
+

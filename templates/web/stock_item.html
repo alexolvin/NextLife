@@ -141,9 +141,12 @@
 
       <!-- Trigger Live Search Panel -->
       <div style="margin-top: 16px;">
-        <a href="/ui/items/{{ item.code }}/research" class="btn btn-secondary btn-sm">
-          🔍 Запустить поиск аналогов на площадках
-        </a>
+        <form method="post" action="/ui/stock/{{ item.code }}/research" style="margin: 0; display: inline;">
+          <input type="hidden" name="next" value="/ui/stock/{{ item.code }}#price">
+          <button type="submit" class="btn btn-secondary btn-sm" data-testid="btn-run-research">
+            🔍 Запустить поиск аналогов на площадках
+          </button>
+        </form>
       </div>
     </div>
   </div>
