@@ -20,6 +20,18 @@
     <div class="toast-banner" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Поиск аналогов на площадках завершён</div>
   {% elif notice == 'research_failed' %}
     <div class="toast-banner" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">⚠ Не удалось выполнить поиск аналогов</div>
+  {% elif notice == 'photo_rotated' %}
+    <div class="toast-banner" style="background: #dcfce7; color: #166534; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Фотография повёрнута</div>
+  {% elif notice == 'photos_uploaded' %}
+    <div class="toast-banner" style="background: #dcfce7; color: #166534; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Фотографии успешно загружены</div>
+  {% elif notice == 'photo_deleted' %}
+    <div class="toast-banner" style="background: #fef9c3; color: #854d0e; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Фотография удалена</div>
+  {% elif notice == 'photo_cover_set' %}
+    <div class="toast-banner" style="background: #dcfce7; color: #166534; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Обложка установлена</div>
+  {% elif notice == 'photo_defect_toggled' %}
+    <div class="toast-banner" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Статус фото дефекта обновлён</div>
+  {% elif notice == 'photo_op_failed' %}
+    <div class="toast-banner" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">⚠ Не удалось выполнить операцию над фото</div>
   {% endif %}
 
   <!-- Persistent Header (§5.1) -->
@@ -29,11 +41,9 @@
         ← Склад
       </a>
       <div style="display: flex; gap: 8px; align-items: center;">
-        <form method="post" action="/api/stock/{{ item.code }}/dispose" onsubmit="return confirm('Утилизировать предмет #{{ item.code }}? Он будет перемещён в архив.')" style="margin: 0;">
-          <button type="submit" class="btn btn-sm" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem;" data-testid="btn-dispose">
-            Утилизировать
-          </button>
-        </form>
+        <button onclick="document.getElementById('dispose-modal').classList.remove('hidden')" class="btn btn-sm" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem;" data-testid="btn-dispose">
+          Утилизировать
+        </button>
         <button onclick="document.getElementById('delete-modal').classList.remove('hidden')" class="btn btn-sm" style="background: #fee2e2; color: #991b1b; border: 1px solid #f87171; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem;" data-testid="btn-delete">
           Удалить
         </button>
@@ -390,6 +400,20 @@
           Для этого предмета гарантия не указана (срок гарантии: пусто).
         </div>
       {% endif %}
+    </div>
+  </div>
+
+  <!-- Dispose modal -->
+  <div id="dispose-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1001; display: flex; align-items: center; justify-content: center;">
+    <div class="modal-box" style="background: #fff; padding: 20px; border-radius: 12px; width: 90%; max-width: 440px;">
+      <h3 style="margin-top: 0; font-size: 1.1rem; font-weight: 600; color: #991b1b;">Утилизировать предмет #{{ item.code }}?</h3>
+      <p style="font-size: 0.85rem; color: #64748b;">Предмет будет перемещён в архив как утилизированный.</p>
+      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;">
+        <button type="button" onclick="document.getElementById('dispose-modal').classList.add('hidden')" class="btn btn-secondary">Отмена</button>
+        <form method="post" action="/api/stock/{{ item.code }}/dispose" style="margin: 0;">
+          <button type="submit" class="btn btn-danger" style="background: #ef4444; color: #fff;">Утилизировать</button>
+        </form>
+      </div>
     </div>
   </div>
 

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -253,16 +253,20 @@ def api_crop_item_photo(
 # ---------------------------------------------------------------------------
 
 def _redirect_card(
-    code: str, notice: str | None = None, reason: str | None = None,
+    code: str, notice: str | None = None, reason: str | None = None, fragment: str = "photos"
 ) -> RedirectResponse:
-    """Redirect to the item card, optionally with a toast notice (?notice=…&reason=…)."""
-    url = f"/ui/items/{code}"
+    """Redirect to the item card, optionally with a toast notice (?notice=…&reason=…#photos)."""
+    url = f"/ui/stock/{code}"
+    params: dict[str, str] = {}
     if notice:
+        params["notice"] = notice
+    if reason:
+        params["reason"] = reason
+    if params:
         from urllib.parse import urlencode
-        params = {"notice": notice}
-        if reason:
-            params["reason"] = reason
         url += "?" + urlencode(params)
+    if fragment:
+        url += f"#{fragment}"
     return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
 
 
@@ -272,18 +276,29 @@ def _require_item(session: Session, code: str) -> None:
 
 
 @photos_ops_router.post("/ui/items/{code}/photos/{photo_id}/rotate")
-def ui_rotate_item_photo(
-    code: str, photo_id: str, auth: bool = Depends(check_auth),
+async def ui_rotate_item_photo(
+    request: Request,
+    code: str,
+    photo_id: str,
+    degrees: int = 90,
+    auth: bool = Depends(check_auth),
 ) -> RedirectResponse:
-    """UI: поворот кадра на 90° — пер-фото кнопка (R5)."""
+    """UI: поворот кадра на 90° (вправо: 90, влево: -90 / 270) — пер-фото кнопка (R5)."""
+    try:
+        form = await request.form()
+        deg_val = form.get("degrees")
+        if deg_val is not None:
+            degrees = int(deg_val)
+    except Exception:
+        pass
     with get_db_session() as session:
         _require_item(session, code)
-        photo = rotate_photo(session=session, item_code=code, photo_id=photo_id, degrees=90)
+        photo = rotate_photo(session=session, item_code=code, photo_id=photo_id, degrees=degrees)
         if not photo:
             return _redirect_card(code, notice="photo_op_failed", reason="Фото не найдено")
         record_audit_event(
             session=session, actor="USER", action="PHOTO_ROTATED", entity="ITEM",
-            entity_id=code, data={"photo_id": photo.id, "degrees": 90},
+            entity_id=code, data={"photo_id": photo.id, "degrees": degrees},
         )
         session.commit()
     return _redirect_card(code, notice="photo_rotated")

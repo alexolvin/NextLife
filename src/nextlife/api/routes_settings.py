@@ -34,6 +34,9 @@ CAPABILITIES_MATRIX = {
     "bazos_cz": {**_DEFAULT_CAPS, "search": True, "publish": True, "delivery_parse": True},
     "aukro_cz": {**_DEFAULT_CAPS, "search": True, "publish": True, "delivery_parse": True},
     "sbazar_cz": {**_DEFAULT_CAPS, "search": True, "publish": True},
+    "trhknih_cz": {**_DEFAULT_CAPS, "search": True},
+    "hyperinzerce_cz": {**_DEFAULT_CAPS, "search": True},
+    "annonce_cz": {**_DEFAULT_CAPS, "search": True},
     "vinted": {**_DEFAULT_CAPS, "search": True},
     "willhaben_at": {**_DEFAULT_CAPS, "search": True},
     "kleinanzeigen_de": {**_DEFAULT_CAPS, "search": True},
@@ -68,19 +71,23 @@ def screen_settings(
     seller_phone = profile.get("seller_phone") or secrets.get("BAZOS_PHONE", "")
     default_meeting_place = profile.get("default_meeting_place", "")
 
+    from nextlife.connectors.registry import _registry_capabilities
+
     marketplaces = []
     for key, mp in cfg.marketplaces.items():
         ov = overrides.get(key, {})
-        caps = CAPABILITIES_MATRIX.get(key, {
-            "search": False,
-            "publish": False,
-            "update": False,
-            "unpublish": False,
-            "relist": False,
-            "messages_read": False,
-            "messages_send": False,
-            "delivery_parse": False,
-        })
+        reg_caps = _registry_capabilities(mp)
+        base_caps = CAPABILITIES_MATRIX.get(key, _DEFAULT_CAPS)
+        caps = {
+            **_DEFAULT_CAPS,
+            **{k: bool(v) for k, v in reg_caps.items() if k in _DEFAULT_CAPS},
+            **base_caps,
+        }
+        active_search = ov.get("search", caps.get("search", False))
+        active_publish = ov.get("publish", caps.get("publish", False))
+        caps["search"] = active_search
+        caps["publish"] = active_publish
+
         mp_secrets = [
             {"key": sk, "label": label, "type": itype, "placeholder": ph, "set": bool(secrets.get(sk))}
             for sk, label, itype, ph in MP_SECRETS.get(key, [])
@@ -88,8 +95,8 @@ def screen_settings(
         marketplaces.append({
             "key": key,
             "title": mp.title,
-            "search": ov.get("search", caps.get("search", False)),
-            "publish": ov.get("publish", caps.get("publish", False)),
+            "search": active_search,
+            "publish": active_publish,
             "access_mode": mp.access_mode,
             "secrets": mp_secrets,
             "caps": caps,

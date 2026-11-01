@@ -52,8 +52,13 @@
   <div class="stack-1" data-testid="photo-ops" data-code="{{ item.code }}">
     <div class="row tight wrap" id="photo-ops-buttons">
       <button type="button" class="btn btn-sm btn-primary btn-inline" onclick="openPhotoEditor()" data-testid="btn-open-editor">✎ Редактор фото</button>
-      <form method="POST" data-op="rotate">
-        <button type="submit" class="btn btn-sm btn-secondary btn-inline" title="Поворот кадра на 90°" data-testid="btn-op-rotate">⟳ Повернуть</button>
+      <form method="POST" data-op="rotate" data-degrees="-90">
+        <input type="hidden" name="degrees" value="-90">
+        <button type="submit" class="btn btn-sm btn-secondary btn-inline" title="Поворот кадра влево на 90°" data-testid="btn-op-rotate-left">⟲ Влево 90°</button>
+      </form>
+      <form method="POST" data-op="rotate" data-degrees="90">
+        <input type="hidden" name="degrees" value="90">
+        <button type="submit" class="btn btn-sm btn-secondary btn-inline" title="Поворот кадра вправо на 90°" data-testid="btn-op-rotate">⟳ Вправо 90°</button>
       </form>
       <form method="POST" data-op="cover">
         <button type="submit" class="btn btn-sm btn-secondary btn-inline" title="Сделать обложкой предмета" data-testid="btn-op-cover">★ Обложка</button>
@@ -161,8 +166,11 @@
     <div style="display: flex; flex-direction: column; gap: 12px;">
       <!-- Transform Tools -->
       <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <button type="button" class="btn btn-secondary" onclick="editorRotate()" data-testid="btn-editor-rotate">
-          ⟳ Повернуть 90°
+        <button type="button" class="btn btn-secondary" onclick="editorRotate(-90)" data-testid="btn-editor-rotate-left">
+          ⟲ Влево 90°
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="editorRotate(90)" data-testid="btn-editor-rotate">
+          ⟳ Вправо 90°
         </button>
         <button type="button" class="btn btn-secondary" onclick="editorCrop('free')" data-testid="btn-editor-crop">
           ✂ Кадрировать (Свободно)
@@ -208,7 +216,11 @@
     if (!cur) return;
     const base = '/ui/items/' + itemCode + '/photos/' + (cur.display_id || '');
     document.querySelectorAll('#photo-ops-buttons form').forEach((form) => {
-      form.action = base + '/' + form.dataset.op;
+      let action = base + '/' + form.dataset.op;
+      if (form.dataset.degrees) {
+        action += '?degrees=' + encodeURIComponent(form.dataset.degrees);
+      }
+      form.action = action;
       const hiddenForDefect = form.dataset.defectHidden === '1';
       form.style.display = (hiddenForDefect && cur.role === 'DEFECT') ? 'none' : '';
       const btn = form.querySelector('button');
@@ -314,14 +326,14 @@
     document.getElementById('editor-diff-view').style.display = 'none';
   };
 
-  window.editorRotate = async function() {
+  window.editorRotate = async function(degrees = 90) {
     const cur = photos[currentIndex];
     if (!cur) return;
     try {
       const res = await fetch(`/api/items/${itemCode}/photos/rotate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ degrees: 90, photo_id: cur.display_id }),
+        body: JSON.stringify({ degrees: degrees, photo_id: cur.display_id }),
       });
       if (res.ok) window.location.reload();
     } catch (e) { alert('Ошибка поворота'); }

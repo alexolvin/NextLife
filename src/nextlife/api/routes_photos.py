@@ -178,7 +178,7 @@ def ui_upload_item_photos(
         session.commit()
 
     return RedirectResponse(
-        url=f"/ui/items/{code}?notice=photos_uploaded",
+        url=f"/ui/stock/{code}?notice=photos_uploaded#photos",
         status_code=status.HTTP_303_SEE_OTHER,
     )
 
@@ -219,7 +219,7 @@ def ui_delete_item_photo(
     # (P-E17, финальная приёмка N2).
     notice = "photo_deleted" if paths else "photo_not_found"
     return RedirectResponse(
-        url=f"/ui/items/{code}?notice={notice}",
+        url=f"/ui/stock/{code}?notice={notice}#photos",
         status_code=status.HTTP_303_SEE_OTHER,
     )
 
