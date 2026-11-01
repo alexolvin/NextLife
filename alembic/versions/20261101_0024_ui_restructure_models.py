@@ -161,6 +161,31 @@ def upgrade() -> None:
         )
 
     # 7. Перенос item.attrs.wizard_frames в listing (§2.5)
+    # Ensure all marketplaces exist in marketplace table to satisfy listing_marketplace_key_fkey
+    from pathlib import Path
+    import yaml
+
+    mp_dir = Path(__file__).resolve().parent.parent.parent / "config" / "marketplaces"
+    if mp_dir.is_dir():
+        for ypath in mp_dir.glob("*.yaml"):
+            try:
+                ydata = yaml.safe_load(ypath.read_text(encoding="utf-8")) or {}
+                m_key = ydata.get("key") or ypath.stem
+                m_title = ydata.get("title") or m_key
+                m_country = ydata.get("country") or "CZ"
+                m_curr = ydata.get("currency") or "CZK"
+                m_mode = ydata.get("access_mode") or "DIRECT"
+                bind.execute(
+                    sa.text(
+                        "INSERT INTO marketplace (key, title, country, currency, access_mode, capabilities, enabled, config_hash, created_at, updated_at) "
+                        "VALUES (:k, :t, :c, :curr, :mode, '{}', false, 'migration_0024', NOW(), NOW()) "
+                        "ON CONFLICT (key) DO NOTHING"
+                    ),
+                    {"k": m_key, "t": m_title, "c": m_country, "curr": m_curr, "mode": m_mode},
+                )
+            except Exception:
+                pass
+
     frame_rows = bind.execute(
         sa.text("SELECT code, target_price, target_currency, description_lang, attrs FROM item")
     ).fetchall()
@@ -173,6 +198,22 @@ def upgrade() -> None:
         for mp_key, frame in frames.items():
             if not isinstance(frame, dict):
                 continue
+
+            # Ensure mp_key exists in marketplace table before inserting listing
+            mp_exists = bind.execute(
+                sa.text("SELECT key FROM marketplace WHERE key = :m"),
+                {"m": mp_key},
+            ).fetchone()
+            if not mp_exists:
+                bind.execute(
+                    sa.text(
+                        "INSERT INTO marketplace (key, title, country, currency, access_mode, capabilities, enabled, config_hash, created_at, updated_at) "
+                        "VALUES (:k, :t, 'CZ', :curr, 'DIRECT', '{}', false, 'migration_0024', NOW(), NOW()) "
+                        "ON CONFLICT (key) DO NOTHING"
+                    ),
+                    {"k": mp_key, "t": mp_key, "curr": str(currency or "CZK")},
+                )
+
             # Проверить существующий листинг
             existing = bind.execute(
                 sa.text("SELECT id FROM listing WHERE item_code = :c AND marketplace_key = :m"),
