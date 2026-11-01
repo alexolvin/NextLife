@@ -130,60 +130,134 @@ def _post_chat(url: str, api_key: str, payload: dict[str, Any]) -> dict[str, Any
         return data
 
 
+def classify_results_rule_based(query: str, results: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """Fallback rule-based product-type classifier when LLM is unavailable."""
+    if not results:
+        return None
+
+    q_lower = (query or "").lower().strip()
+
+    # 1. Video Cards / PC Components
+    gpu_terms = ("rtx", "gtx", "radeon", "geforce", "rx ", "gpu", "видеокарт", "grafická", "graficka")
+    is_gpu = any(t in q_lower for t in gpu_terms)
+
+    pc_build_keywords = (
+        "herní pc", "herni pc", "herní počítač", "herni pocitac", "sestava",
+        "gaming pc", "desktop", "i9", "i7", "i5", "ryzen", "компьютер", "сборка", "системный блок"
+    )
+    demand_keywords = ("koupím", "koupim", "sháním", "shanim", "купить", "куплю", "vyměním", "vymenim", "обмен")
+    cooling_keywords = ("chlazení", "chlazeni", "waterblock", "blok", "ventilátor", "ventilator", "cooler", "кулер", "охлаждение")
+
+    # 2. Sofas / Furniture
+    sofa_terms = ("диван", "pohovka", "sedačka", "sedacka", "gauč", "gauc", "диван-кровать")
+    is_sofa = any(t in q_lower for t in sofa_terms)
+
+    sofa_folding_kw = ("rozkládací", "rozkladaci", "раскладн", "спальн")
+    sofa_leather_kw = ("kožená", "kozena", "kůže", "kuze", "кож", "leather")
+    sofa_corner_kw = ("rohová", "rohova", "углов")
+    sofa_ikea_kw = ("ikea", "икеа")
+
+    assignments: list[str] = []
+
+    if is_gpu:
+        for r in results:
+            t = (r.get("title") or "").lower()
+            if any(k in t for k in demand_keywords):
+                assignments.append("Спрос / Покупка")
+            elif any(k in t for k in pc_build_keywords):
+                assignments.append("В составе сборки (ПК)")
+            elif any(k in t for k in cooling_keywords):
+                assignments.append("Комплектующие / Охлаждение")
+            else:
+                assignments.append("Только видеокарта")
+    elif is_sofa:
+        for r in results:
+            t = (r.get("title") or "").lower()
+            if any(k in t for k in sofa_ikea_kw):
+                assignments.append("IKEA")
+            elif any(k in t for k in sofa_folding_kw):
+                assignments.append("Раскладные")
+            elif any(k in t for k in sofa_corner_kw):
+                assignments.append("Угловые")
+            elif any(k in t for k in sofa_leather_kw):
+                assignments.append("Кожаные")
+            else:
+                assignments.append("Другие диваны")
+    else:
+        for r in results:
+            t = (r.get("title") or "").lower()
+            if any(k in t for k in demand_keywords):
+                assignments.append("Спрос / Покупка")
+            elif any(k in t for k in ("příslušenství", "prislusenstvi", "obal", "kryt", "чехол", "аксессуары", "kabel")):
+                assignments.append("Аксессуары")
+            else:
+                assignments.append("Основной товар")
+
+    unique_cats = [c for c in dict.fromkeys(assignments) if c]
+    if len(unique_cats) < 2:
+        return None
+
+    return {
+        "options": ["Показать все"] + unique_cats,
+        "assignments": assignments,
+    }
+
+
 def get_filter_options(query: str, results: list[dict[str, Any]]) -> dict[str, Any] | None:
     """Classify search results by product type via the configured LLM.
 
     Returns a dict ``{"options": [...], "assignments": [...]}`` where
     ``options`` is ``["Показать все"] + categories`` and ``assignments`` is a
     list (same length as ``results``) of the category label for each result
-    index. Returns ``None`` when the LLM is not configured, the result list is
-    empty, or the LLM call/parse fails — the caller then hides the filter.
+    index. When LLM is not configured or fails, falls back to rule-based classification.
     """
+    if not results:
+        return None
+
     llm = get_llm_config()
     endpoint = llm.get("endpoint", "").strip()
     api_key = llm.get("api_key", "").strip()
     model = llm.get("model", "").strip()
 
-    if not endpoint or not results:
-        return None
+    if endpoint:
+        titles = [r.get("title", "") for r in results]
+        numbered = "\n".join(f"{i}: {t}" for i, t in enumerate(titles))
+        prompt = (
+            f"Search query: {query}\n"
+            f"Results (index: title):\n{numbered}\n\n"
+            "Classify these results by product type.\n"
+            "1. Suggest 3-5 short product-type category labels (Russian, max 30 chars each), "
+            "e.g. «Только видеокарта», «Готовый ПК», «Оперативная память».\n"
+            "2. Assign each result index to exactly one of your labels.\n\n"
+            'Return ONLY a JSON object: {"categories": ["..."], "assignments": ["...", ...]}\n'
+            f"where assignments has exactly {len(titles)} entries, one per result index.\n"
+            "No explanation."
+        )
 
-    titles = [r.get("title", "") for r in results]
-    numbered = "\n".join(f"{i}: {t}" for i, t in enumerate(titles))
-    prompt = (
-        f"Search query: {query}\n"
-        f"Results (index: title):\n{numbered}\n\n"
-        "Classify these results by product type.\n"
-        "1. Suggest 3-5 short product-type category labels (Russian, max 30 chars each), "
-        "e.g. «Только видеокарта», «Готовый ПК», «Оперативная память».\n"
-        "2. Assign each result index to exactly one of your labels.\n\n"
-        'Return ONLY a JSON object: {"categories": ["..."], "assignments": ["...", ...]}\n'
-        f"where assignments has exactly {len(titles)} entries, one per result index.\n"
-        "No explanation."
-    )
+        try:
+            content = call_llm(endpoint, api_key, model, prompt)
+            if content.startswith("{"):
+                obj = json.loads(content)
+            else:
+                start = content.find("{")
+                end = content.rfind("}") + 1
+                obj = json.loads(content[start:end])
 
-    try:
-        content = call_llm(endpoint, api_key, model, prompt)
-        if content.startswith("{"):
-            obj = json.loads(content)
-        else:
-            start = content.find("{")
-            end = content.rfind("}") + 1
-            obj = json.loads(content[start:end])
+            categories = obj.get("categories", [])
+            assignments = obj.get("assignments", [])
+            if (
+                isinstance(categories, list)
+                and all(isinstance(c, str) for c in categories)
+                and isinstance(assignments, list)
+                and len(assignments) == len(titles)
+            ):
+                categories = [c.strip() for c in dict.fromkeys(categories) if c.strip()][:5]
+                if categories:
+                    return {
+                        "options": ["Показать все"] + categories,
+                        "assignments": [str(a).strip() for a in assignments],
+                    }
+        except Exception as exc:
+            log.warning("LLM filter call failed: %s", exc)
 
-        categories = obj.get("categories", [])
-        assignments = obj.get("assignments", [])
-        if not isinstance(categories, list) or not all(isinstance(c, str) for c in categories):
-            return None
-        if not isinstance(assignments, list) or len(assignments) != len(titles):
-            return None
-
-        categories = [c.strip() for c in dict.fromkeys(categories) if c.strip()][:5]
-        if not categories:
-            return None
-        return {
-            "options": ["Показать все"] + categories,
-            "assignments": [str(a).strip() for a in assignments],
-        }
-    except Exception as exc:
-        log.warning("LLM filter call failed: %s", exc)
-        return None
+    return classify_results_rule_based(query, results)

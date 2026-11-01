@@ -344,23 +344,36 @@ def build_research_panel(
     min_comp = min_comp if isinstance(min_comp, int) else 5
     stats = calculate_price_stats(prices, min_comparables=min_comp)
 
+    current_query = (run.marketplaces or {}).get("query") or (run.marketplaces or {}).get("original_query") or item.title
+
+    from nextlife.services.llm_filter import get_filter_options
+
+    cat_result = get_filter_options(current_query, [{"title": r.title} for r in own])
+    categories = cat_result.get("options", []) if cat_result else []
+    assignments = cat_result.get("assignments", []) if cat_result else []
+
+    links = [
+        {
+            "marketplace": r.marketplace_key,
+            "title": r.title,
+            "url": r.external_url,
+            "price": str(r.price),
+            "currency": r.currency,
+            "image_url": (r.raw or {}).get("image_url") if isinstance(r.raw, dict) else None,
+            "category": assignments[idx] if idx < len(assignments) else "Другое",
+        }
+        for idx, r in enumerate(own)
+    ]
+
     panel: dict[str, Any] = {
         "run_id": run.id,
-        "query": (run.marketplaces or {}).get("query") or (run.marketplaces or {}).get("original_query") or item.title,
+        "query": current_query,
         "status": run.status,
         "total_found": len(own),
         "range": None,
         "message": None,
-        "links": [
-            {
-                "marketplace": r.marketplace_key,
-                "title": r.title,
-                "url": r.external_url,
-                "price": str(r.price),
-                "currency": r.currency,
-            }
-            for r in own[:10]
-        ],
+        "categories": categories,
+        "links": links,
         "variants": (
             generate_research_texts(
                 item.title,

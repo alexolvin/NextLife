@@ -102,6 +102,7 @@ def test_stock_item_template_renders_research():
         "total_found": 14,
         "marketplaces_scanned": ["bazos_cz", "sbazar_cz", "aukro_cz"],
         "range": {"min": 19000, "max": 24000, "currency": "CZK"},
+        "categories": ["Показать все", "Только видеокарта", "В составе сборки (ПК)"],
         "links": [
             {
                 "marketplace": "bazos_cz",
@@ -109,7 +110,18 @@ def test_stock_item_template_renders_research():
                 "url": "https://pc.bazos.cz/inzerat/123",
                 "price": 20500,
                 "currency": "CZK",
-            }
+                "image_url": "https://www.bazos.cz/img/1.jpg",
+                "category": "Только видеокарта",
+            },
+            {
+                "marketplace": "sbazar_cz",
+                "title": "Herní PC RX 7900 XTX",
+                "url": "https://www.sbazar.cz/inzerat/456",
+                "price": 55000,
+                "currency": "CZK",
+                "image_url": None,
+                "category": "В составе сборки (ПК)",
+            },
         ],
         "query": "RX 7900 XTX",
         "run": {"id": "test-run", "created_at": None, "status": "SUCCESS"},
@@ -132,10 +144,15 @@ def test_stock_item_template_renders_research():
     body = resp.body.decode("utf-8")
     assert "Этап 1. Оценка цены аналогов" in body
     assert "RX 7900 XTX Nitro+ 24GB" in body
-    assert "20500 CZK" in body
+    assert "20500" in body
     assert "https://pc.bazos.cz/inzerat/123" in body
     assert "Найдено предложений: 14" in body
     assert "Поиск аналогов на площадках завершён" in body
+    # Verify thumbnail and category filter
+    assert 'data-testid="select-research-category"' in body
+    assert "В составе сборки (ПК)" in body
+    assert 'data-testid="research-thumb"' in body
+    assert 'https://www.bazos.cz/img/1.jpg' in body
 
 
 def test_stock_item_template_renders_empty_research():
@@ -220,3 +237,61 @@ def test_fx_rate_fallback_when_db_empty():
 
     rate_pln, _ = get_latest_rate_prior_or_on(session, "PLN", date(2026, 11, 1))
     assert rate_pln == Decimal("4.30")
+
+
+def test_classify_results_rule_based_gpu():
+    from nextlife.services.llm_filter import classify_results_rule_based
+
+    results = [
+        {"title": "Sapphire RX 7900 XTX Nitro+ 24GB"},
+        {"title": "Herní PC Ryzen 7 + RX 7900 XTX"},
+        {"title": "Koupím RX 7900 XTX v záruce"},
+        {"title": "Vodní blok chlazení pro RX 7900 XTX"},
+    ]
+    res = classify_results_rule_based("RX 7900 XTX", results)
+    assert res is not None
+    assert "Показать все" in res["options"]
+    assert "Только видеокарта" in res["options"]
+    assert "В составе сборки (ПК)" in res["options"]
+    assert "Спрос / Покупка" in res["options"]
+    assert "Комплектующие / Охлаждение" in res["options"]
+
+    assert res["assignments"][0] == "Только видеокарта"
+    assert res["assignments"][1] == "В составе сборки (ПК)"
+    assert res["assignments"][2] == "Спрос / Покупка"
+    assert res["assignments"][3] == "Комплектующие / Охлаждение"
+
+
+def test_classify_results_rule_based_sofa():
+    from nextlife.services.llm_filter import classify_results_rule_based
+
+    results = [
+        {"title": "Rozkládací pohovka s úložným prostorem"},
+        {"title": "IKEA pohovka Vimle šedá"},
+        {"title": "Kožená sedačka rohová"},
+        {"title": "Starší gauč za odvoz"},
+    ]
+    res = classify_results_rule_based("pohovka", results)
+    assert res is not None
+    assert "Показать все" in res["options"]
+    assert "Раскладные" in res["options"]
+    assert "IKEA" in res["options"]
+    assert "Кожаные" in res["options"] or "Угловые" in res["options"]
+    assert len(res["assignments"]) == 4
+
+
+def test_get_filter_options_falls_back_to_rules(monkeypatch):
+    from nextlife.services.llm_filter import get_filter_options
+
+    # Ensure empty LLM config
+    monkeypatch.setattr("nextlife.services.llm_filter.get_llm_config", lambda: {})
+
+    results = [
+        {"title": "GeForce RTX 4070 Dual"},
+        {"title": "Herní počítač RTX 4070"},
+    ]
+    res = get_filter_options("RTX 4070", results)
+    assert res is not None
+    assert "Только видеокарта" in res["options"]
+    assert "В составе сборки (ПК)" in res["options"]
+

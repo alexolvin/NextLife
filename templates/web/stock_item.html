@@ -156,7 +156,9 @@
       </div>
 
       <!-- Live Search & Comparables Panel (§5.2) -->
-      <div style="margin-top: 20px; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;" data-testid="research-panel">
+      <div style="margin-top: 20px; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;"
+           data-testid="research-panel"
+           x-data="{ selectedCategory: 'Показать все' }">
         <div style="font-weight: 700; font-size: 1rem; color: #1e293b; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
           <span>🔍 Поиск аналогов на площадках (Bazoš, Sbazar, Aukro)</span>
           {% if research and research.badge_text %}
@@ -193,22 +195,70 @@
               {% endif %}
             </div>
 
+            {% if research.categories and research.categories|length > 1 %}
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 8px 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; flex-wrap: wrap;" data-testid="research-filter-container">
+                <label for="research-category-select" style="font-size: 0.85rem; font-weight: 600; color: #475569;">
+                  Категория:
+                </label>
+                <select id="research-category-select" x-model="selectedCategory"
+                        class="input-field" style="padding: 6px 12px; font-size: 0.85rem; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; font-weight: 500;"
+                        data-testid="select-research-category">
+                  {% for cat in research.categories %}
+                    <option value="{{ cat }}">{{ cat }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            {% endif %}
+
             <div style="display: flex; flex-direction: column; gap: 8px;" data-testid="research-links-list">
               {% for l in research.links %}
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
-                  <div style="display: flex; align-items: center; gap: 10px; overflow: hidden;">
-                    <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: #f1f5f9; color: #475569; white-space: nowrap;">
-                      {{ l.marketplace }}
-                    </span>
-                    <a href="{{ l.url }}" target="_blank" rel="noopener noreferrer" style="color: #0284c7; text-decoration: none; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ l.title }}">
-                      {{ l.title }} ↗
-                    </a>
-                  </div>
-                  <div style="font-weight: 700; color: #0f172a; white-space: nowrap; margin-left: 12px;">
-                    {% if l.price %}
-                      {{ l.price }} {{ l.currency }}
+                <div class="research-row"
+                     x-show="!selectedCategory || selectedCategory === 'Показать все' || selectedCategory === '{{ l.category|escape }}'"
+                     data-category="{{ l.category }}"
+                     style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; gap: 12px;">
+                  
+                  <div style="display: flex; align-items: center; gap: 12px; overflow: hidden; flex: 1;">
+                    <!-- Thumbnail (§5.2) -->
+                    {% if l.image_url %}
+                      <img src="{{ l.image_url }}" alt="" loading="lazy"
+                           style="width: 52px; height: 52px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0; flex-shrink: 0; background: #f8fafc;"
+                           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"
+                           data-testid="research-thumb">
+                      <div style="display: none; width: 52px; height: 52px; border-radius: 6px; background: #f1f5f9; border: 1px solid #e2e8f0; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
+                        📷
+                      </div>
                     {% else %}
-                      <span style="color: #94a3b8; font-weight: 400;">Цена не указана</span>
+                      <div style="width: 52px; height: 52px; border-radius: 6px; background: #f1f5f9; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; color: #94a3b8;" data-testid="research-thumb-placeholder">
+                        📷
+                      </div>
+                    {% endif %}
+
+                    <!-- Info -->
+                    <div style="display: flex; flex-direction: column; gap: 4px; overflow: hidden; min-width: 0;">
+                      <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                        <span style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: #f1f5f9; color: #475569; white-space: nowrap;">
+                          {{ l.marketplace }}
+                        </span>
+                        {% if l.category and l.category != 'Показать все' %}
+                          <span class="badge" style="font-size: 0.72rem; font-weight: 600; padding: 2px 6px; border-radius: 4px; background: #e0f2fe; color: #0369a1; white-space: nowrap;" data-testid="badge-research-category">
+                            {{ l.category }}
+                          </span>
+                        {% endif %}
+                      </div>
+                      <a href="{{ l.url }}" target="_blank" rel="noopener noreferrer"
+                         style="color: #0284c7; text-decoration: none; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                         title="{{ l.title }}">
+                        {{ l.title }} ↗
+                      </a>
+                    </div>
+                  </div>
+
+                  <!-- Price -->
+                  <div style="font-weight: 700; color: #0f172a; white-space: nowrap; margin-left: 8px; text-align: right; flex-shrink: 0;">
+                    {% if l.price %}
+                      <span style="font-size: 1.05rem;">{{ l.price }}</span> <span style="font-size: 0.85rem; color: #64748b;">{{ l.currency }}</span>
+                    {% else %}
+                      <span style="color: #94a3b8; font-weight: 400; font-size: 0.85rem;">Цена не указана</span>
                     {% endif %}
                   </div>
                 </div>
