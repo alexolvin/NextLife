@@ -1,0 +1,14 @@
+[Unit]
+Description=NextLife API and Web-UI Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/nextlife/app
+Environment="PYTHONPATH=/opt/nextlife/app/src"
+ExecStart=/usr/bin/python3 -m nextlife.api.main
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

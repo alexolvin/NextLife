@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Утверждение черновика — {{ item.code }}{% endblock %}
+{% block content %}
+<div class="stack-3">
+  <a href="/ui/items/{{ item.code }}" class="btn btn-secondary btn-sm btn-inline">← К карточке предмета</a>
+  <div>
+    <h2 class="page-title">Утверждение черновика</h2>
+    <p class="page-subtitle">Проверьте чешский текст, цену и фотографии перед публикацией на площадки.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="stack-3">
+    <span class="badge">#{{ item.code }}</span>
+    <h3 class="fs-lg fw-bold">{{ draft.title }}</h3>
+    <div class="price">{{ draft.price | money(draft.currency) }}</div>
+    {# TZ-NextLife-UI-N2 §4 V4 (P-E13, Э-6): хэш пэйлоада — служебный,
+       внутри свёрнутого блока по умолчанию. #}
+    <details class="internal-details" data-testid="internal-block-hash">
+      <summary class="fs-xs text-dim cursor-pointer">Служебный блок: хэш пэйлоада (SHA-256)</summary>
+      <div class="hash" data-testid="hash-info">HASH (SHA-256): {{ payload_hash }}</div>
+    </details>
+
+    <div class="row wrap tight">
+      <span class="fs-xs text-muted">Площадки:</span>
+      {% for mp in draft.eligible_marketplaces %}
+      <span class="badge badge-primary">{{ mp }}</span>
+      {% endfor %}
+    </div>
+
+    {% if draft.language_warning %}
+    <div class="info-box" data-testid="language-warning"
+         style="border: 1px solid #c0392b; background: #fdecea; color: #7b241c;">
+      <strong>⛔ Проверка языка (публикация заблокирована):</strong> {{ draft.language_warning }}
+    </div>
+    {% endif %}
+
+    {% if photos %}
+    <div class="thumb-strip">
+      {% for photo in photos %}
+      {% if photo.broken %}
+      <span class="thumb" data-testid="photo-broken-mark" title="Файл фото не найден"
+            style="display:flex;align-items:center;justify-content:center;font-size:10px;color:#6c757d;background:#e9ecef;">🚫 файл не найден</span>
+      {% else %}
+      <img src="{{ photo.url }}" alt="Фото предмета {{ loop.index }}" class="thumb">
+      {% endif %}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="/ui/draft/{{ item.code }}/update" class="stack-2">
+      <div class="field">
+        <label class="field-label" for="listing-text-input">Текст объявления (Czech Listing Text)</label>
+        <textarea id="listing-text-input" name="listing_text" class="input-text" rows="8">{{ draft.body or '' }}</textarea>
+      </div>
+      <div class="row between align-start">
+        <span class="fs-xs text-muted">💡 Ограничение площадки: {{ char_limit or 3000 }} символов</span>
+        <div id="char-counter" class="char-limit" data-testid="char-counter">
+          Символов: <span id="current-chars">{{ (draft.body or '')|length }}</span> / <span id="max-chars">{{ char_limit or 3000 }}</span>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-secondary btn-sm">💾 Сохранить правки текста</button>
+    </form>
+
+    <form method="POST" action="/ui/draft/{{ item.code }}/approve">
+      <input type="hidden" name="payload_hash" value="{{ payload_hash }}">
+      <button type="submit" id="btn-approve" class="btn btn-primary" data-testid="btn-approve"
+        {% if draft.language_warning %}disabled title="Публикация заблокирована проверкой языка"{% endif %}>✅ Утвердить публикацию</button>
+    </form>
+  </div>
+
+  {# TZ-NextLife-UI-N2 §4 V5 (P-R07/P-R08): разведка рынка по аналогам. #}
+  {% include "_research_panel.html" %}
+</div>
+
+<script>
+(function() {
+  const textarea = document.getElementById('listing-text-input');
+  const currentSpan = document.getElementById('current-chars');
+  const counterEl = document.getElementById('char-counter');
+  const maxLimit = {{ char_limit or 3000 }};
+  if (textarea && currentSpan) {
+    function updateCounter() {
+      const len = textarea.value.length;
+      currentSpan.textContent = len;
+      counterEl.classList.toggle('over-limit', len > maxLimit);
+    }
+    textarea.addEventListener('input', updateCounter);
+    updateCounter();
+  }
+})();
+</script>
+{% endblock %}

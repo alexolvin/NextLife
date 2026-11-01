@@ -1,0 +1,13 @@
+grades:
+  A:
+    label_cs: "Výborný stav"
+    definition_cs: "Minimální známky používání, plně funkční a čisté."
+  B:
+    label_cs: "Velmi dobrý stav"
+    definition_cs: "Běžné drobné známky používání, plně funkční."
+  C:
+    label_cs: "Dobrý stav"
+    definition_cs: "Viditelné kosmetické vady či známky používání, plně funkční."
+  D:
+    label_cs: "Na díly nebo k opravě"
+    definition_cs: "Částečně nebo zcela nefunkční, vhodné na náhradní díly či opravu."

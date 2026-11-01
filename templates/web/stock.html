@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="stock-container" style="padding: 16px; max-width: 960px; margin: 0 auto; padding-bottom: 90px;">
+  {% if notice == 'deleted' %}
+    <div class="toast-banner" style="background: #fee2e2; color: #991b1b; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Предмет удалён</div>
+  {% endif %}
+
+  <!-- Page Head -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+    <h1 style="font-size: 1.4rem; font-weight: 700; margin: 0;">Склад</h1>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <!-- View mode toggle -->
+      <button id="btn-toggle-view" class="btn btn-secondary btn-sm" onclick="toggleStockView()" title="Переключить вид" style="padding: 6px 10px; font-size: 0.85rem;" data-testid="btn-view-toggle">
+        <span id="view-toggle-text">Компактный</span>
+      </button>
+      <a href="/ui/stock/new" class="btn btn-primary btn-sm" title="Добавить предмет" data-testid="btn-stock-add" style="padding: 6px 12px; font-weight: 600;">
+        + Предмет
+      </a>
+    </div>
+  </div>
+
+  <!-- Search & Sort Row -->
+  <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+    <form method="get" action="/ui/stock" style="flex: 1; min-width: 220px; display: flex; gap: 6px;">
+      <input type="search" name="q" value="{{ q }}" placeholder="🔍 Поиск: код, название, место..."
+             class="input-field" style="flex: 1; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem;" data-testid="stock-search">
+      <input type="hidden" name="group" value="{{ group }}">
+      <input type="hidden" name="sort" value="{{ sort }}">
+      {% if q %}
+        <a href="/ui/stock?group={{ group }}&sort={{ sort }}" style="display: flex; align-items: center; padding: 0 8px; color: #64748b; text-decoration: none; font-size: 0.9rem;">✕</a>
+      {% endif %}
+    </form>
+
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <label for="select-sort" style="font-size: 0.85rem; color: #64748b;">Сортировка:</label>
+      <select id="select-sort" onchange="changeSort(this.value)" class="input-field" style="padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem; background: #fff;" data-testid="stock-sort">
+        <option value="recent" {{ 'selected' if sort == 'recent' else '' }}>Недавно изменённые</option>
+        <option value="oldest" {{ 'selected' if sort == 'oldest' else '' }}>Дольше всех на складе</option>
+        <option value="price_desc" {{ 'selected' if sort == 'price_desc' else '' }}>Цена ↓</option>
+        <option value="location" {{ 'selected' if sort == 'location' else '' }}>Место на складе</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Filter Chips (7 chips with counts) -->
+  <div class="filter-chips" style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px;" data-testid="stock-filter-chips">
+    {% set gc = group_counts or {} %}
+    <a href="/ui/stock?group=all&sort={{ sort }}{{ '&q=' + q if q else '' }}" class="chip" style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; {{ 'background: #2563eb; color: #fff; font-weight: 600;' if group == 'all' else 'background: #f1f5f9; color: #334155;' }}">
+      Все активные ({{ gc.get('all', 0) }})
+    </a>
+    <a href="/ui/stock?group=new&sort={{ sort }}{{ '&q=' + q if q else '' }}" class="chip" style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; {{ 'background: #2563eb; color: #fff; font-weight: 600;' if group == 'new' else 'background: #f1f5f9; color: #334155;' }}">
+      Новые ({{ gc.get('new', 0) }})
+    </a>
+    <a href="/ui/stock?group=prep&sort={{ sort }}{{ '&q=' + q if q else '' }}" class="chip" style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; {{ 'background: #2563eb; color: #fff; font-weight: 600;' if group in ('prep', 'drafts') else 'background: #f1f5f9; color: #334155;' }}">
+      Подготовка ({{ gc.get('prep', 0) }})
+    </a>
+    <a href="/ui/stock?group=ready&sort={{ sort }}{{ '&q=' + q if q else '' }}" class="chip" style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; {{ 'background: #2563eb; color: #fff; font-weight: 600;' if group == 'ready' else 'background: #f1f5f9; color: #334155;' }}">
+      Готовы ({{ gc.get('ready', 0) }})
+    </a>
+    <a href="/ui/stock?group=on_sale&sort={{ sort }}{{ '&q=' + q if q else '' }}" class="chip" style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; {{ 'background: #2563eb; color: #fff; font-weight: 600;' if group == 'on_sale' else 'background: #f1f5f9; color: #334155;' }}">
+      На продаже ({{ gc.get('on_sale', 0) }})
+    </a>
+    <a href="/ui/stock?group=sold&sort={{ sort }}{{ '&q=' + q if q else '' }}" class="chip" style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; {{ 'background: #2563eb; color: #fff; font-weight: 600;' if group == 'sold' else 'background: #f1f5f9; color: #334155;' }}">
+      Проданы ({{ gc.get('sold', 0) }})
+    </a>
+    <a href="/ui/stock?group=archive&sort={{ sort }}{{ '&q=' + q if q else '' }}" class="chip" style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; {{ 'background: #2563eb; color: #fff; font-weight: 600;' if group == 'archive' else 'background: #f1f5f9; color: #334155;' }}">
+      Архив ({{ gc.get('archive', 0) }})
+    </a>
+  </div>
+
+  <!-- Bulk Actions Toolbar (hidden by default) -->
+  <div id="bulk-toolbar" class="hidden" style="position: sticky; top: 10px; z-index: 50; background: #1e293b; color: #fff; padding: 10px 16px; border-radius: 8px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" data-testid="bulk-toolbar">
+    <div style="font-size: 0.9rem; font-weight: 600;">
+      Выбрано: <span id="bulk-selected-count">0</span>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button onclick="bulkPhotoStand()" class="btn btn-sm" style="background: #3b82f6; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem;">
+        📷 Фотостенд
+      </button>
+      <button onclick="openBulkLocationModal()" class="btn btn-sm" style="background: #475569; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem;">
+        📍 Сменить место
+      </button>
+      <button onclick="bulkPriceEstimate()" class="btn btn-sm" style="background: #10b981; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem;">
+        💰 Оценить
+      </button>
+      <button onclick="clearBulkSelection()" class="btn btn-sm" style="background: transparent; color: #94a3b8; border: none; padding: 6px 8px; font-size: 0.8rem;">
+        Отмена
+      </button>
+    </div>
+  </div>
+
+  <!-- Items Feed List/Grid -->
+  <div id="stock-items-container" class="item-feed-grid">
+    {% for it in items %}
+      <div class="card stock-card" data-code="{{ it.code }}" data-title="{{ it.title }}" data-loc="{{ it.storage_location or '' }}" data-testid="stock-card-{{ it.code }}" style="position: relative; transition: all 0.2s ease;">
+        <!-- Checkbox for bulk mode -->
+        <div style="position: absolute; top: 12px; left: 12px; z-index: 2;">
+          <input type="checkbox" class="stock-item-checkbox" value="{{ it.code }}" onchange="onItemSelectionChange()" style="width: 18px; height: 18px; cursor: pointer;">
+        </div>
+
+        <div class="row between" style="margin-left: 28px;">
+          <span class="badge">#{{ it.code }}</span>
+          <span class="{{ it.status_badge_cls }}">{{ it.status | status_ru }}</span>
+        </div>
+
+        <div class="feed-card-body" style="margin-top: 10px;">
+          {% if it.thumb_url %}
+            <img src="{{ it.thumb_url }}" class="feed-thumb feed-card-thumb" alt="Миниатюра #{{ it.code }}" onclick="openLightbox('{{ it.thumb_url }}')">
+          {% else %}
+            <div class="feed-thumb feed-card-thumb feed-thumb-placeholder">📦</div>
+          {% endif %}
+
+          <div class="feed-card-content" style="flex: 1;">
+            <div class="card-title">
+              <a href="/ui/stock/{{ it.code }}" style="font-weight: 600; text-decoration: none; color: #1e293b;">{{ it.title }}</a>
+            </div>
+
+            <div class="price" style="font-weight: 600; color: #16a34a; margin-top: 2px;">
+              {{ it.price_display or 'цена не задана' }}
+            </div>
+
+            <div class="fs-xs text-muted" style="margin-top: 4px;">
+              📍 {{ it.storage_location or 'место не задано' }}
+            </div>
+
+            <!-- 6-Stage Dots Indicator (§5.1) -->
+            <div class="stage-dots" style="display: flex; gap: 4px; align-items: center; margin-top: 8px;" title="Этапы 1–6: Оценка, Фото, Описание, Объявления, Продажа, Гарантия">
+              {% for s in it.stages %}
+                <span style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; {{ 'background: #22c55e;' if s else 'background: #cbd5e1;' }}"></span>
+              {% endfor %}
+            </div>
+
+            <div style="margin-top: 10px;">
+              <a href="/ui/stock/{{ it.code }}" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.8rem;">Открыть →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div class="card" style="padding: 32px; text-align: center; color: #64748b; background: #fff; border-radius: 8px; grid-column: 1 / -1;">
+        Предметы не найдены.<br><br>
+        <a href="/ui/stock/new" class="btn btn-primary" data-testid="btn-stock-empty-add">Добавить предмет</a>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Floating Action Button (FAB) "+" fixed at bottom-right (§4.1.6) -->
+  <a href="/ui/stock/new" class="fab-btn" title="Добавить предмет" data-testid="fab-add"
+     style="position: fixed; bottom: 75px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(37,99,235,0.4); z-index: 100; text-decoration: none;">
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"></line>
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+  </a>
+
+  <!-- Bulk Location Modal -->
+  <div id="bulk-location-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1001; display: flex; align-items: center; justify-content: center;">
+    <div class="modal-box" style="background: #fff; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px;">
+      <h3 style="margin-top: 0; font-size: 1.1rem; font-weight: 600;">Изменить место на складе</h3>
+      <p style="font-size: 0.85rem; color: #64748b;">Новое место будет установлено для выбранных предметов:</p>
+      <input type="text" id="bulk-location-input" placeholder="Например, Полка C-1" class="input-field" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 16px;">
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button onclick="closeBulkLocationModal()" class="btn btn-secondary">Отмена</button>
+        <button onclick="submitBulkLocation()" class="btn btn-primary">Сохранить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function changeSort(val) {
+    const url = new URL(window.location);
+    url.searchParams.set('sort', val);
+    window.location.href = url.toString();
+  }
+
+  // View toggle: cards vs compact
+  function toggleStockView() {
+    const container = document.getElementById('stock-items-container');
+    const text = document.getElementById('view-toggle-text');
+    if (!container) return;
+    const isCompact = container.classList.toggle('compact-view');
+    localStorage.setItem('stock_view_mode', isCompact ? 'compact' : 'cards');
+    if (text) text.textContent = isCompact ? 'Карточки' : 'Компактный';
+  }
+
+  // Load saved view mode
+  document.addEventListener('DOMContentLoaded', function() {
+    const saved = localStorage.getItem('stock_view_mode');
+    const container = document.getElementById('stock-items-container');
+    const text = document.getElementById('view-toggle-text');
+    if (saved === 'compact' && container) {
+      container.classList.add('compact-view');
+      if (text) text.textContent = 'Карточки';
+    }
+  });
+
+  // Bulk selection handling
+  function getSelectedCodes() {
+    const checkboxes = document.querySelectorAll('.stock-item-checkbox:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
+  }
+
+  function onItemSelectionChange() {
+    const codes = getSelectedCodes();
+    const toolbar = document.getElementById('bulk-toolbar');
+    const countEl = document.getElementById('bulk-selected-count');
+    if (codes.length > 0) {
+      toolbar.classList.remove('hidden');
+      countEl.textContent = codes.length;
+    } else {
+      toolbar.classList.add('hidden');
+    }
+  }
+
+  function clearBulkSelection() {
+    document.querySelectorAll('.stock-item-checkbox:checked').forEach(cb => { cb.checked = false; });
+    onItemSelectionChange();
+  }
+
+  function bulkPhotoStand() {
+    const codes = getSelectedCodes();
+    if (codes.length === 0) return;
+    window.location.href = '/ui/photo-stand?codes=' + encodeURIComponent(codes.join(','));
+  }
+
+  function openBulkLocationModal() {
+    document.getElementById('bulk-location-modal').classList.remove('hidden');
+  }
+
+  function closeBulkLocationModal() {
+    document.getElementById('bulk-location-modal').classList.add('hidden');
+  }
+
+  function submitBulkLocation() {
+    const codes = getSelectedCodes();
+    const loc = document.getElementById('bulk-location-input').value;
+    if (!codes.length || !loc) return;
+    fetch('/api/stock/bulk-location', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ codes: codes, storage_location: loc }),
+      credentials: 'same-origin'
+    }).then(r => r.json()).then(res => {
+      closeBulkLocationModal();
+      window.location.reload();
+    }).catch(err => {
+      alert('Ошибка обновления: ' + err);
+    });
+  }
+
+  function bulkPriceEstimate() {
+    const codes = getSelectedCodes();
+    if (!codes.length) return;
+    if (!confirm('Запустить оценку цены для ' + codes.length + ' предметов?')) return;
+    fetch('/api/stock/bulk-price-estimate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ codes: codes }),
+      credentials: 'same-origin'
+    }).then(r => r.json()).then(res => {
+      alert('Запущено задач оценки: ' + res.queued_count);
+      clearBulkSelection();
+    }).catch(err => {
+      alert('Ошибка: ' + err);
+    });
+  }
+</script>
+{% endblock %}

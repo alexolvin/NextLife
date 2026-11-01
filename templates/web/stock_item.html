@@ -1,0 +1,350 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="stock-item-container" style="padding: 16px; max-width: 900px; margin: 0 auto; padding-bottom: 80px;"
+     x-data="{ activeTab: window.location.hash || '#price' }"
+     x-init="window.addEventListener('hashchange', () => { activeTab = window.location.hash || '#price' })">
+
+  <!-- Toast Banners -->
+  {% if notice == 'saved' %}
+    <div class="toast-banner" style="background: #dcfce7; color: #166534; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Изменения сохранены</div>
+  {% elif notice == 'ready' %}
+    <div class="toast-banner" style="background: #dcfce7; color: #166534; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Чек-лист выполнен! Предмет готов к продаже</div>
+  {% elif notice == 'price_estimated' %}
+    <div class="toast-banner" style="background: #dcfce7; color: #166534; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Цена оценки сохранена</div>
+  {% elif notice == 'sold' %}
+    <div class="toast-banner" style="background: #dcfce7; color: #166534; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Предмет отмечен проданным</div>
+  {% elif notice == 'returned' %}
+    <div class="toast-banner" style="background: #fef9c3; color: #854d0e; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Оформлен возврат по гарантии</div>
+  {% endif %}
+
+  <!-- Persistent Header (§5.1) -->
+  <div style="margin-bottom: 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <a href="/ui/stock" class="btn btn-secondary btn-sm" style="padding: 6px 12px; font-size: 0.85rem;" data-testid="btn-back-stock">
+        ← Склад
+      </a>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <form method="post" action="/api/stock/{{ item.code }}/dispose" onsubmit="return confirm('Утилизировать предмет #{{ item.code }}? Он будет перемещён в архив.')" style="margin: 0;">
+          <button type="submit" class="btn btn-sm" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem;" data-testid="btn-dispose">
+            Утилизировать
+          </button>
+        </form>
+        <button onclick="document.getElementById('delete-modal').classList.remove('hidden')" class="btn btn-sm" style="background: #fee2e2; color: #991b1b; border: 1px solid #f87171; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem;" data-testid="btn-delete">
+          Удалить
+        </button>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+      <div>
+        <span class="badge" style="font-size: 0.85rem; padding: 2px 8px; background: #e2e8f0; border-radius: 4px;">#{{ item.code }}</span>
+        <h1 style="font-size: 1.3rem; font-weight: 700; margin: 4px 0 0 0; color: #0f172a;" data-testid="item-title">{{ item.title }}</h1>
+        {% if item.storage_location %}
+          <div style="font-size: 0.85rem; color: #64748b; margin-top: 2px;">📍 {{ item.storage_location }}</div>
+        {% endif %}
+      </div>
+      <div>
+        <span class="{{ item.status_badge_cls }}" style="font-size: 0.85rem; padding: 4px 10px; border-radius: 6px;" data-testid="item-status-badge">
+          {{ item.status | status_ru }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6-Stage Stepper (§5.1) -->
+  <div class="stepper-bar" style="display: flex; gap: 4px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0;" data-testid="item-stepper">
+    <a href="#price" @click="activeTab = '#price'" class="stepper-tab" :style="activeTab === '#price' ? 'border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 700;' : 'color: #64748b;'"
+       style="padding: 8px 12px; text-decoration: none; font-size: 0.9rem; white-space: nowrap; display: flex; align-items: center; gap: 6px;" data-testid="tab-price">
+      <span>{{ '✓' if item.target_price or item.price_estimate_median else '1.' }}</span> Оценка
+    </a>
+    <a href="#photos" @click="activeTab = '#photos'" class="stepper-tab" :style="activeTab === '#photos' ? 'border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 700;' : 'color: #64748b;'"
+       style="padding: 8px 12px; text-decoration: none; font-size: 0.9rem; white-space: nowrap; display: flex; align-items: center; gap: 6px;" data-testid="tab-photos">
+      <span>{{ '✓' if item.photos|length > 0 else '2.' }}</span> Фото
+    </a>
+    <a href="#describe" @click="activeTab = '#describe'" class="stepper-tab" :style="activeTab === '#describe' ? 'border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 700;' : 'color: #64748b;'"
+       style="padding: 8px 12px; text-decoration: none; font-size: 0.9rem; white-space: nowrap; display: flex; align-items: center; gap: 6px;" data-testid="tab-describe">
+      <span>{{ '✓' if item.description else '3.' }}</span> Описание и доставка
+    </a>
+    <a href="#listings" @click="activeTab = '#listings'" class="stepper-tab" :style="activeTab === '#listings' ? 'border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 700;' : 'color: #64748b;'"
+       style="padding: 8px 12px; text-decoration: none; font-size: 0.9rem; white-space: nowrap; display: flex; align-items: center; gap: 6px;" data-testid="tab-listings">
+      <span>{{ '✓' if item.listings|length > 0 else '4.' }}</span> Объявления
+    </a>
+    <a href="#sale" @click="activeTab = '#sale'" class="stepper-tab" :style="activeTab === '#sale' ? 'border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 700;' : 'color: #64748b;'"
+       style="padding: 8px 12px; text-decoration: none; font-size: 0.9rem; white-space: nowrap; display: flex; align-items: center; gap: 6px;" data-testid="tab-sale">
+      <span>{{ '✓' if item.status in ('SOLD', 'IN_WARRANTY', 'RETURNED') else '5.' }}</span> Продажа
+    </a>
+    <a href="#warranty" @click="activeTab = '#warranty'" class="stepper-tab" :style="activeTab === '#warranty' ? 'border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 700;' : 'color: #64748b;'"
+       style="padding: 8px 12px; text-decoration: none; font-size: 0.9rem; white-space: nowrap; display: flex; align-items: center; gap: 6px;" data-testid="tab-warranty">
+      <span>6.</span> Гарантия
+    </a>
+  </div>
+
+  <!-- ================= STAGE 1: PRICE RESEARCH (#price) ================= -->
+  <div x-show="activeTab === '#price'" data-testid="stage-price-panel" class="stack-3">
+    <div class="card" style="padding: 18px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-top: 0;">Этап 1. Оценка цены аналогов</h2>
+
+      {% if item.target_price %}
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+          <div style="font-size: 0.85rem; color: #166534;">Текущая целевая цена:</div>
+          <div style="font-size: 1.4rem; font-weight: 700; color: #15803d;">{{ item.target_price }} {{ item.target_currency or 'CZK' }}</div>
+        </div>
+      {% endif %}
+
+      <!-- Statistical Block (§5.2.3) -->
+      {% if item.price_estimate_median %}
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; text-align: center;">
+          <div style="background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div style="font-size: 0.75rem; color: #64748b;">P25 (низ рынка)</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: #334155;">{{ item.price_estimate_low or '—' }} {{ item.price_estimate_currency }}</div>
+          </div>
+          <div style="background: #eff6ff; padding: 10px; border-radius: 8px; border: 1px solid #bfdbfe;">
+            <div style="font-size: 0.75rem; color: #1d4ed8; font-weight: 600;">Медиана (P50)</div>
+            <div style="font-size: 1.2rem; font-weight: 800; color: #1e40af;">{{ item.price_estimate_median }} {{ item.price_estimate_currency }}</div>
+          </div>
+          <div style="background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div style="font-size: 0.75rem; color: #64748b;">P75 (верх рынка)</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: #334155;">{{ item.price_estimate_high or '—' }} {{ item.price_estimate_currency }}</div>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Decisions (§5.2.4) -->
+      <div style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
+        <h3 style="font-size: 0.95rem; font-weight: 600; margin-top: 0; margin-bottom: 10px;">Решение по цене:</h3>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          {% if item.price_estimate_median %}
+            <form method="post" action="/api/stock/{{ item.code }}/price-estimate" style="margin: 0;">
+              <input type="hidden" name="price" value="{{ item.price_estimate_median }}">
+              <input type="hidden" name="currency" value="{{ item.price_estimate_currency or 'CZK' }}">
+              <button type="submit" class="btn btn-primary" style="padding: 10px 16px; font-weight: 600;" data-testid="btn-sell-median">
+                Продавать за {{ item.price_estimate_median }} {{ item.price_estimate_currency or 'CZK' }}
+              </button>
+            </form>
+          {% endif %}
+        </div>
+
+        <form method="post" action="/api/stock/{{ item.code }}/price-estimate" style="margin-top: 12px; display: flex; gap: 8px; align-items: center;">
+          <input type="number" step="1" name="price" placeholder="Своя цена" value="{{ item.target_price or '' }}" required
+                 class="input-field" style="width: 140px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px;" data-testid="input-custom-price">
+          <select name="currency" class="input-field" style="padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+            <option value="CZK" selected>CZK</option>
+            <option value="EUR">EUR</option>
+            <option value="PLN">PLN</option>
+          </select>
+          <button type="submit" class="btn btn-secondary" style="padding: 8px 14px; font-weight: 600;" data-testid="btn-save-price">
+            Задать свою цену
+          </button>
+        </form>
+      </div>
+
+      <!-- Trigger Live Search Panel -->
+      <div style="margin-top: 16px;">
+        <a href="/ui/items/{{ item.code }}/research" class="btn btn-secondary btn-sm">
+          🔍 Запустить поиск аналогов на площадках
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= STAGE 2: PHOTOS (#photos) ================= -->
+  <div x-show="activeTab === '#photos'" data-testid="stage-photos-panel" class="stack-3">
+    <div class="card" style="padding: 18px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0;">Этап 2. Фотографии</h2>
+        <a href="/ui/photo-stand?codes={{ item.code }}" class="btn btn-secondary btn-sm" data-testid="btn-photo-stand">
+          📷 Фотостенд
+        </a>
+      </div>
+      {% include "_photo_gallery.html" %}
+    </div>
+  </div>
+
+  <!-- ================= STAGE 3: DESCRIBE & SHIPPING (#describe) ================= -->
+  <div x-show="activeTab === '#describe'" data-testid="stage-describe-panel" class="stack-3">
+    <!-- Ready for sale Checklist (§5.5.5) -->
+    <div class="card" style="padding: 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 16px;" data-testid="checklist-card">
+      <h3 style="font-size: 1.05rem; font-weight: 700; margin-top: 0; margin-bottom: 10px;">Чек-лист «Готов к продаже»</h3>
+      <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; margin-bottom: 14px;">
+        <div>{{ '✓' if item.photos|length > 0 else '○' }} ≥ 1 фото предмета</div>
+        <div>{{ '✓' if item.description else '○' }} Заполнено описание</div>
+        <div>{{ '✓' if item.weight_g and item.dim_l_mm else '○' }} Указаны вес и габариты</div>
+        <div>{{ '✓' if item.shipping_policy else '○' }} Выбрана политика доставки</div>
+        <div>{{ '✓' if item.target_price or item.price_estimate_median else '○' }} Задана цена (или медиана)</div>
+      </div>
+      <form method="post" action="/api/stock/{{ item.code }}/ready">
+        <button type="submit" class="btn btn-primary" style="padding: 10px 18px; font-weight: 700; border-radius: 8px;" data-testid="btn-ready-for-sale">
+          Готов к продаже
+        </button>
+      </form>
+    </div>
+
+    <!-- Main Stock Item Form -->
+    {% include "_stock_form.html" %}
+
+    <!-- Shipping Tariffs Constructor -->
+    {% include "_shipping_constructor.html" %}
+  </div>
+
+  <!-- ================= STAGE 4: LISTINGS (#listings) ================= -->
+  <div x-show="activeTab === '#listings'" data-testid="stage-listings-panel" class="stack-3">
+    <div class="card" style="padding: 18px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;" data-testid="stock-listings">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+        <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0;">Объявления на площадках ({{ item.listings_count }})</h2>
+        <form method="post" action="/ui/stock/{{ item.code }}/listings/prepare" style="margin: 0;">
+          <button type="submit" class="btn btn-secondary btn-sm" data-testid="btn-prepare-listings">
+            ⚡ Подготовить объявления
+          </button>
+        </form>
+      </div>
+
+      {% if not item.listings %}
+        <div style="padding: 24px; text-align: center; color: #64748b; background: #f8fafc; border-radius: 8px;">
+          Объявления ещё не подготовлены.<br><br>
+          <form method="post" action="/ui/stock/{{ item.code }}/listings/prepare">
+            <button type="submit" class="btn btn-primary" data-testid="btn-prepare-listings-empty">
+              ⚡ Подготовить объявления для рекомендованных площадок
+            </button>
+          </form>
+        </div>
+      {% else %}
+        {% set approved_count = item.listings | selectattr('is_approved') | list | length %}
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
+          {% for l in item.listings %}
+            <div style="padding: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <strong style="font-size: 0.95rem; color: #0f172a;">{{ l.marketplace_key }}</strong>
+                  <span class="badge" style="font-size: 0.75rem;">{{ l.status }}</span>
+                </div>
+                <div style="margin-top: 4px;">
+                  <a href="/ui/listings/{{ l.id }}" style="font-weight: 600; color: #2563eb; text-decoration: none;">
+                    {{ l.title or 'Черновик объявления' }}
+                  </a>
+                </div>
+                <div style="font-size: 0.85rem; color: #15803d; font-weight: 700; margin-top: 4px;">
+                  {{ l.price }} {{ l.currency }}
+                </div>
+                {% if l.external_url %}
+                  <div style="margin-top: 4px;">
+                    <a href="{{ l.external_url }}" target="_blank" rel="noopener" style="font-size: 0.8rem; color: #2563eb;">Открыть на сайте ↗</a>
+                  </div>
+                {% endif %}
+              </div>
+
+              <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+                {% if l.is_approved %}
+                  <form method="post" action="/ui/listings/{{ l.id }}/unapprove" style="margin: 0;">
+                    <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 0.8rem;" data-testid="btn-toggle-unapprove">
+                      ✓ Утверждено
+                    </button>
+                  </form>
+                {% elif l.status == 'DRAFT' %}
+                  <form method="post" action="/ui/listings/{{ l.id }}/approve" style="margin: 0;">
+                    <button type="submit" class="btn btn-primary btn-sm" style="font-size: 0.8rem;" data-testid="btn-toggle-approve">
+                      Утвердить
+                    </button>
+                  </form>
+                {% endif %}
+                <a href="/ui/listings/{{ l.id }}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;">Правка ✎</a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        {% if approved_count > 0 %}
+          <form method="post" action="/ui/listings/publish-approved" style="margin-top: 14px;">
+            <input type="hidden" name="item_code" value="{{ item.code }}">
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 700; font-size: 1rem;" data-testid="btn-publish-approved-item">
+              Разместить утверждённые ({{ approved_count }})
+            </button>
+          </form>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ================= STAGE 5: SALE (#sale) ================= -->
+  <div x-show="activeTab === '#sale'" data-testid="stage-sale-panel" class="stack-3">
+    <div class="card" style="padding: 18px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-top: 0; margin-bottom: 14px;">Этап 5. Продажа</h2>
+
+      {% if item.deal %}
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+          <h3 style="margin-top: 0; color: #166534; font-size: 1rem;">Сделка завершена</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.9rem; margin-top: 10px;">
+            <div>Итоговая цена: <strong>{{ item.deal.agreed_price }} {{ item.deal.currency }}</strong></div>
+            <div>Покупатель: <strong>{{ item.deal.buyer }}</strong></div>
+            <div>Способ: <strong>{{ item.deal.delivery_method or 'Личная встреча' }}</strong></div>
+            <div>Статус оплаты: <strong>{{ item.deal.status }}</strong></div>
+          </div>
+        </div>
+      {% else %}
+        <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 16px;">
+          Когда предмет продан покупателю, нажмите кнопку ниже. Объявления будут автоматически сняты со всех площадок, и статус перейдёт в «Продан».
+        </p>
+        <form method="post" action="/api/stock/{{ item.code }}/sold">
+          <button type="submit" class="btn btn-primary" style="padding: 12px 20px; font-weight: 700; border-radius: 8px;" data-testid="btn-mark-sold">
+            ✓ Отметить проданным
+          </button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ================= STAGE 6: WARRANTY (#warranty) ================= -->
+  <div x-show="activeTab === '#warranty'" data-testid="stage-warranty-panel" class="stack-3">
+    <div class="card" style="padding: 18px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-top: 0; margin-bottom: 14px;">Этап 6. Гарантия</h2>
+
+      {% if item.warranty_until %}
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+          <div style="font-size: 0.85rem; color: #1e40af;">Гарантия действует до:</div>
+          <div style="font-size: 1.25rem; font-weight: 700; color: #1e3a8a;">{{ item.warranty_until }}</div>
+          <div style="font-size: 0.9rem; color: #3b82f6; margin-top: 4px;">
+            Осталось дней: <strong>{{ item.warranty_days_left }}</strong>
+          </div>
+        </div>
+
+        {% if item.status == 'SOLD' or item.status == 'IN_WARRANTY' %}
+          <form method="post" action="/api/stock/{{ item.code }}/return" onsubmit="return confirm('Оформить возврат по гарантии?')">
+            <button type="submit" class="btn btn-secondary" style="padding: 10px 16px; font-weight: 600;" data-testid="btn-warranty-return">
+              Оформить возврат по гарантии
+            </button>
+          </form>
+        {% endif %}
+      {% else %}
+        <div style="padding: 16px; color: #64748b; background: #f8fafc; border-radius: 8px;">
+          Для этого предмета гарантия не указана (срок гарантии: пусто).
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Delete preview modal -->
+  <div id="delete-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1001; display: flex; align-items: center; justify-content: center;">
+    <div class="modal-box" style="background: #fff; padding: 20px; border-radius: 12px; width: 90%; max-width: 440px;">
+      <h3 style="margin-top: 0; font-size: 1.1rem; font-weight: 600; color: #991b1b;">Удалить предмет #{{ item.code }}?</h3>
+      <p style="font-size: 0.85rem; color: #64748b;">Это действие удалит предмет, фото и снимет все активные объявления.</p>
+      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;">
+        <button onclick="document.getElementById('delete-modal').classList.add('hidden')" class="btn btn-secondary">Отмена</button>
+        <button onclick="confirmDeleteItem('{{ item.code }}')" class="btn btn-danger" style="background: #ef4444; color: #fff;">Удалить навсегда</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function confirmDeleteItem(code) {
+    fetch('/api/stock/' + code + '?confirm_listings=true', {
+      method: 'DELETE',
+      credentials: 'same-origin'
+    }).then(r => r.json()).then(res => {
+      window.location.href = '/ui/stock?notice=deleted';
+    }).catch(err => {
+      alert('Ошибка при удалении: ' + err);
+    });
+  }
+</script>
+{% endblock %}

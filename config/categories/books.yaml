@@ -1,0 +1,17 @@
+key: books
+title: "Книги"
+required_fields:
+  - title
+  - author
+  - condition
+optional_fields:
+  - isbn
+  - year
+  - publisher
+  - language
+defects_options:
+  - cover_wear
+  - spine_damage
+  - missing_pages
+  - annotations
+  - water_damage

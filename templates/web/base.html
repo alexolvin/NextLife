@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>NextLife — Консоль рекомендации</title>
+  <link rel="stylesheet" href="/static/app.css?v={{ asset_ver }}">
+  <script src="/static/vendor/htmx.min.js"></script>
+  <script defer src="/static/vendor/alpine.min.js"></script>
+</head>
+<body>
+  <div class="app-shell {{ 'app-shell-wide' if wide_shell is not false else '' }}">
+    <header class="app-header">
+      <a href="/ui/stock" class="brand" style="text-decoration: none; color: inherit;">
+        <div class="brand-icon">⚡</div>
+        <div>
+          <div class="brand-text">NextLife</div>
+        </div>
+      </a>
+      {% if active_tab != 'login' %}
+      <div class="header-actions" style="display: flex; align-items: center; gap: 4px;">
+        <a href="/ui/search" class="header-btn" title="Поиск" data-testid="header-search">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </a>
+        <button id="btn-tasks" class="header-btn hidden" onclick="toggleTasksDrawer(event)" title="Фоновые задачи" data-testid="header-tasks">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <span id="tasks-badge" class="header-badge">0</span>
+        </button>
+        <a href="/ui/settings" class="header-btn" title="Настройки" data-testid="header-settings">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </a>
+      </div>
+      {% endif %}
+    </header>
+
+    {{ notice_html | safe if notice_html else "" }}
+
+    <main>
+      {% block content %}{{ content | safe if content else "" }}{% endblock %}
+    </main>
+  </div>
+
+  {% if active_tab != 'login' %}
+  <nav class="bottom-nav">
+    <a href="/ui/attention" class="nav-item {{ "active" if active_tab == "attention" else "" }}" data-testid="nav-attention">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      <span>Внимание</span>
+      <span id="badge-attention" class="nav-badge hidden">0</span>
+    </a>
+    <a href="/ui/stock" class="nav-item {{ "active" if active_tab in ("items", "stock") else "" }}" data-testid="nav-stock">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      <span>Склад</span>
+    </a>
+    <a href="/ui/listings" class="nav-item {{ "active" if active_tab == "listings" else "" }}" data-testid="nav-listings">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      <span>Объявления</span>
+      <span id="badge-listings" class="nav-badge hidden">0</span>
+    </a>
+    <a href="/ui/messages" class="nav-item {{ "active" if active_tab in ("messages", "inbox", "threads") else "" }}" data-testid="nav-messages">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>Сообщения</span>
+      <span id="badge-messages" class="nav-badge hidden">0</span>
+    </a>
+    <a href="/ui/buy" class="nav-item {{ "active" if active_tab == "buy" else "" }}" data-testid="nav-buy">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+      <span>Покупки</span>
+      <span id="badge-buy" class="nav-badge hidden">0</span>
+    </a>
+  </nav>
+
+  <!-- Tasks Drawer -->
+  <div id="tasks-drawer-overlay" class="tasks-drawer-overlay hidden" onclick="toggleTasksDrawer(event)">
+    <div class="tasks-drawer" onclick="event.stopPropagation()">
+      <div class="tasks-drawer-header">
+        <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600;">Фоновые задачи</h3>
+        <button onclick="toggleTasksDrawer(event)" class="drawer-close-btn">&times;</button>
+      </div>
+      <div id="tasks-drawer-list" class="tasks-drawer-list">
+        <div style="padding: 16px; color: #64748b; font-size: 0.9rem;">Нет активных задач</div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Lightbox -->
+  <div id="lightbox">
+    <button id="lightbox-close" onclick="closeLightbox(event)" aria-label="Close">&times;</button>
+    <div id="lightbox-counter" class="lightbox-counter" data-testid="lightbox-counter">1 / 1</div>
+    <button id="lightbox-prev" onclick="prevLightbox(event)" aria-label="Previous">&lsaquo;</button>
+    <img id="lightbox-img" src="" alt="Zoomed" draggable="false" onclick="event.stopPropagation()">
+    <button id="lightbox-next" onclick="nextLightbox(event)" aria-label="Next">&rsaquo;</button>
+    <div id="lightbox-strip" class="lightbox-strip thumbnails-strip" data-testid="lightbox-strip"></div>
+  </div>
+  <script>
+    let currentGalleryImages = [];
+    let currentGalleryIndex = 0;
+    let lbLastSwipeTime = 0;
+    let lbSwiped = false;
+
+    function handleLightboxSwipe(diffX) {
+      const now = Date.now();
+      if (now - lbLastSwipeTime < 250) return;
+      lbLastSwipeTime = now;
+      lbSwiped = true;
+      setTimeout(function() { lbSwiped = false; }, 200);
+      if (diffX < 0) {
+        nextLightbox();
+      } else {
+        prevLightbox();
+      }
+    }
+
+    function renderLightboxThumbnails() {
+      const strip = document.getElementById('lightbox-strip');
+      if (!strip) return;
+      strip.innerHTML = '';
+      currentGalleryImages.forEach(function(imgSrc, idx) {
+        const thumb = document.createElement('img');
+        thumb.src = imgSrc;
+        thumb.alt = 'Thumb ' + (idx + 1);
+        thumb.draggable = false;
+        if (idx === currentGalleryIndex) {
+          thumb.classList.add('active');
+        }
+        thumb.onclick = function(e) {
+          e.stopPropagation();
+          currentGalleryIndex = idx;
+          updateLightboxDisplay();
+        };
+        strip.appendChild(thumb);
+      });
+    }
+
+    function openLightbox(src, gallerySelector) {
+      if (gallerySelector) {
+        currentGalleryImages = Array.from(document.querySelectorAll(gallerySelector)).map(function(img) { return img.src; });
+      } else {
+        currentGalleryImages = Array.from(document.querySelectorAll('img[onclick*="openLightbox"]')).map(function(img) { return img.src; });
+      }
+      currentGalleryIndex = currentGalleryImages.indexOf(src);
+      if (currentGalleryIndex === -1) currentGalleryIndex = 0;
+      renderLightboxThumbnails();
+      updateLightboxDisplay();
+      document.getElementById('lightbox').style.display = 'flex';
+    }
+
+    function updateLightboxDisplay() {
+      if (currentGalleryImages.length > 0) {
+        document.getElementById('lightbox-img').src = currentGalleryImages[currentGalleryIndex];
+        const counter = document.getElementById('lightbox-counter');
+        if (counter) {
+          counter.textContent = (currentGalleryIndex + 1) + ' / ' + currentGalleryImages.length;
+        }
+        const strip = document.getElementById('lightbox-strip');
+        if (strip) {
+          strip.querySelectorAll('img').forEach(function(thumb, idx) {
+            if (idx === currentGalleryIndex) {
+              thumb.classList.add('active');
+              thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            } else {
+              thumb.classList.remove('active');
+            }
+          });
+        }
+      }
+    }
+
+    function prevLightbox(e) {
+      if (e) e.stopPropagation();
+      if (currentGalleryImages.length > 1) {
+        currentGalleryIndex = (currentGalleryIndex - 1 + currentGalleryImages.length) % currentGalleryImages.length;
+        updateLightboxDisplay();
+      }
+    }
+
+    function nextLightbox(e) {
+      if (e) e.stopPropagation();
+      if (currentGalleryImages.length > 1) {
+        currentGalleryIndex = (currentGalleryIndex + 1) % currentGalleryImages.length;
+        updateLightboxDisplay();
+      }
+    }
+
+    function closeLightbox(e) {
+      if (lbSwiped) return;
+      if (e) e.stopPropagation();
+      document.getElementById('lightbox').style.display = 'none';
+    }
+
+    (function() {
+      const lb = document.getElementById('lightbox');
+      if (!lb) return;
+
+      lb.addEventListener('dragstart', function(e) { e.preventDefault(); });
+
+      // Touch swipe
+      let touchStartX = 0;
+      let touchStartY = 0;
+      lb.addEventListener('touchstart', function(e) {
+        if (e.target.closest('#lightbox-strip')) return;
+        if (e.touches.length > 0) {
+          touchStartX = e.touches[0].clientX;
+          touchStartY = e.touches[0].clientY;
+        }
+      }, { passive: true });
+
+      lb.addEventListener('touchend', function(e) {
+        if (e.changedTouches.length > 0) {
+          const diffX = e.changedTouches[0].clientX - touchStartX;
+          const diffY = e.changedTouches[0].clientY - touchStartY;
+          if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+            handleLightboxSwipe(diffX);
+          }
+        }
+      }, { passive: true });
+
+      // Mouse swipe
+      let mouseStartX = 0;
+      let mouseStartY = 0;
+      let isMouseDown = false;
+
+      lb.addEventListener('mousedown', function(e) {
+        if (e.target.id === 'lightbox-prev' || e.target.id === 'lightbox-next' || e.target.id === 'lightbox-close' || e.target.closest('#lightbox-strip')) {
+          return;
+        }
+        isMouseDown = true;
+        mouseStartX = e.clientX;
+        mouseStartY = e.clientY;
+      });
+
+      window.addEventListener('mouseup', function(e) {
+        if (!isMouseDown) return;
+        isMouseDown = false;
+        const diffX = e.clientX - mouseStartX;
+        const diffY = e.clientY - mouseStartY;
+        if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+          handleLightboxSwipe(diffX);
+        }
+      });
+    })();
+
+    document.addEventListener('keydown', function(e) {
+      const lb = document.getElementById('lightbox');
+      if (!lb || lb.style.display === 'none' || window.getComputedStyle(lb).display === 'none') return;
+      if (e.key === 'ArrowRight' || e.code === 'ArrowRight') {
+        nextLightbox(e);
+      } else if (e.key === 'ArrowLeft' || e.code === 'ArrowLeft') {
+        prevLightbox(e);
+      } else if (e.key === 'Escape' || e.code === 'Escape') {
+        closeLightbox(e);
+      }
+    });
+
+    function toggleTasksDrawer(e) {
+      if (e) e.preventDefault();
+      const drawer = document.getElementById('tasks-drawer-overlay');
+      if (drawer) {
+        drawer.classList.toggle('hidden');
+        if (!drawer.classList.contains('hidden')) {
+          refreshTasksDrawer();
+        }
+      }
+    }
+
+    function refreshTasksDrawer() {
+      fetch('/api/jobs/active', { credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(data => {
+          const list = document.getElementById('tasks-drawer-list');
+          if (!list) return;
+          if (!data.jobs || data.jobs.length === 0) {
+            list.innerHTML = '<div style="padding: 16px; color: #64748b; font-size: 0.9rem;">Нет активных задач</div>';
+            return;
+          }
+          let html = '<div style="display: flex; flex-direction: column; gap: 8px;">';
+          data.jobs.forEach(j => {
+            html += `<div style="padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
+              <div style="font-weight: 600; font-size: 0.85rem;">${j.kind}</div>
+              <div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">Статус: ${j.state} • Попытка ${j.attempts}</div>
+              ${j.batch_id ? `<a href="/ui/jobs/batches/${j.batch_id}" style="font-size: 0.8rem; color: #2563eb; margin-top: 4px; display: inline-block;">Открыть отчёт пакета →</a>` : ''}
+            </div>`;
+          });
+          html += '</div>';
+          list.innerHTML = html;
+        }).catch(() => {});
+    }
+
+    function checkActiveJobs() {
+      fetch('/api/jobs/active', { credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(data => {
+          const btn = document.getElementById('btn-tasks');
+          const badge = document.getElementById('tasks-badge');
+          if (btn && badge) {
+            if (data.count > 0) {
+              btn.classList.remove('hidden');
+              badge.textContent = data.count;
+            } else {
+              btn.classList.add('hidden');
+            }
+          }
+        }).catch(() => {});
+    }
+
+    setInterval(checkActiveJobs, 30000);
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible') {
+        checkActiveJobs();
+      }
+    });
+    document.addEventListener('DOMContentLoaded', checkActiveJobs);
+  </script>
+
+  <!-- Modal behavior -->
+  <script>
+    (function () {
+      var lastFocused = null;
+
+      function visibleOverlays() {
+        return Array.prototype.filter.call(
+          document.querySelectorAll('.modal-overlay'),
+          function (el) { return !el.classList.contains('hidden'); }
+        );
+      }
+
+      function firstFocusable(overlay) {
+        return overlay.querySelector(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+      }
+
+      function lockScroll() {
+        document.body.style.overflow = visibleOverlays().length > 0 ? 'hidden' : '';
+      }
+
+      function showModal(overlay) {
+        if (lastFocused === null) lastFocused = document.activeElement;
+        var f = firstFocusable(overlay);
+        if (f) f.focus();
+        lockScroll();
+      }
+
+      function hideModal(overlay) {
+        lockScroll();
+        if (lastFocused && typeof lastFocused.focus === 'function') {
+          lastFocused.focus();
+        }
+        lastFocused = null;
+      }
+
+      function syncOverlay(el) {
+        var isHidden = el.classList.contains('hidden');
+        if (el._nlHidden === isHidden) return;
+        el._nlHidden = isHidden;
+        if (isHidden) hideModal(el); else showModal(el);
+      }
+
+      var observer = new MutationObserver(function () {
+        document.querySelectorAll('.modal-overlay').forEach(syncOverlay);
+      });
+
+      document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.modal-overlay').forEach(function (el) {
+          el._nlHidden = el.classList.contains('hidden');
+          observer.observe(el, { attributes: true, attributeFilter: ['class'] });
+        });
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        var vis = visibleOverlays();
+        if (vis.length > 0) {
+          var top = vis[vis.length - 1];
+          if (!top.classList.contains('hidden')) {
+            top.classList.add('hidden');
+          }
+        }
+      });
+
+      document.addEventListener('click', function (e) {
+        var overlay = e.target.closest ? e.target.closest('.modal-overlay') : null;
+        if (!overlay || overlay.classList.contains('hidden')) return;
+        var box = overlay.querySelector('.modal-box');
+        if (box && (box === e.target || box.contains(e.target))) return;
+        overlay.classList.add('hidden');
+      });
+    })();
+  </script>
+</body>
+</html>

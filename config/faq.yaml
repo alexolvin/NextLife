@@ -1,0 +1,105 @@
+patterns:
+  - key: is_available
+    intents:
+      - "je to ještě volné"
+      - "je to k dispozici"
+      - "je to volne"
+      - "stále k dispozici"
+      - "volné"
+      - "volne"
+      - "dostupné"
+      - "dostupne"
+      - "is this still available"
+      - "still available"
+      - "available"
+      - "актуально ли"
+      - "ещё продаётся"
+    response_template: "Dobrý den, ano, předmět je stále k dispozici."
+    required_field: status
+
+  - key: pickup_location
+    intents:
+      - "kde je možné předání"
+      - "kde je mozne predani"
+      - "osobní předání"
+      - "osobni predani"
+      - "odkud jste"
+      - "where to pick up"
+      - "где забрать"
+    response_template: "Dobrý den, osobní předání je možné dle dohody (viz poznámka: {{ notes }})."
+    required_field: notes
+
+  - key: mining_history
+    intents:
+      - "těž"
+      - "tez"
+      - "mining"
+      - "mined"
+      - "těžena"
+      - "tezena"
+      - "těžilo"
+      - "tezilo"
+      - "těžbu"
+      - "tezbu"
+      - "těžba"
+      - "tezba"
+      - "kryptoměn"
+      - "kryptomen"
+    response_template: "Dobrý den, profil využití karty: {{ usage_profile }}."
+    required_field: usage_profile
+
+  - key: warranty
+    intents:
+      - "záruk"
+      - "zaruk"
+      - "záruc"
+      - "zaruc"
+      - "warranty"
+      - "гаранти"
+    response_template: "Dobrý den, záruka výrobce je platná do {{ manufacturer_warranty_until }}."
+    required_field: manufacturer_warranty_until
+
+  - key: receipt
+    intents:
+      - "faktur"
+      - "účtenk"
+      - "uctenk"
+      - "doklad o koupi"
+      - "doklad o nákupu"
+      - "doklad"
+      - "receipt"
+      - "чек"
+    response_template: "Dobrý den, doklad o koupi je k dispozici."
+    required_field: receipt_present
+
+  - key: original_box
+    intents:
+      - "krabic"
+      - "balení"
+      - "baleni"
+      - "original box"
+      - "коробк"
+    response_template: "Dobrý den, původní krabice je součástí."
+    required_field: box_present
+
+  - key: dimensions
+    intents:
+      - "rozměr"
+      - "rozmer"
+      - "dimension"
+      - "размер"
+    response_template: "Dobrý den, rozměry jsou {{ dim_l_mm }}x{{ dim_w_mm }}x{{ dim_h_mm }} mm."
+    required_fields:
+      - dim_l_mm
+      - dim_w_mm
+      - dim_h_mm
+
+  - key: weight
+    intents:
+      - "váž"
+      - "vaz"
+      - "hmotnost"
+      - "weight"
+      - "вес"
+    response_template: "Dobrý den, hmotnost je {{ weight_g }} g."
+    required_field: weight_g

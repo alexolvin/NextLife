@@ -1,0 +1,14 @@
+[Unit]
+Description=NextLife Job Worker Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/nextlife/app
+Environment="PYTHONPATH=/opt/nextlife/app/src"
+ExecStart=/usr/bin/python3 -m nextlife.jobs.worker
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

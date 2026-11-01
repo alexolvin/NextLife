@@ -1,0 +1,84 @@
+key: annonce_cz
+title: Annonce.cz
+country: CZ
+currency: CZK
+access_mode: DIRECT
+base_url: "https://www.annonce.cz"
+# D.1 daily canary: harmless query. The «všechny inzeráty» feed mixes item
+# ads, job ads and requests; cards without a price sticker are skipped by
+# the parser, so the canary sees only priced item ads (live-verified
+# 2026-10-04: 14/20 priced).
+canary_query: "notebook"
+auth:
+  type: none
+  secret_ref: ""
+capabilities:
+  search: true
+  # Ч-5/Ч-6 (TZ M1 A.4): публикация не реализована — нужна учётная запись
+  # Владельца на Annonce (форма подачи на сайте). До этого capabilities
+  # обязаны отражать реальность. Лимиты max_* — консервативные, верифицировать
+  # при подключении формы подачи.
+  post: false
+  edit: false
+  archive: false
+  messaging: false
+  max_photos: 10
+  max_title_len: 60
+  max_body_len: 4000
+  allows_generative_photos: false
+  delivery_options:
+    - pickup
+    - post
+    - zasilkovna
+    - courier
+  payment_options:
+    - cash
+    - bank_transfer
+    - cod
+selectors:
+  # Live markup 2026-10-04 (.a/reports/m1/probes/2026-10-04/
+  # annonce_cz_search_notebook.html): карточка .ext-item, цена
+  # strong.mini-sticker («1 700 Kč», пробел — NBSP), дата .ad-date
+  # («29. 9. 2026» — пробел между месяцем и годом, парсер base умеет).
+  # Карточки без цены (вакансии, poptávky) пропускаются.
+  search_result: ".ext-item"
+  price: "strong.mini-sticker"
+  title: "h2 a.clickable"
+  date: ".ad-date"
+routes:
+  # Live-verified 2026-10-04: GET /vsechny-inzeraty$18-filter.html?q=...;
+  # цена — GET-параметры price_from/price_to (форма на странице).
+  search: "/vsechny-inzeraty$18-filter.html"
+  search_params:
+    query: "q"
+    min_price: "price_from"
+    max_price: "price_to"
+mapping:
+  category_map:
+    electronics: "notebooky"
+  condition_map:
+    used: "použité"
+  delivery_map:
+    pickup: "Osobní předání"
+    post: "Pošta"
+    zasilkovna: "Zásilkovna"
+    courier: "Kuryr"
+  payment_map:
+    cash: "Hotově"
+    bank_transfer: "Bankovní převod"
+    cod: "Dobírka"
+rate_limits:
+  requests_per_minute: 20
+  min_delay_seconds: 2
+
+media:
+  max_photos: null
+  min_width: null
+  min_height: null
+  max_width: null
+  max_height: null
+  aspect_preferred: null
+  max_file_bytes: null
+  formats: []
+  source_url: null
+  verified_at: null

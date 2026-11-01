@@ -1,0 +1,61 @@
+# Kleinanzeigen.de — phone-broker channel (TZ Marketplaces).
+# The broker is the SINGLE source of truth for the app package
+# (com.ebay.kleinanzeigen) and the rate limits. Fingerprints are captured
+# during Phase 1 (search via phone) and are version-tied.
+key: kleinanzeigen_de
+title: Kleinanzeigen
+country: DE
+currency: EUR
+access_mode: ANDROID
+base_url: "https://www.kleinanzeigen.de"
+auth:
+  type: none
+  secret_ref: ""
+capabilities:
+  search: true
+  post: false
+  edit: false
+  archive: false
+  messaging: false
+  max_photos: 20
+  max_title_len: 70
+  max_body_len: 5000
+  allows_generative_photos: false
+  delivery_options:
+    - pickup
+    - post
+  payment_options:
+    - cash
+    - bank_transfer
+# Search channel: web connector (KleinanzeigenConnector) via the search page
+# /s-{query}/k0, parsing <article data-adid> cards (TZ-connectors-add-4).
+# access_mode stays ANDROID (phone-broker channel config); the web connector
+# is the working search channel (Vinted pattern).
+routes:
+  search: "/s-{query}/k0"
+selectors: {}
+rate_limits:
+  requests_per_minute: 0
+  min_delay_seconds: 0
+android:
+  platform_id: kleinanzeigen_de
+  search:
+    search_field: "text=Suche in ganz Deutschland"
+    result_card: "content-desc:Preis "
+    # Link extraction (Phase 1): "Anzeige teilen" opens the share sheet
+    # directly (no intermediate menu, so share_action is empty).
+    share_menu: "content-desc=Anzeige teilen"
+    share_action: ""
+    domain: "kleinanzeigen.de"
+  fingerprints: []
+media:
+  max_photos: null
+  min_width: null
+  min_height: null
+  max_width: null
+  max_height: null
+  aspect_preferred: null
+  max_file_bytes: null
+  formats: []
+  source_url: null
+  verified_at: null

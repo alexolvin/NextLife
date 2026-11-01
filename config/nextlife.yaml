@@ -1,0 +1,69 @@
+base_currency: EUR
+code_release_days: 90
+min_comparables: 5
+pii_retention_days: 30
+poll_interval_seconds: 60
+reservation_hours: 24
+unpublish_deadline_minutes: 15
+cod_max_amount: 5000.00
+prepay_required_above: 5000.00
+high_value_meeting_threshold: 5000.00
+insurance_required_above: 5000.00
+
+server:
+  host: 0.0.0.0
+  port: 8081
+
+database:
+  dsn_secret_ref: NEXTLIFE_DSN
+  schema: public
+
+# Base data directory (media/profiles/deals) is resolved at runtime from the
+# NEXTLIFE_DATA_DIR environment variable (see get_data_dir in core/config.py);
+# the values below document the default layout when it is unset.
+storage:
+  media_dir: data/media
+  profiles_dir: data/profiles
+
+# ANDROID channel (TZ M1 B.1/B.2): ADB + uiautomator2 over Tailscale.
+# Access to the phone via the phonebroker service (single-phone ADB broker).
+# Raw ADB is blocked by nftables; the bridge talks to the broker's HTTP API.
+# The broker token is in the PHONEBROKER_TOKEN_NEXTLIFE env var (.env).
+android_bridge:
+  enabled: true
+  adb:
+    host_env: NEXTLIFE_ADB_HOST
+    port_env: NEXTLIFE_ADB_PORT
+  pacing:
+    min_pause_seconds: 2
+    max_pause_seconds: 8
+  # TZ Marketplaces: the broker is the SINGLE source of truth for app packages
+  # and rate limits (daily cap / min interval — a broker 403 is the only
+  # frequency control). Per-marketplace broker platform id + screen
+  # fingerprints live in config/marketplaces/<key>.yaml ('android' block).
+  phone_broker:
+    base_url: http://127.0.0.1:8090
+    token_secret_ref: PHONEBROKER_TOKEN_NEXTLIFE
+    lease_max_duration_s: 300
+
+media:
+  generative_endpoint: ""
+  vlm_endpoint: ""
+
+# Wizard step 2: text-generation model endpoint. Empty endpoint = honest stub
+# (no external call). When set, the owner's model endpoint is used; the API key
+# is resolved from .env via the api_key_secret_ref (never logged).
+text_gen:
+  endpoint: ""
+  api_key_secret_ref: NEXTLIFE_TEXTGEN_API_KEY
+  model: ""
+
+auth:
+  web_token_secret_ref: NEXTLIFE_WEB_TOKEN
+  # Token the OpenClaw skill runtime uses to authenticate to the NextLife API
+  # (resolved from the NEXTLIFE_OPENCLAW_TOKEN env var via get_openclaw_token).
+  openclaw_token_secret_ref: NEXTLIFE_OPENCLAW_TOKEN
+
+fx:
+  source_url: "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml"
+  refresh_interval_seconds: 86400

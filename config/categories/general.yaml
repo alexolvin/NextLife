@@ -1,0 +1,12 @@
+key: general
+title: "Общая категория"
+required_fields:
+  - title
+  - condition
+optional_fields:
+  - description
+  - dimensions
+  - weight
+defects_options:
+  - wear
+  - cosmetic_defects

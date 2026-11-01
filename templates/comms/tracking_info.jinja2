@@ -1,0 +1,6 @@
+Посылка отправлена (Лот [{{ lot_code }}])!
+Перевозчик: {{ carrier }}
+Трек-номер: {{ tracking_number }}
+{% if tracking_url %}
+Отслеживание: {{ tracking_url }}
+{% endif %}

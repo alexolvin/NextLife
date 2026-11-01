@@ -1,0 +1,32 @@
+<!doctype html>
+<!-- N4-04: страница внутренней ошибки. Шаблон статический: main.py
+     подставляет __ERROR_ID__ и __LOT_LINE__ простым текстовым replace
+     (без Jinja — страница обязана отработать, даже если сбой произошёл
+     в рендеринге шаблонов). Статус ответа всегда 500.
+     Стили инлайн и по id (без классов app.css): страница не должна
+     зависеть от таблицы стилей приложения. -->
+<html lang="ru" data-ui-error="1" data-error-id="__ERROR_ID__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ошибка — NextLife</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f4f5f7; color: #14171c; margin: 0; padding: 16px; }
+#nl-err-card { max-width: 560px; margin: 48px auto; background: #fff; border: 1px solid #e2e5ea; border-radius: 14px; padding: 24px; box-shadow: 0 1px 4px rgba(20, 23, 28, .07); }
+#nl-err-card h1 { font-size: 20px; margin: 0 0 10px; }
+#nl-err-card p { font-size: 15px; line-height: 1.55; color: #454c58; margin: 0 0 8px; }
+#nl-err-card code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; background: #eef0f3; border-radius: 4px; padding: 1px 6px; }
+#nl-err-id { font-size: 12.5px; color: #7a828e; margin-top: 18px; }
+#nl-err-back { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; margin-top: 14px; background: #0a3d7a; color: #fff; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="nl-err-card" data-ui-error="1" data-error-id="__ERROR_ID__">
+<h1>Что-то пошло не так</h1>
+<p>При обработке запроса произошла внутренняя ошибка (HTTP 500). __LOT_LINE__
+Ошибке присвоен идентификатор — передайте его владельцу: по нему запись найдётся в логе.</p>
+<div id="nl-err-id">Идентификатор ошибки: <code>__ERROR_ID__</code></div>
+<a id="nl-err-back" href="/ui/items">← Вернуться в ленту</a>
+</div>
+</body>
+</html>

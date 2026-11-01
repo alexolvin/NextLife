@@ -1,0 +1,27 @@
+📊 МЕСЯЧНАЯ СВОДКА ПРОДАЖ / MĚSÍČNÍ PŘEHLED PRODEJŮ
+Период / Období: {{ period_label }}
+Валюта / Měna: {{ currency }}
+
+──────────────────────────────────────────────────────────
+1. ОБЩИЕ ФИНАНСОВЫЕ ИТОГИ (ИЗ SETTLEMENT)
+* Всего продано лотов / Celkem prodáno: {{ total_sold_count }} шт.
+* Валовая выручка (Gross) / Hrubé tržby: {{ total_gross }} {{ currency }}
+* Комиссии площадок / Poplatky tržišť: -{{ total_platform_fees }} {{ currency }}
+* Расходы на доставку / Náklady na dopravu: -{{ total_delivery_costs }} {{ currency }}
+* Расходы на упаковку / Náklady na balení: -{{ total_packaging_costs }} {{ currency }}
+──────────────────────────────────────────────────────────
+* ИТОГО НА РУКИ (Net Payout) / ČISTÝ VÝNOS: {{ total_net_payout }} {{ currency }}
+──────────────────────────────────────────────────────────
+
+2. РЕЗУЛЬТАТЫ ПО КАТЕГОРИЯМ / VÝSLEDKY DLE KATEGORIÍ
+{% if by_category and by_category|length > 0 %}
+{% for cat in by_category %}
+  • {{ cat.category_name }} ({{ cat.category_key }}):
+    - Продано: {{ cat.sold_count }} шт.
+    - Выручка (Gross): {{ cat.gross_amount }} {{ currency }}
+    - На руки (Net): {{ cat.net_payout }} {{ currency }}
+    - Средний срок продажи: {{ cat.avg_days_to_sell }} дн.
+{% endfor %}
+{% else %}
+  (Нет данных о продажах за выбранный период)
+{% endif %}

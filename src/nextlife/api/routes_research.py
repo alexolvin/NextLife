@@ -1,0 +1,74 @@
+"""Research service wiring: API + UI screens (TZ-NextLife-UI-N2 §4 V5).
+
+P-R07: кнопка запуска на шаге 4 мастера, в карточке и в черновике; запуск
+создаёт research_run (синхронно); отчёт — диапазон цен в валюте предмета
+только при выборке не меньше min_comparables, с числом аналогов и
+ссылками; иначе — явное сообщение. Диапазон без источников не выводится.
+P-R08: 2-3 редактируемых чешских варианта по найденным аналогам; выбор
+сохраняется через существующую семантику черновика (final_text, P-E12).
+"""
+
+from fastapi import APIRouter, Depends, Form, HTTPException, status
+from fastapi.responses import JSONResponse, RedirectResponse
+from sqlalchemy import select
+
+from nextlife.api.routes import check_auth
+from nextlife.core.config import load_config
+from nextlife.services.research import run_research
+from nextlife.storage.db import get_db_session
+from nextlife.storage.models import Item, ResearchResult
+
+research_router = APIRouter(tags=["research"])
+
+
+@research_router.post("/api/items/{item_code}/research")
+def api_run_research(item_code: str, auth: bool = Depends(check_auth)) -> JSONResponse:
+    """Запустить разведку (API): синхронный run, ответ — число аналогов."""
+    with get_db_session() as session:
+        item = session.get(Item, item_code)
+        if not item:
+            raise HTTPException(status_code=404, detail="Item not found")
+        config = load_config()
+        try:
+            run_id = run_research(session, item.code, item.title, config)
+            session.commit()
+        except Exception as exc:
+            session.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Research run failed: {exc}",
+            ) from exc
+        found = (
+            session.execute(
+                select(ResearchResult).where(ResearchResult.run_id == run_id)
+            )
+            .scalars()
+            .all()
+        )
+    return JSONResponse(content={"run_id": run_id, "total_found": len(found)})
+
+
+@research_router.post("/ui/items/{item_code}/research")
+def ui_run_research(
+    item_code: str,
+    next_url: str = Form(default="", alias="next"),
+    auth: bool = Depends(check_auth),
+) -> RedirectResponse:
+    """Запустить разведку (UI-кнопка) и вернуться на исходный экран."""
+    with get_db_session() as session:
+        item = session.get(Item, item_code)
+        if not item:
+            raise HTTPException(status_code=404, detail="Item not found")
+        config = load_config()
+        notice = "research_done"
+        try:
+            run_research(session, item.code, item.title, config)
+            session.commit()
+        except Exception:
+            session.rollback()
+            notice = "research_failed"
+    target = next_url if next_url.startswith("/ui/") else f"/ui/items/{item_code}"
+    sep = "&" if "?" in target else "?"
+    return RedirectResponse(
+        url=f"{target}{sep}notice={notice}", status_code=status.HTTP_303_SEE_OTHER
+    )

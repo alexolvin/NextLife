@@ -1,0 +1,17 @@
+key: smartphones
+title: "Смартфоны"
+required_fields:
+  - brand
+  - model
+  - condition
+optional_fields:
+  - storage_gb
+  - battery_health
+  - color
+  - warranty_until
+defects_options:
+  - screen_scratch
+  - body_scratch
+  - battery_worn
+  - back_glass_crack
+  - cosmetic_wear

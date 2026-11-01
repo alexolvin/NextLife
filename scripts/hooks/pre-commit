@@ -1,0 +1,165 @@
+#!/usr/bin/env python3
+"""Pre-commit secret-leak guard.
+
+Reads the project-root ``.env`` and, for every key whose name ends in
+``_TOKEN`` / ``_SECRET`` / ``_PASSWORD`` / ``_DSN`` / ``_KEY``, takes its value.
+If any such value appears in the STAGED diff (``git diff --cached``), the commit
+is rejected. For a ``*_DSN`` value the embedded URL password is guarded as an
+additional value too, so a pasted DSN password is caught even when the full DSN
+is not staged.
+
+The secret VALUE is never printed -- only the offending file and line number,
+so a rejected message is itself safe to paste into a report or terminal.
+
+Wired via ``git config core.hooksPath scripts/hooks`` (a local, uncommitted
+setting; this file is committed so the hook source is versioned, but the wiring
+is per-clone).
+"""
+
+from __future__ import annotations
+
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+# A key is guarded if its name ends in one of these suffixes.
+GUARDED_KEY_RE = re.compile(r"(_TOKEN|_SECRET|_PASSWORD|_DSN|_KEY)$", re.IGNORECASE)
+# A ``*_DSN`` value additionally contributes the password embedded in its URL
+# (``scheme://user:PASSWORD@host``) as a SEPARATE guarded value, so a pasted DSN
+# password is caught even when the full DSN string is not staged.
+_DSN_KEY_RE = re.compile(r"_DSN$", re.IGNORECASE)
+_DSN_PASSWORD_RE = re.compile(r"://[^:/@]+:([^@/]+)@")
+# Values shorter than this are not worth guarding (they would false-positive).
+_MIN_VALUE_LEN = 12
+
+# Hunk header, e.g. ``@@ -0,0 +1,3 @@`` -> capture the new-file start line.
+_HUNK_RE = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@")
+
+
+def _repo_root() -> Path:
+    out = subprocess.check_output(
+        ["git", "rev-parse", "--show-toplevel"],
+        text=True,
+        stderr=subprocess.DEVNULL,
+    )
+    return Path(out.strip())
+
+
+def _strip_quotes(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+        value = value[1:-1]
+    return value
+
+
+def _dsn_password(dsn: str) -> str | None:
+    """Extract the password from a ``scheme://user:password@host`` DSN, if any.
+
+    A socket/peer DSN with no ``user:password@`` userinfo (e.g.
+    ``postgresql+psycopg2://user@/db?host=/var/run/postgresql``) yields None."""
+    m = _DSN_PASSWORD_RE.search(dsn)
+    return m.group(1) if m else None
+
+
+def _guarded_secret_values(env_file: Path) -> list[str]:
+    """Values of guarded ``*_TOKEN/_SECRET/_PASSWORD/_DSN/_KEY`` keys in ``.env``.
+
+    A missing or unreadable ``.env`` yields an empty list (nothing to guard).
+    """
+    if not env_file.is_file():
+        return []
+    try:
+        content = env_file.read_text(encoding="utf-8")
+    except OSError:
+        return []
+    values: list[str] = []
+    for raw in content.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        if line.startswith("export "):
+            line = line[len("export "):].lstrip()
+        key, _, value = line.partition("=")
+        key = key.strip()
+        value = _strip_quotes(value)
+        if key and GUARDED_KEY_RE.search(key) and len(value) >= _MIN_VALUE_LEN:
+            values.append(value)
+            # A *_DSN value also contributes its embedded password as a separate
+            # guarded value, so a pasted DSN password is caught on its own.
+            if _DSN_KEY_RE.search(key):
+                pwd = _dsn_password(value)
+                if pwd and len(pwd) >= _MIN_VALUE_LEN:
+                    values.append(pwd)
+    return values
+
+
+def _iter_added_lines(diff_text: str):
+    """Yield ``(path, new_line_no, line_text)`` for every added (+) line.
+
+    ``-U0`` is used so there are no context lines; the new-file line number is
+    tracked from each ``@@ ... +N ... @@`` hunk header.
+    """
+    path: str | None = None
+    new_lineno = 0
+    for line in diff_text.splitlines():
+        if line.startswith("+++ "):
+            p = line[4:]
+            if p.startswith("b/"):
+                p = p[2:]
+            path = None if p == "/dev/null" else p
+        elif line.startswith("---"):
+            # Old-side file header; the new side is set by the matching ``+++``.
+            pass
+        elif line.startswith("@@"):
+            m = _HUNK_RE.match(line)
+            if m:
+                new_lineno = int(m.group(1)) - 1
+            # ``path`` was already set by the preceding ``+++ b/...`` header (git
+            # emits it before every hunk); a hunk header only resets the line no.
+        elif line.startswith("+"):
+            new_lineno += 1
+            if path is not None:
+                yield path, new_lineno, line[1:]
+        elif line.startswith(" "):
+            new_lineno += 1
+        # ``-`` lines (removals) and other diff metadata do not advance the
+        # new-file line number.
+
+
+def main() -> int:
+    try:
+        root = _repo_root()
+    except (subprocess.CalledProcessError, OSError):
+        return 0  # not a git repo / git unavailable -> do not block
+
+    values = _guarded_secret_values(root / ".env")
+    if not values:
+        return 0
+
+    try:
+        diff = subprocess.check_output(
+            ["git", "diff", "--cached", "-U0"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+    except (subprocess.CalledProcessError, OSError):
+        return 0
+
+    hits: list[tuple[str, int]] = []
+    for path, line_no, text in _iter_added_lines(diff):
+        if any(value in text for value in values):
+            hits.append((path, line_no))
+
+    if hits:
+        print("pre-commit: REJECTED -- a secret value from .env is staged.", file=sys.stderr)
+        print("  (value not shown). Remove it from the staged diff and retry:", file=sys.stderr)
+        for path, line_no in hits:
+            print(f"  {path}:{line_no}", file=sys.stderr)
+        return 1
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,16 @@
+key: photo
+title: "Фототехника"
+required_fields:
+  - brand
+  - model
+  - condition
+optional_fields:
+  - shutter_count
+  - sensor_type
+  - sensor_size
+  - lens_included
+defects_options:
+  - sensor_dust
+  - sensor_scratch
+  - shutter_wear
+  - cosmetic_wear

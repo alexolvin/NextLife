@@ -1,0 +1,69 @@
+key: trhknih_cz
+title: TrhKnih.cz
+country: CZ
+currency: CZK
+access_mode: DIRECT
+base_url: "https://www.trhknih.cz"
+# D.1 daily canary: harmless query. The site is a bookstore, so the canary
+# uses a stable book query («python»: 36 results on 2026-10-03, 10 rows on
+# the first page on 2026-10-04); «notebook» (laptop) is meaningless here.
+canary_query: "python"
+auth:
+  type: none
+  secret_ref: ""
+capabilities:
+  search: true
+  # Ч-5/Ч-6 (TZ M1 A.5): публикация не реализована — нужна учётная запись
+  # Владельца на TrhKnih (форма подачи на сайте). TrhKnih не перечислен в
+  # подтверждении Владельца 2 — вопрос зафиксирован в report-queue-a5.md.
+  post: false
+  edit: false
+  archive: false
+  messaging: false
+  max_photos: 1
+  max_title_len: 255
+  max_body_len: 4000
+  allows_generative_photos: false
+  delivery_options:
+    - post
+    - pickup
+  payment_options:
+    - cash
+    - bank_transfer
+    - cod
+# TZ M1 A.5: ограничение по категории в реестре площадки — только лоты
+# категории «книги»; лот другой категории на эту площадку не предлагается
+# (проверяется тестом + мутация D.3-8).
+allowed_categories:
+  - books
+selectors:
+  # Live markup 2026-10-04 (.a/reports/m1/probes/2026-10-04/
+  # trhknih_cz_search_python.html): 10 rows .serp-item; цена «639 Kč» в
+  # span.ask-count; строки-теги (без стикера) исключаются базовым парсером.
+  # Дат публикации на карточках НЕТ (только год издания в <em>) —
+  # Ч-1: posted_at остаётся None.
+  search_result: ".serp-item"
+  price: ".ask-count"
+  title: "p a"
+routes:
+  # Live-verified 2026-10-04: GET /hledat?q=... (ценового фильтра на
+  # странице выдачи нет — параметры цены не заявляем, Ч-6).
+  search: "/hledat"
+  search_params:
+    query: "q"
+mapping: {}
+rate_limits:
+  requests_per_minute: 20
+  min_delay_seconds: 2
+
+media:
+  max_photos: null
+  min_width: null
+  min_height: null
+  max_width: null
+  max_height: null
+  aspect_preferred: null
+  max_file_bytes: null
+  formats: []
+  source_url: null
+  verified_at: null

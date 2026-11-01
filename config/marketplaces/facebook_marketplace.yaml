@@ -1,0 +1,53 @@
+# Facebook Marketplace — phone-broker channel (TZ Marketplaces).
+# The broker is the SINGLE source of truth for the app package
+# (com.facebook.katana) and the rate limits. Fingerprints are captured
+# during Phase 1 (search via phone) and are version-tied.
+key: facebook_marketplace
+title: Facebook Marketplace
+country: CZ
+currency: CZK
+access_mode: ANDROID
+# TZ-connectors-add-4 (2026-10-22): login wall — no public (unauthenticated)
+# search endpoint. The web connector is an honest placeholder: search() raises
+# FacebookLoginWallError so the wizard reports the failure transparently.
+# Live-verified: every search URL serves a login checkpoint (0 listing links,
+# 0 embedded listing JSON). The Graph API excludes Marketplace. Reading
+# listings requires a logged-in session (forbidden by the TZ without explicit
+# owner consent; high ban risk) or an external service — neither implemented.
+base_url: "https://www.facebook.com/marketplace"
+auth:
+  type: none
+  secret_ref: ""
+capabilities:
+  search: true
+  post: false
+  edit: false
+  archive: false
+  messaging: false
+  max_photos: 10
+  max_title_len: 100
+  max_body_len: 5000
+  allows_generative_photos: false
+  delivery_options:
+    - pickup
+    - post
+  payment_options:
+    - cash
+selectors: {}
+rate_limits:
+  requests_per_minute: 0
+  min_delay_seconds: 0
+android:
+  platform_id: facebook_marketplace
+  fingerprints: []
+media:
+  max_photos: null
+  min_width: null
+  min_height: null
+  max_width: null
+  max_height: null
+  aspect_preferred: null
+  max_file_bytes: null
+  formats: []
+  source_url: null
+  verified_at: null

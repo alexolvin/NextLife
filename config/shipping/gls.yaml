@@ -1,0 +1,351 @@
+carrier: GLS
+display_name: "GLS CZ (e-Balík)"
+status: "ACTIVE"
+services:
+  - name: gls_vydejni_misto_s
+    service_type: "výdejní místo / ParcelShop / ParcelBox"
+    weight_max_g: 3000
+    size_class:
+      name: "S"
+      max_weight_kg: 3.0
+      max_longest_side_cm: 35.0
+      max_sum_sides_cm: 35.0
+    price: 69.00
+    country_pricing:
+      CZ: 69.00
+    price_pdf:
+      pdf_section: "Přepravné v rámci České republiky"
+      pdf_row: "S max. 35 cm"
+      pdf_column: 0
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "S max. 35 cm"
+        pdf_column: 0
+    currency: CZK
+    cod_supported: true
+    cod_fee: 45.00
+    dobirka_fee: 45.00
+    dobirka_limit: 60000.00
+    unregistered_surcharge: 0.00
+    insurance_included: 20000.00
+    insurance_limit: 20000.00
+    insurance_max: 20000.00
+    countries:
+      - CZ
+    source_file: "config/shipping/_sources/gls_ebalik_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.e-balik.cz"
+    fetched_at: "2026-09-09"
+
+  - name: gls_vydejni_misto_m
+    service_type: "výdejní místo / ParcelShop / ParcelBox"
+    weight_max_g: 10000
+    size_class:
+      name: "M"
+      max_weight_kg: 10.0
+      max_longest_side_cm: 50.0
+      max_sum_sides_cm: 50.0
+    price: 109.00
+    country_pricing:
+      CZ: 109.00
+    price_pdf:
+      pdf_section: "Přepravné v rámci České republiky"
+      pdf_row: "M max. 50 cm"
+      pdf_column: 0
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "M max. 50 cm"
+        pdf_column: 0
+    currency: CZK
+    cod_supported: true
+    cod_fee: 45.00
+    dobirka_fee: 45.00
+    dobirka_limit: 60000.00
+    unregistered_surcharge: 0.00
+    insurance_included: 20000.00
+    insurance_limit: 20000.00
+    insurance_max: 20000.00
+    countries:
+      - CZ
+    source_file: "config/shipping/_sources/gls_ebalik_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.e-balik.cz"
+    fetched_at: "2026-09-09"
+
+  - name: gls_vydejni_misto_l
+    service_type: "výdejní místo / ParcelShop / ParcelBox"
+    weight_max_g: 20000
+    size_class:
+      name: "L"
+      max_weight_kg: 20.0
+      max_longest_side_cm: 91.0
+      max_sum_sides_cm: 91.0
+    price: 158.00
+    country_pricing:
+      CZ: 158.00
+    price_pdf:
+      pdf_section: "Přepravné v rámci České republiky"
+      pdf_row: "L max. 91 cm"
+      pdf_column: 0
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "L max. 91 cm"
+        pdf_column: 0
+    currency: CZK
+    cod_supported: true
+    cod_fee: 45.00
+    dobirka_fee: 45.00
+    dobirka_limit: 60000.00
+    unregistered_surcharge: 0.00
+    insurance_included: 20000.00
+    insurance_limit: 20000.00
+    insurance_max: 20000.00
+    countries:
+      - CZ
+    source_file: "config/shipping/_sources/gls_ebalik_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.e-balik.cz"
+    fetched_at: "2026-09-09"
+
+  - name: gls_na_adresu_s
+    service_type: "doručení na adresu"
+    weight_max_g: 3000
+    size_class:
+      name: "S"
+      max_weight_kg: 3.0
+      max_longest_side_cm: 35.0
+      max_sum_sides_cm: 35.0
+    price: 94.00
+    country_pricing:
+      CZ: 94.00
+      SK: 163.00
+      PL: 163.00
+      HU: 196.00
+      RO: 268.00
+    price_pdf:
+      pdf_section: "Přepravné v rámci České republiky"
+      pdf_row: "S max. 35 cm"
+      pdf_column: 1
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "S max. 35 cm"
+        pdf_column: 1
+      SK:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "S max. 35 cm"
+        pdf_column: 2
+      PL:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "S max. 35 cm"
+        pdf_column: 2
+      HU:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "S max. 35 cm"
+        pdf_column: 3
+      RO:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "S max. 35 cm"
+        pdf_column: 5
+    currency: CZK
+    cod_supported: true
+    cod_fee: 45.00
+    dobirka_fee: 45.00
+    dobirka_limit: 60000.00
+    unregistered_surcharge: 0.00
+    insurance_included: 20000.00
+    insurance_limit: 20000.00
+    insurance_max: 20000.00
+    countries:
+      - CZ
+      - SK
+      - PL
+      - HU
+      - RO
+    source_file: "config/shipping/_sources/gls_ebalik_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.e-balik.cz"
+    fetched_at: "2026-09-09"
+
+  - name: gls_na_adresu_m
+    service_type: "doručení na adresu"
+    weight_max_g: 10000
+    size_class:
+      name: "M"
+      max_weight_kg: 10.0
+      max_longest_side_cm: 50.0
+      max_sum_sides_cm: 50.0
+    price: 134.00
+    country_pricing:
+      CZ: 134.00
+      SK: 192.00
+      PL: 192.00
+      HU: 251.00
+      RO: 332.00
+    price_pdf:
+      pdf_section: "Přepravné v rámci České republiky"
+      pdf_row: "M max. 50 cm"
+      pdf_column: 1
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "M max. 50 cm"
+        pdf_column: 1
+      SK:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "M max. 50 cm"
+        pdf_column: 2
+      PL:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "M max. 50 cm"
+        pdf_column: 2
+      HU:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "M max. 50 cm"
+        pdf_column: 3
+      RO:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "M max. 50 cm"
+        pdf_column: 5
+    currency: CZK
+    cod_supported: true
+    cod_fee: 45.00
+    dobirka_fee: 45.00
+    dobirka_limit: 60000.00
+    unregistered_surcharge: 0.00
+    insurance_included: 20000.00
+    insurance_limit: 20000.00
+    insurance_max: 20000.00
+    countries:
+      - CZ
+      - SK
+      - PL
+      - HU
+      - RO
+    source_file: "config/shipping/_sources/gls_ebalik_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.e-balik.cz"
+    fetched_at: "2026-09-09"
+
+  - name: gls_na_adresu_l
+    service_type: "doručení na adresu"
+    weight_max_g: 20000
+    size_class:
+      name: "L"
+      max_weight_kg: 20.0
+      max_longest_side_cm: 91.0
+      max_sum_sides_cm: 91.0
+    price: 183.00
+    country_pricing:
+      CZ: 183.00
+      SK: 320.00
+      PL: 320.00
+      HU: 375.00
+      RO: 459.00
+    price_pdf:
+      pdf_section: "Přepravné v rámci České republiky"
+      pdf_row: "L max. 91 cm"
+      pdf_column: 1
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "L max. 91 cm"
+        pdf_column: 1
+      SK:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "L max. 91 cm"
+        pdf_column: 2
+      PL:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "L max. 91 cm"
+        pdf_column: 2
+      HU:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "L max. 91 cm"
+        pdf_column: 3
+      RO:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "L max. 91 cm"
+        pdf_column: 5
+    currency: CZK
+    cod_supported: true
+    cod_fee: 45.00
+    dobirka_fee: 45.00
+    dobirka_limit: 60000.00
+    unregistered_surcharge: 0.00
+    insurance_included: 20000.00
+    insurance_limit: 20000.00
+    insurance_max: 20000.00
+    countries:
+      - CZ
+      - SK
+      - PL
+      - HU
+      - RO
+    source_file: "config/shipping/_sources/gls_ebalik_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.e-balik.cz"
+    fetched_at: "2026-09-09"
+
+  - name: gls_na_adresu_xl
+    service_type: "doručení na adresu"
+    weight_max_g: 31500
+    size_class:
+      name: "XL"
+      max_weight_kg: 31.5
+      max_longest_side_cm: 200.0
+      max_sum_sides_cm: 300.0
+    price: 248.00
+    country_pricing:
+      CZ: 248.00
+      SK: 453.00
+      PL: 453.00
+      HU: 538.00
+      RO: 693.00
+    price_pdf:
+      pdf_section: "Přepravné v rámci České republiky"
+      pdf_row: "XL max. 300 cm"
+      pdf_column: 0
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "XL max. 300 cm"
+        pdf_column: 0
+      SK:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "XL max. 300 cm"
+        pdf_column: 1
+      PL:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "XL max. 300 cm"
+        pdf_column: 1
+      HU:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "XL max. 300 cm"
+        pdf_column: 2
+      RO:
+        pdf_section: "Přepravné v rámci České republiky"
+        pdf_row: "XL max. 300 cm"
+        pdf_column: 4
+    currency: CZK
+    cod_supported: true
+    cod_fee: 45.00
+    dobirka_fee: 45.00
+    dobirka_limit: 60000.00
+    unregistered_surcharge: 0.00
+    insurance_included: 20000.00
+    insurance_limit: 20000.00
+    insurance_max: 20000.00
+    countries:
+      - CZ
+      - SK
+      - PL
+      - HU
+      - RO
+    source_file: "config/shipping/_sources/gls_ebalik_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.e-balik.cz"
+    fetched_at: "2026-09-09"

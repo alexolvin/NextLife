@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h2 class="page-title">Входящие сообщения</h2>
+  <button id="btn-refresh-threads" class="header-refresh-btn" onclick="triggerRefresh(event)">🔄 Обновить</button>
+</div>
+
+{% if selected_thread and selected_thread.fraud_suspected %}
+<div class="fraud-banner" data-testid="fraud-suspected-badge">
+  <div class="row tight">
+    <span>🚨</span>
+    <span>ПОДОЗРЕНИЕ НА МОШЕННИЧЕСТВО</span>
+  </div>
+  {% if selected_thread.fraud_reasons %}
+  <div class="fs-xs fw-medium text-danger fraud-reasons">
+    {{ selected_thread.fraud_reasons | join(', ') }}
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Список тредов (переключатель) -->
+<div class="filter-pills">
+  {% for th in threads %}
+  <a href="/ui/threads?thread_id={{ th.id }}" class="filter-pill {{ 'active' if th.id == selected_thread.id else '' }} {{ 'fraud' if th.fraud_suspected else '' }}">
+    {% if th.fraud_suspected %}<span>🚨</span>{% endif %}
+    <span>[{{ th.lot_code }}] {{ th.counterparty_short }}</span>
+  </a>
+  {% endfor %}
+</div>
+
+{% if selected_thread %}
+<div class="card">
+  <div class="thread-head">
+    <div>
+      <div class="fs-sm fw-bold">Предмет [{{ selected_thread.lot_code }}] &bull; {{ selected_thread.channel }}</div>
+      <div class="fs-xs text-muted">Собеседник: {{ selected_thread.counterparty }}</div>
+    </div>
+    <span class="badge {{ 'badge-defect' if selected_thread.fraud_suspected else 'badge-active' }}">{{ selected_thread.status }}</span>
+  </div>
+
+  <!-- Сообщения диалога -->
+  <div class="stack-3">
+    {% for msg in selected_thread.messages %}
+    <div class="msg-bubble {% if msg.direction == 'IN' %}msg-bubble-in{% else %}msg-bubble-out{% endif %} {% if msg.fraud_suspected %}msg-bubble-fraud{% endif %}">
+      <div class="row between fs-xs text-muted">
+        <span class="fw-semibold {% if msg.direction == 'OUT' %}text-accent{% else %}text-dim{% endif %}">
+          {{ '👤 Покупатель' if msg.direction == 'IN' else ('🤖 Агент' if msg.answered_by == 'AGENT' else '👑 Владелец') }}
+        </span>
+        <span>{{ msg.at }}</span>
+      </div>
+
+      {% if msg.fraud_suspected %}
+      <div class="info-box info-box-red fs-xs fw-bold">
+        🚨 Внимание: Содержит признаки мошенничества
+      </div>
+      {% endif %}
+
+      <!-- Оригинал и перевод рядом -->
+      <div class="stack-1">
+        <div class="msg-original">
+          <div class="fs-xs fw-bold text-muted">
+            Оригинал ({{ msg.lang_original }}):
+          </div>
+          <div data-testid="msg-original-text">{{ msg.text_original }}</div>
+        </div>
+
+        {% if msg.text_ru %}
+        <div class="msg-translation">
+          <div class="fs-xs fw-bold text-success">
+            Перевод (RU):
+          </div>
+          <div data-testid="msg-translated-text">{{ msg.text_ru }}</div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Действия для эскалированного или требующего ответа сообщения -->
+      {% if msg.escalated and msg.answered_by is none %}
+      <div class="escalated-actions">
+        <div class="fs-xs fw-bold text-warning">
+          ⏳ Подготовленный ответ агента:
+        </div>
+        <div data-testid="prepared-response-preview" class="prepared-response">
+          {{ msg.prepared_response or "Здравствуйте. Уточню этот вопрос и вернусь с ответом." }}
+        </div>
+
+        <div class="action-buttons-group">
+          <!-- 1. Отправить подготовленный ответ -->
+          <form method="POST" action="/api/threads/{{ msg.id }}/command" class="form-inline">
+            <input type="hidden" name="command" value="SEND">
+            <input type="hidden" name="thread_id" value="{{ selected_thread.id }}">
+            <button type="submit" class="btn btn-success btn-sm" data-testid="btn-send">
+              ✅ Отправить
+            </button>
+          </form>
+
+          <!-- 2. Править и отправить -->
+          <button type="button" class="btn btn-sm" data-testid="btn-edit" onclick="toggleEditBox('{{ msg.id }}')">
+            ✏️ Править и отправить
+          </button>
+
+          <!-- 3. Ответить самому / отклонить -->
+          <form method="POST" action="/api/threads/{{ msg.id }}/command" class="form-inline">
+            <input type="hidden" name="command" value="DECLINE">
+            <input type="hidden" name="thread_id" value="{{ selected_thread.id }}">
+            <button type="submit" class="btn btn-danger btn-sm" data-testid="btn-decline">
+              ❌ Отклонить
+            </button>
+          </form>
+        </div>
+
+        <!-- Поле редактирования при нажатии "Править и отправить" -->
+        <div id="edit-box-{{ msg.id }}" class="hidden">
+          <form method="POST" action="/api/threads/{{ msg.id }}/command" class="stack-2">
+            <input type="hidden" name="command" value="EDIT">
+            <input type="hidden" name="thread_id" value="{{ selected_thread.id }}">
+            <textarea name="custom_text" class="input-text" data-testid="edit-custom-textarea" rows="2">{{ msg.prepared_response or "" }}</textarea>
+            <button type="submit" class="btn btn-sm" data-testid="btn-submit-edit">
+              Отправить изменённый текст
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Быстрый ответ владельца напрямую -->
+  <form method="POST" action="/api/threads/reply" class="stack-2">
+    <input type="hidden" name="thread_id" value="{{ selected_thread.id }}">
+    <textarea name="reply_text" class="input-text" aria-label="Ответ покупателю" placeholder="Написать ответ покупателю вручную..." required rows="2"></textarea>
+    <button type="submit" class="btn btn-sm">Отправить в канал</button>
+  </form>
+</div>
+{% else %}
+<div class="card">
+  <div class="empty">
+    Нет активных диалогов.<br>
+    Сообщения покупателей появятся здесь после синхронизации с площадками.
+    <a href="/ui/items" class="btn btn-sm">Перейти в ленту</a>
+  </div>
+</div>
+{% endif %}
+
+<script>
+  function toggleEditBox(msgId) {
+    const box = document.getElementById('edit-box-' + msgId);
+    if (box) {
+      box.classList.toggle('hidden');
+    }
+  }
+</script>
+{% endblock %}

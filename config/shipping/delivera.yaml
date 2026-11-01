@@ -1,0 +1,8 @@
+broker: delivera
+display_name: "Delivera.cz"
+status: "BLOCKED-EXTERNAL"
+blocked_reason: "Посредник Delivera.cz не публикует официальный статичный PDF-прейскурант для физических лиц. До получения официального прайса посредника интеграция заблокирована."
+sender_on_documents: "BROKER"
+cod_payout_destination: "BROKER_ACCOUNT"
+claims_handler: "BROKER"
+services: []

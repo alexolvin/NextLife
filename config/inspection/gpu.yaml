@@ -1,0 +1,31 @@
+category: gpu
+category_name_ru: Видеокарта
+category_name_cs: Grafická karta
+points:
+- id: serial_check
+  ru: сверить серийный номер с фото в объявлении
+  cs: Zkontrolovat sériové číslo s fotografií v inzerátu
+- id: visual_inspection
+  ru: 'визуальный осмотр: следы вскрытия, состояние пломб, сколы на плате, окисление'
+  cs: 'Vizuální kontrola: stopy po otevření, stav plomb, poškození PCB, oxidace'
+- id: fans_check
+  ru: состояние вентиляторов, люфт, шум на 30/70/100%
+  cs: Stav ventilátorů, vůle ložisek, hlučnost při 30/70/100% otáčkách
+- id: test_bench_boot
+  ru: запуск в стенде покупателя
+  cs: Spuštění v testovací sestavě kupujícího
+- id: stress_test_15min
+  ru: нагрузочный тест не менее 15 минут, контроль температур
+  cs: Zátěžový test minimálně 15 minut, kontrola teplot
+- id: artifacts_check
+  ru: проверка артефактов в 3D-нагрузке
+  cs: Kontrola artefaktů ve 3D zátěži
+- id: video_outputs_check
+  ru: проверка всех видеовыходов
+  cs: Kontrola všech video výstupů
+- id: power_connectors_check
+  ru: проверка разъёмов питания и работы под полной нагрузкой
+  cs: Kontrola napájecích konektorů a provozu při plné zátěži
+- id: package_bundle_check
+  ru: сверка комплекта с описанием
+  cs: Srovnání kompletu s popisem

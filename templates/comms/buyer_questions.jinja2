@@ -1,0 +1,13 @@
+{% if lang == "cs" %}Dobrý den, měl bych zájem o Vaši nabídku [{{ query }}]. Dovolil bych se zeptat na několik upřesňujících detailů:
+
+{% for q in questions %}
+{{ loop.index }}. {{ q }}
+{% endfor %}
+
+Předem děkuji za Vaši odpověď.{% else %}Здравствуйте! Интересует объявление [{{ query }}]. Хотел бы уточнить несколько деталей перед покупкой:
+
+{% for q in questions %}
+{{ loop.index }}. {{ q }}
+{% endfor %}
+
+Заранее спасибо за ответ.{% endif %}

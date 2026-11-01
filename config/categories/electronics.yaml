@@ -1,0 +1,16 @@
+key: electronics
+title: "Электроника"
+required_fields:
+  - brand
+  - model
+  - condition
+optional_fields:
+  - color
+  - memory
+  - storage
+  - battery_health
+defects_options:
+  - scratches
+  - screen_crack
+  - battery_worn
+  - cosmetic_wear

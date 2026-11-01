@@ -1,0 +1,19 @@
+{# Partial: result cards for one marketplace (server-rendered SSE fragment). #}
+{% for r in results %}
+<label class="wz-result-card" data-category="">
+  <input type="checkbox" name="selected" value='{{ r | tojson }}' class="wz-checkbox">
+  {% if r.image %}
+  <img class="wz-result-thumb" src="{{ r.image }}" alt="" loading="lazy">
+  {% else %}
+  <div class="wz-result-thumb wz-result-thumb-placeholder" aria-hidden="true">📦</div>
+  {% endif %}
+  <div class="wz-result-info">
+    <div class="wz-result-platform">{{ r.platform }}</div>
+    <div class="wz-result-title"><a href="{{ r.url }}" target="_blank" rel="noopener">{{ r.title }}</a></div>
+  </div>
+  <div class="wz-result-price">
+    <span class="wz-price-num">{{ r.price }}</span>
+    <span class="wz-price-cur">{{ r.currency }}</span>
+  </div>
+</label>
+{% endfor %}

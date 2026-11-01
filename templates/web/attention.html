@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Внимание — NextLife{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 600px; margin: 0 auto; padding: 1rem;">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+    <h1 style="font-size: 1.5rem; font-weight: 700; margin: 0;">Внимание</h1>
+    {% if total_attention > 0 %}
+    <span class="badge" style="background: #ef4444; color: #fff; padding: 0.25rem 0.6rem; border-radius: 9999px; font-weight: 600; font-size: 0.875rem;" data-testid="total-attention-badge">
+      {{ total_attention }} требует действий
+    </span>
+    {% endif %}
+  </div>
+
+  {% if not cards or total_attention == 0 %}
+  <div style="text-align: center; padding: 3rem 1rem; background: var(--card-bg, #fff); border-radius: 12px; border: 1px solid var(--border-color, #e2e8f0);" data-testid="attention-empty">
+    <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">✓</div>
+    <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem;">Всё спокойно</div>
+    <div style="color: #64748b; font-size: 0.9rem;">Нет задач, требующих вашего внимания.</div>
+  </div>
+  {% else %}
+  <div class="attention-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+    {% for card in cards %}
+    <a href="{{ card.url }}" class="attention-card" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; text-decoration: none; color: inherit; box-shadow: 0 1px 3px rgba(0,0,0,0.05); min-height: 44px;" data-testid="attention-card-{{ card.order }}">
+      <div style="display: flex; align-items: center; gap: 0.875rem;">
+        <div style="font-size: 1.5rem; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: {{ card.color }}15;">
+          {{ card.icon }}
+        </div>
+        <div>
+          <div style="font-weight: 600; font-size: 0.95rem; color: #0f172a;">{{ card.title }}</div>
+          <div style="font-size: 0.8rem; color: #64748b;">Нажмите для перехода</div>
+        </div>
+      </div>
+      <div style="background: {{ card.color }}; color: #fff; font-weight: 700; font-size: 0.875rem; padding: 0.25rem 0.65rem; border-radius: 9999px; min-width: 28px; text-align: center;" data-testid="attention-count-{{ card.order }}">
+        {{ card.count }}
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

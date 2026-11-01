@@ -1,0 +1,85 @@
+carrier: Balíkovna
+display_name: "Balíkovna"
+status: "ACTIVE"
+services:
+  - name: balikovna_vydejni_misto_a_boxy
+    service_type: "výdejní místa a boxy"
+    weight_max_g: 15000
+    size_class:
+      name: "standard"
+      max_weight_kg: 15.0
+      max_longest_side_cm: 50.0
+      max_sum_sides_cm: 150.0
+      box_max_dimensions_cm: [50.0, 50.0, 50.0]
+    dim_rule:
+      max_l_mm: 500
+      max_w_mm: 500
+      max_h_mm: 500
+    price: 79.00
+    country_pricing:
+      CZ: 79.00
+    price_pdf:
+      pdf_section: "Balíkovna BEZ DOBÍRKY"
+      pdf_row: "Cena"
+      pdf_column: 0
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Balíkovna BEZ DOBÍRKY"
+        pdf_row: "Cena"
+        pdf_column: 0
+    currency: CZK
+    cod_supported: true
+    cod_fee: 19.00
+    dobirka_fee: 19.00
+    dobirka_limit: 50000.00
+    unregistered_surcharge: 10.00
+    insurance_included: 50000.00
+    insurance_limit: 50000.00
+    insurance_max: 50000.00
+    countries:
+      - CZ
+    source_file: "config/shipping/_sources/balikovna_lide_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.balikovna.cz/cs/dokumenty-ke-stazeni"
+    fetched_at: "2026-09-09"
+
+  - name: balikovna_na_adresu
+    service_type: "doručení na adresu v ČR"
+    weight_max_g: 15000
+    size_class:
+      name: "standard"
+      max_weight_kg: 15.0
+      max_longest_side_cm: 50.0
+      max_sum_sides_cm: 150.0
+      box_max_dimensions_cm: [50.0, 50.0, 50.0]
+    dim_rule:
+      max_l_mm: 500
+      max_w_mm: 500
+      max_h_mm: 500
+    price: 109.00
+    country_pricing:
+      CZ: 109.00
+    price_pdf:
+      pdf_section: "Balíkovna na adresu BEZ DOBÍRKY"
+      pdf_row: "Cena"
+      pdf_column: 0
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Balíkovna na adresu BEZ DOBÍRKY"
+        pdf_row: "Cena"
+        pdf_column: 0
+    currency: CZK
+    cod_supported: true
+    cod_fee: 19.00
+    dobirka_fee: 19.00
+    dobirka_limit: 50000.00
+    unregistered_surcharge: 10.00
+    insurance_included: 50000.00
+    insurance_limit: 50000.00
+    insurance_max: 50000.00
+    countries:
+      - CZ
+    source_file: "config/shipping/_sources/balikovna_lide_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.balikovna.cz/cs/dokumenty-ke-stazeni"
+    fetched_at: "2026-09-09"

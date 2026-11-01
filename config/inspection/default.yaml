@@ -1,0 +1,19 @@
+category: default
+category_name_ru: Общий осмотр
+category_name_cs: Obecná kontrola
+points:
+- id: serial_check
+  ru: сверить серийный номер и маркировку с фото и описанием
+  cs: Zkontrolovat sériové číslo a označení s fotografií a popisem
+- id: visual_inspection
+  ru: 'визуальный осмотр: следы вскрытия, внешние повреждения, сколы, трещины'
+  cs: 'Vizuální kontrola: stopy po otevření, vnější poškození, praskliny'
+- id: power_boot_check
+  ru: проверка включения и базовой работоспособности
+  cs: Kontrola zapnutí a základní funkčnosti
+- id: ports_controls_check
+  ru: проверка разъемов, портов и элементов управления
+  cs: Kontrola portů, konektorů a ovládacích prvků
+- id: package_bundle_check
+  ru: сверка комплекта и аксессуаров с описанием
+  cs: Srovnání balení a příslušenství s popisem

@@ -1,0 +1,153 @@
+{# ТЗ «Склад» §3.3: форма полей предмета. Используется на /ui/stock/new,
+   /ui/stock/{code} и шаге 2 мастера. Классы полей — wz-input / wz-select.
+   Контекст: item (dict или None), is_new (bool), shipping_policy_options (list). #}
+{% set it = item or {} %}
+<form method="POST"
+      action="{% if is_new %}/api/stock{% else %}/api/stock/{{ it.code }}{% endif %}"
+      class="stack-3" data-testid="stock-form">
+  {# Опциональный URL возврата (мастер шаг 2 передаёт next=/ui/lot-wizard/text?item_code=…). #}
+  {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+  {# Группа 1: Основное #}
+  <div class="card">
+    <div class="card-title">Основное</div>
+    <div class="stack-3">
+      <div class="field">
+        <label for="stock-title">Наименование</label>
+        <input type="text" id="stock-title" name="title" class="wz-input" required
+               value="{{ it.get('title', '') if it else '' }}" placeholder="Например: RTX 3090 24GB" data-testid="stock-title">
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="stock-desc-lang">Язык описания</label>
+          <select id="stock-desc-lang" name="description_lang" class="wz-select" data-testid="stock-desc-lang">
+            {% for code, label in [('ru', 'Русский'), ('cs', 'Чешский'), ('en', 'Английский'), ('de', 'Немецкий'), ('pl', 'Польский')] %}
+            <option value="{{ code }}" {% if it.get('description_lang') == code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="stock-storage">Место на складе</label>
+          <input type="text" id="stock-storage" name="storage_location" class="wz-input"
+                 value="{{ it.get('storage_location', '') if it else '' }}" placeholder="Например: Стеллаж 3" data-testid="stock-storage">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="stock-price">Цена</label>
+          <input type="number" step="0.01" id="stock-price" name="target_price" class="wz-input"
+                 value="{{ it.get('target_price', '') if it else '' }}" data-testid="stock-price">
+        </div>
+        <div class="field">
+          <label for="stock-currency">Валюта</label>
+          <select id="stock-currency" name="target_currency" class="wz-select" data-testid="stock-currency">
+            {% for cur in ['CZK', 'EUR', 'PLN'] %}
+            <option value="{{ cur }}" {% if it.get('target_currency') == cur %}selected{% endif %}>{{ cur }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Группа 2: Текст объявления #}
+  <div class="card">
+    <div class="card-title">Текст объявления</div>
+    <div class="stack-3">
+      <div class="field">
+        <label for="stock-description">Описание</label>
+        <textarea id="stock-description" name="description" rows="5" class="wz-input"
+                  placeholder="Описание предмета для объявления..." data-testid="stock-description">{{ it.get('description', '') if it else '' }}</textarea>
+      </div>
+      <div class="field">
+        <label for="stock-usage">Использование</label>
+        <textarea id="stock-usage" name="usage" rows="3" class="wz-input"
+                  placeholder="Для чего используется..." data-testid="stock-usage">{{ it.get('usage', '') if it else '' }}</textarea>
+      </div>
+      <div class="field">
+        <label for="stock-specs">Технические характеристики</label>
+        <textarea id="stock-specs" name="specs" rows="3" class="wz-input"
+                  placeholder="Модель, характеристики, комплектация..." data-testid="stock-specs">{{ it.get('specs', '') if it else '' }}</textarea>
+      </div>
+    </div>
+  </div>
+
+  {# Группа 3: Заметки оператора #}
+  <div class="card">
+    <div class="row between">
+      <div class="card-title">Заметки оператора</div>
+      <span class="fs-xs text-muted">Видны только вам, в объявления не попадают</span>
+    </div>
+    <div class="field">
+      <textarea name="notes" rows="3" class="wz-input"
+                placeholder="Внутренние заметки..." data-testid="stock-notes">{{ it.get('notes', '') if it else '' }}</textarea>
+    </div>
+  </div>
+
+  {# Группа 4: Доставка #}
+  <div class="card">
+    <div class="card-title">Доставка</div>
+    <div class="stack-3">
+      <div class="field">
+        <label for="stock-shipping-policy">Кто платит за доставку</label>
+        <select id="stock-shipping-policy" name="shipping_policy" class="wz-select" data-testid="stock-shipping-policy">
+          {% for p in shipping_policy_options %}
+          <option value="{{ p.value }}" {% if it.get('shipping_policy') == p.value %}selected{% endif %}>{{ p.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="stock-weight">Вес (г)</label>
+          <input type="number" step="1" id="stock-weight" name="weight_g" class="wz-input"
+                 value="{{ it.get('weight_g', '') if it and it.get('weight_g') else '' }}" data-testid="stock-weight">
+        </div>
+        <div class="field">
+          <label for="stock-packed-weight">Вес в упаковке (г)</label>
+          <input type="number" step="1" id="stock-packed-weight" name="packed_weight_g" class="wz-input"
+                 value="{{ it.get('packed_weight_g', '') if it and it.get('packed_weight_g') else '' }}" data-testid="stock-packed-weight">
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="field">
+          <label for="stock-dim-l">Длина (мм)</label>
+          <input type="number" step="1" id="stock-dim-l" name="dim_l_mm" class="wz-input"
+                 value="{{ it.get('dim_l_mm', '') if it and it.get('dim_l_mm') else '' }}" data-testid="stock-dim-l">
+        </div>
+        <div class="field">
+          <label for="stock-dim-w">Ширина (мм)</label>
+          <input type="number" step="1" id="stock-dim-w" name="dim_w_mm" class="wz-input"
+                 value="{{ it.get('dim_w_mm', '') if it and it.get('dim_w_mm') else '' }}" data-testid="stock-dim-w">
+        </div>
+        <div class="field">
+          <label for="stock-dim-h">Высота (мм)</label>
+          <input type="number" step="1" id="stock-dim-h" name="dim_h_mm" class="wz-input"
+                 value="{{ it.get('dim_h_mm', '') if it and it.get('dim_h_mm') else '' }}" data-testid="stock-dim-h">
+        </div>
+      </div>
+      {# Блок перевозчиков (§3.3): частичный шаблон, сервис shipping_options. #}
+      {% if it and it.get('shipping_summary_json') %}
+      {% include "_shipping_constructor.html" %}
+      {% endif %}
+    </div>
+  </div>
+
+  {# Группа: Гарантия (§5.5.3) #}
+  <div class="card" data-testid="stock-warranty-block">
+    <div class="card-title">Гарантия</div>
+    <div class="stack-3">
+      <div class="field">
+        <label for="stock-warranty-months">Срок гарантии (месяцев, оставьте пустым если без гарантии)</label>
+        <input type="number" step="1" id="stock-warranty-months" name="warranty_months" class="wz-input"
+               value="{{ it.get('warranty_months', '') if it and it.get('warranty_months') is not none else '' }}" placeholder="Например: 6" data-testid="stock-warranty-months">
+      </div>
+      <div class="field">
+        <label for="stock-warranty-terms">Условия гарантии для текста объявлений</label>
+        <textarea id="stock-warranty-terms" name="warranty_terms" rows="2" class="wz-input"
+                  placeholder="Например: Гарантия работоспособности 14 дней на проверку..." data-testid="stock-warranty-terms">{{ it.get('warranty_terms', '') if it else '' }}</textarea>
+      </div>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary btn-full" data-testid="btn-stock-save">Сохранить</button>
+</form>

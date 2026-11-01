@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="messages-container" style="padding: 16px; max-width: 800px; margin: 0 auto;" data-testid="messages-screen">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+    <h1 style="font-size: 1.4rem; font-weight: 700; margin: 0;">Сообщения</h1>
+  </div>
+
+  <!-- Search & Filters (§7.1) -->
+  <div style="margin-bottom: 14px;">
+    <form method="get" action="/ui/messages" style="display: flex; gap: 8px; margin-bottom: 12px;">
+      <input type="hidden" name="filter" value="{{ filter_group }}">
+      <input type="search" name="q" value="{{ q }}" placeholder="Поиск по диалогам и коду..."
+             class="input-field" style="flex: 1; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px;" data-testid="messages-search-input">
+      <button type="submit" class="btn btn-secondary" style="padding: 10px 16px;">Найти</button>
+    </form>
+
+    <div class="filter-chips" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;">
+      <a href="/ui/messages?filter=all" class="chip" data-testid="chip-all"
+         style="padding: 6px 14px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; font-weight: 600; white-space: nowrap; {{ 'background: #2563eb; color: #fff;' if filter_group == 'all' else 'background: #f1f5f9; color: #334155;' }}">
+        Все
+      </a>
+      <a href="/ui/messages?filter=unread" class="chip" data-testid="chip-unread"
+         style="padding: 6px 14px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; font-weight: 600; white-space: nowrap; {{ 'background: #2563eb; color: #fff;' if filter_group == 'unread' else 'background: #f1f5f9; color: #334155;' }}">
+        Непрочитанные ({{ unread_count }})
+      </a>
+      <a href="/ui/messages?filter=escalated" class="chip" data-testid="chip-escalated"
+         style="padding: 6px 14px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; font-weight: 600; white-space: nowrap; {{ 'background: #ef4444; color: #fff;' if filter_group == 'escalated' else 'background: #fee2e2; color: #991b1b;' }}">
+        Эскалированные ({{ escalated_count }})
+      </a>
+    </div>
+  </div>
+
+  <!-- Threads List -->
+  {% if not threads %}
+    <div style="padding: 40px; text-align: center; color: #64748b; background: #fff; border-radius: 10px; border: 1px solid #e2e8f0;">
+      Диалогов не найдено.
+    </div>
+  {% else %}
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      {% for t in threads %}
+        <a href="/ui/messages/{{ t.id }}" class="card" style="padding: 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; display: flex; gap: 12px; text-decoration: none; color: inherit; align-items: center;" data-testid="thread-row">
+          <!-- Thumbnail -->
+          {% if t.thumb_url %}
+            <img src="{{ t.thumb_url }}" alt="Предмет" style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: #f1f5f9;">
+          {% else %}
+            <div style="width: 56px; height: 56px; border-radius: 8px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #94a3b8; flex-shrink: 0;">📦</div>
+          {% endif %}
+
+          <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                {% if t.item_code %}
+                  <span style="font-family: ui-monospace, monospace; font-size: 0.85rem; font-weight: 700; color: #2563eb;">#{{ t.item_code }}</span>
+                {% endif %}
+                <strong style="font-size: 0.95rem; color: #0f172a;">{{ t.counterparty }}</strong>
+                <span class="badge" style="font-size: 0.7rem; padding: 2px 6px;">{{ t.marketplace_key }}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                {% if t.is_unread %}
+                  <span style="width: 8px; height: 8px; border-radius: 50%; background: #2563eb; display: inline-block;" title="Новое сообщение"></span>
+                {% endif %}
+                <span style="font-size: 0.75rem; color: #94a3b8;">
+                  {{ t.last_message_at.strftime('%d.%m %H:%M') if t.last_message_at else '' }}
+                </span>
+              </div>
+            </div>
+
+            <div style="font-size: 0.85rem; color: #475569; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              {{ t.last_message_text or 'Нет сообщений' }}
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

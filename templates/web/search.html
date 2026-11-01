@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="search-page-container" style="padding: 16px; max-width: 800px; margin: 0 auto;">
+  <h1 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px;">Поиск</h1>
+
+  <form method="get" action="/ui/search" style="margin-bottom: 20px;">
+    <div style="display: flex; gap: 8px;">
+      <input type="text" name="q" value="{{ query }}" placeholder="Поиск по предметам, объявлениям, сообщениям..."
+             class="input-field" style="flex: 1; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem;" autofocus>
+      <input type="hidden" name="scope" value="{{ scope }}">
+      <button type="submit" class="btn btn-primary" style="padding: 10px 18px; border-radius: 8px; font-weight: 600;">Найти</button>
+    </div>
+  </form>
+
+  <div class="scope-tabs" style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+    <a href="/ui/search?q={{ query }}&scope=all" class="chip {{ 'chip-active' if scope == 'all' else '' }}" style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.9rem; {{ 'background: #2563eb; color: #fff;' if scope == 'all' else 'background: #f1f5f9; color: #334155;' }}">Всё</a>
+    <a href="/ui/search?q={{ query }}&scope=items" class="chip {{ 'chip-active' if scope == 'items' else '' }}" style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.9rem; {{ 'background: #2563eb; color: #fff;' if scope == 'items' else 'background: #f1f5f9; color: #334155;' }}">Предметы</a>
+    <a href="/ui/search?q={{ query }}&scope=listings" class="chip {{ 'chip-active' if scope == 'listings' else '' }}" style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.9rem; {{ 'background: #2563eb; color: #fff;' if scope == 'listings' else 'background: #f1f5f9; color: #334155;' }}">Объявления</a>
+    <a href="/ui/search?q={{ query }}&scope=messages" class="chip {{ 'chip-active' if scope == 'messages' else '' }}" style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.9rem; {{ 'background: #2563eb; color: #fff;' if scope == 'messages' else 'background: #f1f5f9; color: #334155;' }}">Сообщения</a>
+  </div>
+
+  {% if results %}
+    {% if results.total == 0 %}
+      <p style="color: #64748b; font-size: 1rem; margin-top: 24px;">По запросу «{{ query }}» ничего не найдено.</p>
+    {% else %}
+      {% if scope == 'all' %}
+        {% if results.items %}
+          <div style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <h2 style="font-size: 1.1rem; font-weight: 600;">Предметы ({{ results.items|length }})</h2>
+              <a href="/ui/search?q={{ query }}&scope=items" style="color: #2563eb; font-size: 0.85rem; text-decoration: none;">Все предметы →</a>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              {% for it in results.items %}
+                <a href="{{ it.url }}" style="display: block; padding: 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: inherit;">
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="font-weight: 600;">#{{ it.code }} {{ it.title }}</span>
+                    <span class="badge" style="font-size: 0.8rem; padding: 2px 8px; background: #f1f5f9; border-radius: 4px;">{{ it.status }}</span>
+                  </div>
+                  {% if it.storage_location %}
+                    <div style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">📍 {{ it.storage_location }}</div>
+                  {% endif %}
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        {% if results.listings %}
+          <div style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <h2 style="font-size: 1.1rem; font-weight: 600;">Объявления ({{ results.listings|length }})</h2>
+              <a href="/ui/search?q={{ query }}&scope=listings" style="color: #2563eb; font-size: 0.85rem; text-decoration: none;">Все объявления →</a>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              {% for l in results.listings %}
+                <a href="{{ l.url }}" style="display: block; padding: 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: inherit;">
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="font-weight: 600;">{{ l.title }}</span>
+                    <span style="font-weight: 600; color: #16a34a;">{{ l.price }} {{ l.currency }}</span>
+                  </div>
+                  <div style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">
+                    Площадка: {{ l.marketplace_key }} | Статус: {{ l.status }}
+                  </div>
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        {% if results.messages %}
+          <div style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <h2 style="font-size: 1.1rem; font-weight: 600;">Сообщения ({{ results.messages|length }})</h2>
+              <a href="/ui/search?q={{ query }}&scope=messages" style="color: #2563eb; font-size: 0.85rem; text-decoration: none;">Все сообщения →</a>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              {% for m in results.messages %}
+                <a href="{{ m.url }}" style="display: block; padding: 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: inherit;">
+                  <div style="font-size: 0.95rem; color: #1e293b;">{{ m.title }}</div>
+                  <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">{{ m.direction }} • {{ m.sent_at or '' }}</div>
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+      {% else %}
+        <!-- Specific scope results -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          {% for r in results.results %}
+            <a href="{{ r.url }}" style="display: block; padding: 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: inherit;">
+              <div style="display: flex; justify-content: space-between;">
+                <span style="font-weight: 600;">{{ r.title }}</span>
+                {% if r.price %}
+                  <span style="font-weight: 600; color: #16a34a;">{{ r.price }} {{ r.currency or '' }}</span>
+                {% endif %}
+              </div>
+              <div style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">
+                {% if r.type == 'item' %}#{{ r.code }} • {{ r.status }} • {{ r.storage_location or 'Без места' }}{% endif %}
+                {% if r.type == 'listing' %}{{ r.marketplace_key }} • {{ r.status }}{% endif %}
+                {% if r.type == 'message' %}{{ r.direction }} • {{ r.sent_at or '' }}{% endif %}
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

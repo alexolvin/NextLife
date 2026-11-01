@@ -1,0 +1,234 @@
+carrier: PPL
+display_name: "PPL CZ"
+status: "ACTIVE"
+services:
+  - name: ppl_parcelshop_s
+    service_type: "výdejní místo / box (PPL Parcelshop/Parcelbox)"
+    weight_max_g: 31500
+    size_class:
+      name: "S"
+      max_weight_kg: 31.5
+      max_longest_side_cm: 30.0
+      max_sum_sides_cm: 90.0
+      box_max_dimensions_cm: [30.0, 30.0, 30.0]
+    dim_rule:
+      max_single_side_mm: 300
+    price: 76.00
+    country_pricing:
+      CZ: 76.00
+    price_pdf:
+      pdf_section: "Parcelshop"
+      pdf_row: "S (30 × 30 × 30 cm)"
+      pdf_column: 0
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Parcelshop"
+        pdf_row: "S (30 × 30 × 30 cm)"
+        pdf_column: 0
+    currency: CZK
+    cod_supported: true
+    cod_fee: 19.00
+    dobirka_fee: 19.00
+    dobirka_limit: 5000.00
+    unregistered_surcharge: 0.00
+    insurance_included: 5000.00
+    insurance_limit: 5000.00
+    insurance_max: 5000.00
+    countries:
+      - CZ
+    source_file: "config/shipping/_sources/ppl_lide_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.ppl.cz/cenik-osoby"
+    fetched_at: "2026-09-09"
+
+  - name: ppl_parcelshop_m
+    service_type: "výdejní místo / box (PPL Parcelshop/Parcelbox)"
+    weight_max_g: 31500
+    size_class:
+      name: "M"
+      max_weight_kg: 31.5
+      max_longest_side_cm: 60.0
+      max_sum_sides_cm: 130.0
+      box_max_dimensions_cm: [60.0, 40.0, 30.0]
+    dim_rule:
+      max_single_side_mm: 600
+    price: 78.00
+    country_pricing:
+      CZ: 78.00
+    price_pdf:
+      pdf_section: "Parcelshop"
+      pdf_row: "M (60 × 40 × 30 cm)"
+      pdf_column: 0
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Parcelshop"
+        pdf_row: "M (60 × 40 × 30 cm)"
+        pdf_column: 0
+    currency: CZK
+    cod_supported: true
+    cod_fee: 19.00
+    dobirka_fee: 19.00
+    dobirka_limit: 5000.00
+    unregistered_surcharge: 0.00
+    insurance_included: 5000.00
+    insurance_limit: 5000.00
+    insurance_max: 5000.00
+    countries:
+      - CZ
+    source_file: "config/shipping/_sources/ppl_lide_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.ppl.cz/cenik-osoby"
+    fetched_at: "2026-09-09"
+
+  - name: ppl_parcelshop_l
+    service_type: "výdejní místo / box (PPL Parcelshop/Parcelbox)"
+    weight_max_g: 31500
+    size_class:
+      name: "L"
+      max_weight_kg: 31.5
+      max_longest_side_cm: 100.0
+      max_sum_sides_cm: 200.0
+      box_max_dimensions_cm: [100.0, 50.0, 50.0]
+    dim_rule:
+      max_single_side_mm: 1000
+    price: 119.00
+    country_pricing:
+      CZ: 119.00
+    price_pdf:
+      pdf_section: "Parcelshop"
+      pdf_row: "L (100 × 50 × 50 cm)"
+      pdf_column: 0
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Parcelshop"
+        pdf_row: "L (100 × 50 × 50 cm)"
+        pdf_column: 0
+    currency: CZK
+    cod_supported: true
+    cod_fee: 19.00
+    dobirka_fee: 19.00
+    dobirka_limit: 5000.00
+    unregistered_surcharge: 0.00
+    insurance_included: 5000.00
+    insurance_limit: 5000.00
+    insurance_max: 5000.00
+    countries:
+      - CZ
+    source_file: "config/shipping/_sources/ppl_lide_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.ppl.cz/cenik-osoby"
+    fetched_at: "2026-09-09"
+
+  - name: ppl_na_adresu_s
+    service_type: "doručení na adresu (PPL Parcel For You CZ)"
+    weight_max_g: 31500
+    size_class:
+      name: "S"
+      max_weight_kg: 31.5
+      max_longest_side_cm: 30.0
+      max_sum_sides_cm: 90.0
+    dim_rule:
+      max_single_side_mm: 300
+    price: 106.00
+    country_pricing:
+      CZ: 106.00
+    price_pdf:
+      pdf_section: "PPL PARCEL FOR YOU CZ"
+      pdf_row: "S (30 × 30 × 30 cm)"
+      pdf_column: 0
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "PPL PARCEL FOR YOU CZ"
+        pdf_row: "S (30 × 30 × 30 cm)"
+        pdf_column: 0
+    currency: CZK
+    cod_supported: true
+    cod_fee: 19.00
+    dobirka_fee: 19.00
+    dobirka_limit: 5000.00
+    unregistered_surcharge: 0.00
+    insurance_included: 5000.00
+    insurance_limit: 5000.00
+    insurance_max: 5000.00
+    countries:
+      - CZ
+    source_file: "config/shipping/_sources/ppl_lide_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.ppl.cz/cenik-osoby"
+    fetched_at: "2026-09-09"
+
+  - name: ppl_na_adresu_m
+    service_type: "doručení na adresu (PPL Parcel For You CZ)"
+    weight_max_g: 31500
+    size_class:
+      name: "M"
+      max_weight_kg: 31.5
+      max_longest_side_cm: 60.0
+      max_sum_sides_cm: 130.0
+    dim_rule:
+      max_single_side_mm: 600
+    price: 108.00
+    country_pricing:
+      CZ: 108.00
+    price_pdf:
+      pdf_section: "PPL PARCEL FOR YOU CZ"
+      pdf_row: "M (60 × 40 × 30 cm)"
+      pdf_column: 0
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "PPL PARCEL FOR YOU CZ"
+        pdf_row: "M (60 × 40 × 30 cm)"
+        pdf_column: 0
+    currency: CZK
+    cod_supported: true
+    cod_fee: 19.00
+    dobirka_fee: 19.00
+    dobirka_limit: 5000.00
+    unregistered_surcharge: 0.00
+    insurance_included: 5000.00
+    insurance_limit: 5000.00
+    insurance_max: 5000.00
+    countries:
+      - CZ
+    source_file: "config/shipping/_sources/ppl_lide_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.ppl.cz/cenik-osoby"
+    fetched_at: "2026-09-09"
+
+  - name: ppl_na_adresu_l
+    service_type: "doručení na adresu (PPL Parcel For You CZ)"
+    weight_max_g: 31500
+    size_class:
+      name: "L"
+      max_weight_kg: 31.5
+      max_longest_side_cm: 100.0
+      max_sum_sides_cm: 200.0
+    dim_rule:
+      max_single_side_mm: 1000
+    price: 139.00
+    country_pricing:
+      CZ: 139.00
+    price_pdf:
+      pdf_section: "PPL PARCEL FOR YOU CZ"
+      pdf_row: "L (100 × 50 × 50 cm)"
+      pdf_column: 0
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "PPL PARCEL FOR YOU CZ"
+        pdf_row: "L (100 × 50 × 50 cm)"
+        pdf_column: 0
+    currency: CZK
+    cod_supported: true
+    cod_fee: 19.00
+    dobirka_fee: 19.00
+    dobirka_limit: 5000.00
+    unregistered_surcharge: 0.00
+    insurance_included: 5000.00
+    insurance_limit: 5000.00
+    insurance_max: 5000.00
+    countries:
+      - CZ
+    source_file: "config/shipping/_sources/ppl_lide_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.ppl.cz/cenik-osoby"
+    fetched_at: "2026-09-09"

@@ -1,0 +1,13 @@
+key: clothing
+title: "Одежда"
+required_fields:
+  - size
+  - condition
+optional_fields:
+  - brand
+  - color
+  - material
+defects_options:
+  - stains
+  - holes
+  - cosmetic_wear

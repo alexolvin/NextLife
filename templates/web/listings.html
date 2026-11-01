@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="listings-container" style="padding: 16px; max-width: 900px; margin: 0 auto;" data-testid="listings-screen">
+  <!-- Header & Actions -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+    <h1 style="font-size: 1.4rem; font-weight: 700; margin: 0;">Объявления</h1>
+    {% if counts.approved > 0 %}
+      <form method="post" action="/ui/listings/publish-approved" style="margin: 0;">
+        <button type="submit" class="btn btn-primary" style="padding: 10px 18px; font-weight: 700; border-radius: 8px;" data-testid="btn-publish-approved">
+          Разместить утверждённые ({{ counts.approved }})
+        </button>
+      </form>
+    {% endif %}
+  </div>
+
+  <!-- Search & Sort Row (§6.1) -->
+  <div style="display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;">
+    <form method="get" action="/ui/listings" style="flex: 1; display: flex; gap: 8px;">
+      <input type="hidden" name="filter" value="{{ filter_group }}">
+      <input type="search" name="q" value="{{ q }}" placeholder="Поиск по объявлениям..."
+             class="input-field" style="flex: 1; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px;" data-testid="listings-search-input">
+      <button type="submit" class="btn btn-secondary" style="padding: 10px 16px;">Найти</button>
+    </form>
+
+    <form method="get" action="/ui/listings" style="margin: 0;">
+      <input type="hidden" name="filter" value="{{ filter_group }}">
+      {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+      <select name="sort" onchange="this.form.submit()" class="input-field" style="padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;" data-testid="sort-selector">
+        <option value="first_published_asc" {% if sort == 'first_published_asc' %}selected{% endif %}>Дата размещения ↑ (старые)</option>
+        <option value="first_published_desc" {% if sort == 'first_published_desc' %}selected{% endif %}>Дата размещения ↓ (новые)</option>
+        <option value="price" {% if sort == 'price' %}selected{% endif %}>По цене</option>
+      </select>
+    </form>
+  </div>
+
+  <!-- Filter Chips (§6.1) -->
+  <div class="filter-chips" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px;">
+    <a href="/ui/listings?filter=all" class="chip" data-testid="chip-all"
+       style="padding: 6px 14px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; font-weight: 600; white-space: nowrap; {{ 'background: #2563eb; color: #fff;' if filter_group == 'all' else 'background: #f1f5f9; color: #334155;' }}">
+      Все размещённые ({{ counts.published }})
+    </a>
+    <a href="/ui/listings?filter=errors" class="chip" data-testid="chip-errors"
+       style="padding: 6px 14px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; font-weight: 600; white-space: nowrap; {{ 'background: #ef4444; color: #fff;' if filter_group == 'errors' else 'background: #fee2e2; color: #991b1b;' }}">
+      Ошибки ({{ counts.errors }})
+    </a>
+    <a href="/ui/listings?filter=approved" class="chip" data-testid="chip-approved"
+       style="padding: 6px 14px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; font-weight: 600; white-space: nowrap; {{ 'background: #1d4ed8; color: #fff;' if filter_group == 'approved' else 'background: #dbeafe; color: #1e40af;' }}">
+      Утверждены ({{ counts.approved }})
+    </a>
+    <a href="/ui/listings?filter=drafts" class="chip" data-testid="chip-drafts"
+       style="padding: 6px 14px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; font-weight: 600; white-space: nowrap; {{ 'background: #64748b; color: #fff;' if filter_group == 'drafts' else 'background: #f1f5f9; color: #334155;' }}">
+      Черновики ({{ counts.drafts }})
+    </a>
+    <a href="/ui/listings?filter=expiring" class="chip" data-testid="chip-expiring"
+       style="padding: 6px 14px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; font-weight: 600; white-space: nowrap; {{ 'background: #eab308; color: #fff;' if filter_group == 'expiring' else 'background: #fef9c3; color: #854d0e;' }}">
+      Срок истекает ({{ counts.expiring }})
+    </a>
+    <a href="/ui/listings?filter=archived" class="chip" data-testid="chip-archived"
+       style="padding: 6px 14px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; font-weight: 600; white-space: nowrap; {{ 'background: #475569; color: #fff;' if filter_group == 'archived' else 'background: #f1f5f9; color: #334155;' }}">
+      Снятые ({{ counts.archived }})
+    </a>
+  </div>
+
+  <!-- Listings List -->
+  {% if not listings %}
+    <div style="padding: 40px; text-align: center; color: #64748b; background: #fff; border-radius: 10px; border: 1px solid #e2e8f0;">
+      Объявления не найдены в этой категории.
+    </div>
+  {% else %}
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      {% for l in listings %}
+        <div class="card" style="padding: 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; display: flex; gap: 12px; align-items: flex-start;" data-testid="listing-row">
+          <!-- Thumbnail -->
+          {% if l.thumb_url %}
+            <img src="{{ l.thumb_url }}" alt="Миниатюра" style="width: 72px; height: 72px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: #f1f5f9;">
+          {% else %}
+            <div style="width: 72px; height: 72px; border-radius: 6px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: #94a3b8; flex-shrink: 0;">📦</div>
+          {% endif %}
+
+          <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+              <div>
+                <a href="/ui/listings/{{ l.id }}" style="font-weight: 700; font-size: 1.05rem; color: #1e293b; text-decoration: none;" data-testid="listing-title">
+                  {{ l.title }}
+                </a>
+                <div style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">
+                  <strong style="color: #0f172a;">{{ l.marketplace_key }}</strong> • Предмет <a href="/ui/stock/{{ l.item_code }}" style="color: #2563eb; text-decoration: none;">#{{ l.item_code }}</a>
+                  {% if l.days_ago is not none %}
+                    • размещено {{ l.days_ago }} дн. назад
+                  {% endif %}
+                </div>
+              </div>
+
+              <div style="text-align: right; flex-shrink: 0;">
+                <div style="font-weight: 800; font-size: 1.15rem; color: #15803d;">{{ l.price }} {{ l.currency }}</div>
+                <span class="badge" style="font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-top: 4px;">{{ l.status }}</span>
+              </div>
+            </div>
+
+            <!-- Error banner if any -->
+            {% if l.last_error_text %}
+              <div style="margin-top: 8px; padding: 8px 12px; background: #fee2e2; border: 1px solid #fca5a5; border-radius: 6px; font-size: 0.85rem; color: #991b1b;">
+                <strong>Ошибка:</strong> {{ l.last_error_text }}
+                {% if l.last_error_hint %}
+                  <div style="margin-top: 4px; color: #7f1d1d; font-weight: 500;">💡 {{ l.last_error_hint }}</div>
+                {% endif %}
+              </div>
+            {% endif %}
+
+            <!-- External link -->
+            {% if l.external_url %}
+              <div style="margin-top: 8px;">
+                <a href="{{ l.external_url }}" target="_blank" rel="noopener" style="font-size: 0.85rem; color: #2563eb; text-decoration: none; font-weight: 500;">
+                  Открыть на площадке ↗
+                </a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

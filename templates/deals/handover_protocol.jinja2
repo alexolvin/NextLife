@@ -1,0 +1,59 @@
+# АКТ ПРИЁМА-ПЕРЕДАЧИ ТОВАРА / PŘEDÁVACÍ PROTOKOL
+
+**Дата / Datum:** {{ date_str }}  
+**Место / Místo:** {{ place }}  
+**Код лота / Kód položky:** [{{ lot_code }}]  
+**Номер сделки / Číslo obchodu:** {{ deal_id }}  
+
+---
+
+### 1. СТОРОНЫ СДЕЛКИ / STRANY DOHODY
+* **Продавец / Prodávající:** {{ seller_name }}
+* **Покупатель / Kupující:** {{ buyer_name }} (Контакт / Kontakt: {{ buyer_contact }})
+
+---
+
+### 2. ПРЕДМЕТ СДЕЛКИ / PŘEDMĚT KOUPĚ
+* **Наименование и модель / Název a model:** {{ item_title }}
+* **Категория / Kategorie:** {{ category }}
+* **Серийный номер / Sériové číslo:** `{{ serial_number }}`
+
+---
+
+### 3. СОСТОЯНИЕ И ДЕФЕКТЫ / STAV A PŘEHLED VAD
+* **Заявленное состояние / Deklarovaný stav:** {{ condition }}
+* **Перечень известных дефектов / Seznam známých vad a opotřebení:**
+{% if defects and defects|length > 0 %}
+{% for d in defects %}
+  - {{ d }}
+{% endfor %}
+{% else %}
+  - Дефекты не заявлены / Žádné vady nebyly zjištěny ani deklarovány
+{% endif %}
+
+---
+
+### 4. ЦЕНА И ОПЛАТА / CENA A ZPŮSOB ÚHRADY
+* **Согласованная цена / Sjednaná kupní cena:** {{ price }} {{ currency }}
+* **Способ оплаты / Způsob úhrady:** {{ payment_method }}
+* **Статус оплаты / Stav úhrady:** {{ payment_status }}
+
+---
+
+### 5. ПРОВЕРКА И КОМПЛЕКТАЦИЯ / KONTROLA A KOMPLETNOST
+* [X] **Отметка о проверке покупателем / Potvrzení o vyzkoušení kupujícím:**
+  Покупатель лично осмотрел и проверил товар на месте, претензий к внешнему виду и работоспособности не имеет.
+  Kupující osobně zkontroloval a vyzkoušel zboží na místě, nemá žádné výhrady k funkčnosti ani vzhledu.
+* [X] **Передача комплекта / Předání příslušenství:**
+  Товар передан в полной согласованной комплектации (кабели, коробка, аксессуары).
+  Zboží bylo předáno s kompletním dohodnutým příslušenstvím.
+
+---
+
+### 6. ПОДПИСИ СТОРОН / PODPISY STRAN
+
+**Продавец / Prodávající:**  
+Подпись / Podpis: _________________________  Дата / Datum: {{ date_str }}
+
+**Покупатель / Kupující:**  
+Подпись / Podpis: _________________________  Дата / Datum: {{ date_str }}

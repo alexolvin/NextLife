@@ -1,0 +1,86 @@
+key: aukro_cz
+title: Aukro.cz
+country: CZ
+currency: CZK
+access_mode: DIRECT
+base_url: "https://aukro.cz"
+# D.1 daily canary: harmless query. Aukro's SEO redirect is query-dependent:
+# «notebook» maps to the category /notebooky-netbooky (the backend answers
+# {content: [], redirectUrl} and the SPA follows it via categorySeoUrl).
+# The connector follows the same way — the canary exercises that full path
+# (A.3 repair, live-verified 2026-10-04, see
+# .a/reports/m1/probes/2026-10-04/aukro_cz_search_api_probe.json).
+canary_query: "notebook"
+# A.3: the HTML search endpoint serves a JS SPA shell to plain HTTP; the
+# search runs against the site-internal JSON API the SPA itself uses.
+search_mode: json
+# Search is no-auth (site JSON API). Publish goes via the FEED channel
+# (an XML feed that Aukro's Manažer prodeje pulls by URL), not an API key.
+auth:
+  type: none
+capabilities:
+  search: true
+  # Публикация — через FEED (XML-фид, Aukro сам забирает по URL через
+  # Manažer prodeje). DIRECT/API-публикация удалена (A1/A2, 2026-10-24):
+  # Aukro API выдаётся только юрлицам, логин закрыт Cloudflare Turnstile.
+  post: false
+  edit: false
+  archive: false
+  messaging: false
+  max_photos: 8
+  max_title_len: 50
+  max_body_len: 5000
+  allows_generative_photos: false
+  delivery_options:
+    - pickup
+    - post
+    - zasilkovna
+    - balikovna
+    - courier
+  payment_options:
+    - aukro_safe
+    - bank_transfer
+    - cash
+    - cod
+selectors:
+  # Not used (search_mode: json, A.3): the search parses the JSON API
+  # response, not HTML cards. Kept for config-schema completeness.
+  search_result: ".auk-basic-item-card"
+  price: ".auk-item-card-price"
+routes:
+  # A.3: the site-internal JSON search API (POST, JSON body) the SPA itself
+  # calls; live-verified 2026-10-04 (artifact
+  # .a/reports/m1/probes/2026-10-04/aukro_cz_search_api_probe.json).
+  # The canary uses this path as the expected final-URL prefix.
+  search: "/backend-web/api/offers/searchItemsCommon"
+mapping:
+  category_map:
+    electronics: "elektro"
+  condition_map:
+    used: "použité"
+  delivery_map:
+    pickup: "Osobní převzetí"
+    post: "Doporučená zásilka"
+    zasilkovna: "Zásilkovna"
+    balikovna: "Balíkovna"
+    courier: "Kurýrní služba"
+  payment_map:
+    aukro_safe: "Bezpečná platba přes Aukro"
+    bank_transfer: "Běžný bankovní převod"
+    cash: "Platba při osobním převzetí"
+    cod: "Dobírka"
+rate_limits:
+  requests_per_minute: 20
+  min_delay_seconds: 2
+
+media:
+  max_photos: null
+  min_width: null
+  min_height: null
+  max_width: null
+  max_height: null
+  aspect_preferred: null
+  max_file_bytes: null
+  formats: []
+  source_url: null
+  verified_at: null

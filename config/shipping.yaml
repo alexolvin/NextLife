@@ -1,0 +1,16 @@
+methods:
+  - key: pickup
+    title: "Личная встреча / Самовывоз"
+    cost_base: 0.00
+    currency: EUR
+    allowed_countries: ["CZ"]
+  - key: zasilkovna
+    title: "Zásilkovna / Packeta"
+    cost_base: 4.50
+    currency: EUR
+    allowed_countries: ["CZ", "SK"]
+  - key: cpost
+    title: "Česká pošta"
+    cost_base: 6.00
+    currency: EUR
+    allowed_countries: ["CZ"]

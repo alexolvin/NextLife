@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="listing-detail-container" style="padding: 16px; max-width: 800px; margin: 0 auto;" data-testid="listing-detail-screen">
+  <!-- Top Navigation & Status -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+    <a href="/ui/listings" class="btn btn-secondary btn-sm" data-testid="btn-back-listings">← Все объявления</a>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <span class="badge" style="font-size: 0.85rem; padding: 4px 10px; border-radius: 6px;">{{ listing.status }}</span>
+      {% if listing.external_url %}
+        <a href="{{ listing.external_url }}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" data-testid="btn-external-link">
+          На площадке ↗
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Header Info Card -->
+  <div class="card" style="padding: 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+      <div>
+        <h1 style="font-size: 1.3rem; font-weight: 800; margin: 0 0 6px 0;">
+          {{ listing.marketplace_key }}
+        </h1>
+        <div style="font-size: 0.9rem; color: #64748b;">
+          Предмет: <a href="/ui/stock/{{ listing.item_code }}" style="color: #2563eb; font-weight: 600;" data-testid="link-item-code">#{{ listing.item_code }} {{ item.title if item else '' }}</a>
+        </div>
+      </div>
+      <div style="font-size: 0.85rem; color: #64748b; text-align: right;">
+        {% if listing.first_published_at %}
+          <div>Первое размещение: {{ listing.first_published_at.strftime('%d.%m.%Y') }}</div>
+        {% endif %}
+        {% if listing.expires_at %}
+          <div>Срок показа до: {{ listing.expires_at.strftime('%d.%m.%Y') }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Edit Form -->
+  <form method="post" action="/ui/listings/{{ listing.id }}/save" class="card" style="padding: 20px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 16px;">
+    <h2 style="font-size: 1.1rem; font-weight: 700; margin-top: 0; margin-bottom: 16px;">Содержимое объявления</h2>
+
+    <!-- Title -->
+    <div style="margin-bottom: 14px;">
+      <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">
+        Заголовок (макс 60 симв.):
+      </label>
+      <input type="text" name="title" value="{{ listing.title or '' }}" maxlength="60" required
+             class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;" data-testid="input-listing-title">
+    </div>
+
+    <!-- Price -->
+    <div style="margin-bottom: 14px; display: flex; gap: 12px; align-items: flex-end;">
+      <div style="flex: 1;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">
+          Цена ({{ listing.currency }}):
+        </label>
+        <input type="number" step="1" name="price" value="{{ listing.price or '0' }}" required
+               class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;" data-testid="input-listing-price">
+      </div>
+      <div>
+        <form method="post" action="/ui/listings/{{ listing.id }}/free" style="margin: 0;">
+          <button type="submit" class="btn btn-secondary" style="padding: 10px 14px;" data-testid="btn-give-free">
+            🎁 Отдать бесплатно
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Category -->
+    <div style="margin-bottom: 14px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Категория:</label>
+        <span class="badge" style="font-size: 0.75rem; background: #f1f5f9; padding: 2px 6px;">
+          {{ 'авто' if listing.category_auto else 'вручную' }}
+        </span>
+      </div>
+      <input type="text" name="category_key" value="{{ listing.category_key or listing.category_path or '' }}"
+             class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;" data-testid="input-listing-category">
+    </div>
+
+    <!-- Description -->
+    <div style="margin-bottom: 16px;">
+      <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">
+        Описание (язык {{ listing.lang }}):
+      </label>
+      <textarea name="description" rows="6" class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit;" data-testid="textarea-listing-desc">{{ listing.description or '' }}</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="padding: 10px 20px; font-weight: 600;" data-testid="btn-save-listing">
+      {% if listing.status in ('PUBLISHED', 'ACTIVE') %}
+        Сохранить на площадке
+      {% else %}
+        Сохранить изменения
+      {% endif %}
+    </button>
+  </form>
+
+  <!-- Approval and Platform Actions -->
+  <div class="card" style="padding: 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 16px;">
+    <h3 style="font-size: 1rem; font-weight: 700; margin-top: 0; margin-bottom: 12px;">Управление объявлением</h3>
+
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <!-- Approval Toggle (§2.3) -->
+      {% if listing.status == 'APPROVED' %}
+        <form method="post" action="/ui/listings/{{ listing.id }}/unapprove" style="margin: 0;">
+          <button type="submit" class="btn btn-secondary" data-testid="btn-unapprove">
+            Отозвать утверждение (в черновики)
+          </button>
+        </form>
+      {% elif listing.status == 'DRAFT' %}
+        <form method="post" action="/ui/listings/{{ listing.id }}/approve" style="margin: 0;">
+          <button type="submit" class="btn btn-primary" data-testid="btn-approve">
+            ✓ Утвердить для размещения
+          </button>
+        </form>
+      {% endif %}
+
+      <!-- Unpublish action (§6.2, §2.4) -->
+      {% if caps.unpublish %}
+        <form method="post" action="/ui/listings/{{ listing.id }}/unpublish" onsubmit="return confirm('Снять объявление с площадки?');" style="margin: 0;">
+          <button type="submit" class="btn btn-secondary" style="color: #b91c1c;" data-testid="btn-unpublish">
+            Снять с площадки
+          </button>
+        </form>
+      {% else %}
+        <div style="font-size: 0.85rem; color: #64748b; padding: 8px; background: #f8fafc; border-radius: 6px;" data-testid="notice-unpublish-unsupported">
+          Снятие не поддерживается площадкой: снимите вручную
+        </div>
+      {% endif %}
+
+      <!-- Relist action (§6.2, §2.4) -->
+      {% if caps.relist %}
+        <form method="post" action="/ui/listings/{{ listing.id }}/relist" style="margin: 0;">
+          <button type="submit" class="btn btn-secondary" data-testid="btn-relist">
+            Перевыставить сейчас
+          </button>
+        </form>
+      {% else %}
+        <div style="font-size: 0.85rem; color: #64748b; padding: 8px; background: #f8fafc; border-radius: 6px;" data-testid="notice-relist-unsupported">
+          Перевыставление не поддерживается площадкой
+        </div>
+      {% endif %}
+
+      <!-- Delete action -->
+      <form method="post" action="/ui/listings/{{ listing.id }}/delete" onsubmit="return confirm('Удалить эту запись объявления из системы?');" style="margin: 0;">
+        <button type="submit" class="btn btn-secondary" style="color: #64748b;" data-testid="btn-delete-listing">
+          Удалить из системы
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

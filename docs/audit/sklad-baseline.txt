@@ -1,0 +1,33 @@
+# Склад: базовая линия тестов до начала работы (ТЗ §0 п.2)
+
+Дата: 2026-10-25
+Команда: `.venv/bin/python -m pytest tests/ --ignore=tests/e2e -q`
+Коммит HEAD: a643f36
+Результат: **21 failed, 650 passed** (482 s)
+
+## Падения, зависящие от окружения (нужен живой сервер на 127.0.0.1:18099 / 42575)
+
+- tests/test_c38_shipping_endpoints.py::test_add_delivery_option_and_buyer_total — httpx.ConnectError
+- tests/test_cli_http_client.py::test_cli_status_against_live_server — httpx.ConnectError
+- tests/test_cli_http_client.py::test_cli_publish_409_maps_to_exit4 — httpx.ConnectError
+- tests/test_lot_creation_api_cli.py::test_cli_item_create_shares_service — Connection refused 127.0.0.1:42575
+- tests/test_media_variants_generation.py::test_marketplace_variants_generation — httpx.ConnectError
+- tests/test_publish_approval_cleared.py::test_edit_text_clears_approval_and_blocks_publication — httpx.ConnectError
+- tests/test_screen_deal_playwright.py::test_deal_screen_mobile_playwright — httpx.ConnectError
+- tests/test_screen_marketplaces_playwright.py::test_marketplaces_screen_mobile_playwright — httpx.ConnectError
+- tests/test_screen_threads_playwright.py::test_threads_screen_mobile_playwright — httpx.ConnectError
+- tests/test_stage_e0.py::test_cli_status_valid_json — httpx.ConnectError
+- tests/test_stage_e0.py::test_cli_execution — assert 3 == 0 (CLI exit code, нужен сервер)
+- tests/test_ui_char_counter.py::test_char_counter_and_limit_present_in_draft_editor — httpx.ConnectError
+- tests/test_ui_item_text_blocks.py::test_item_detail_text_blocks — httpx.ConnectError
+- tests/test_ui_item_text_blocks.py::test_item_detail_text_blocks_without_notes — httpx.ConnectError
+- tests/test_ui_lightbox_arrows.py::test_lightbox_keyboard_arrows — httpx.ConnectError
+- tests/test_ui_lightbox_strip_counter.py::test_lightbox_strip_and_counter — httpx.ConnectError
+- tests/test_ui_lightbox_swipe.py::test_lightbox_swipe — httpx.ConnectError
+- tests/test_ui_marketplace_preview.py::test_marketplace_preview — httpx.ConnectError
+
+## Предсуществующие (не окружение, уже на HEAD)
+
+- tests/test_check_hardcode.py::test_gate_passes_on_this_repo — 6 hardcoded URL в bazos_publish.py (158,304,350,364,385,469)
+- tests/test_listing_templates.py::test_zero_html_tags_in_src — `<form>` в комментарии web_publish.py:81
+- tests/test_stage_e7.py::test_authenticated_screens_render_360px_mobile_layout — CSS assertion `--app-min-w`

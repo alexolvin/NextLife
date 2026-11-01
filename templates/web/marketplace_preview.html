@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Превью на {{ marketplace_name }} — {{ item.code }}{% endblock %}
+{% block content %}
+<div class="stack-3">
+  <a href="/ui/items/{{ item.code }}" class="btn btn-secondary btn-sm btn-inline" data-testid="btn-back-to-item">
+    ← Назад к предмету {{ item.code }}
+  </a>
+
+  <div class="page-head">
+    <div>
+      <h2 class="page-title">Предпросмотр: {{ marketplace_name }}</h2>
+      <div class="page-subtitle">
+        Кадры и параметры объявления согласно профилю площадки (<code>{{ marketplace_key }}</code>)
+      </div>
+    </div>
+    {% if profile.unverified_profile %}
+    <span class="badge badge-warning" title="Профиль не верифицирован, используются консервативные настройки">Консервативный профиль</span>
+    {% else %}
+    <span class="badge badge-success">Верифицированный профиль</span>
+    {% endif %}
+  </div>
+
+  <!-- Marketplace Simulation Card -->
+  <div class="card">
+    <div class="preview-head">
+      <div>
+        <h3 class="fs-lg fw-bold" data-testid="preview-title">{{ item.title }}</h3>
+        <div class="fs-sm text-muted">
+          Предмет: <code>{{ item.code }}</code> &bull; Площадка: <strong>{{ marketplace_key }}</strong>
+        </div>
+      </div>
+      <div class="fs-xl fw-bold text-accent" data-testid="preview-price">
+        {% if item.target_price is not none %}{{ item.target_price | money(item.target_currency) }}{% else %}Cena není uvedena{% endif %}
+      </div>
+    </div>
+
+    <!-- Variant Images Strip -->
+    <div class="stack-2">
+      <div class="section-label">Производные изображения под профиль площадки ({{ variants|length }} фото)</div>
+      {% if variants and variants|length > 0 %}
+      <div class="variant-grid" data-testid="preview-variants-grid">
+        {% for v in variants %}
+        <div class="variant-card">
+          <div class="variant-thumb">
+            <img src="{{ v.url }}" alt="Вариант {{ loop.index }}" data-testid="variant-image-{{ loop.index0 }}">
+          </div>
+          <div class="variant-meta">
+            <div class="row between">
+              <span class="fw-semibold">{{ v.role }}</span>
+              <span class="text-muted">{{ v.width }}&times;{{ v.height }}</span>
+            </div>
+            <div class="text-muted fs-xs">
+              {{ (v.file_bytes / 1024)|round(1) }} KB &bull; {{ v.sha256[:8] }}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      {# TZ-NextLife-UI-N2 §4 V3 (P-E08): «0 фото» без объяснения недопустимо —
+         явная надпись об отсутствии в карточке. #}
+      <div class="empty empty-sm" data-testid="preview-no-media-note">
+        {% if photo_count %}
+        ⚠️ У предмета {{ photo_count }} фото, но вариантов под профиль «{{ marketplace_name }}» пока нет — они появятся после обработки.
+        {% else %}
+        🚫 У предмета пока нет фотографий — кадры превью появятся после загрузки фото.
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Description Preview -->
+    <div class="stack-2">
+      <div class="section-label">Текст объявления</div>
+      <div class="info-box info-box-slate fs-sm pre" data-testid="preview-description">
+{{ description or item.title }}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

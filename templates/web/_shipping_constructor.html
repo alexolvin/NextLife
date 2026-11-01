@@ -1,0 +1,181 @@
+{# ТЗ «Склад» §3.3: блок перевозчиков — частичный шаблон со страницы
+   /ui/lots/{code}/shipping, тот же сервис shipping_options.
+   Контекст: summary, summary_json, shipping_policy_options, lot_code. #}
+{% set it = item or it or {} %}
+<div class="card" x-data="shippingConstructor({{ it.get('shipping_summary_json', '{}') }}, '{{ it.get('code', '') }}')" data-testid="shipping-constructor">
+  <div class="stack-3">
+    <div class="card-title">Перевозчики</div>
+
+    <div class="box box-subtle fs-xs text-dim">
+      Конструктор автоматически подбирает базовые тарифы чешских служб (Zásilkovna, Balíkovna, Česká pošta).
+      При ручном изменении тарифа он помечается как <span class="badge badge-warning">Ручная цена</span>.
+    </div>
+
+    <div class="field">
+      <label for="select-carrier-to-add">Добавить службу доставки:</label>
+      <div class="row tight">
+        <select id="select-carrier-to-add" x-model="selectedCarrier" class="wz-select grow" data-testid="select-carrier-to-add">
+          <template x-for="c in availableCarriers" :key="c.key">
+            <option :value="c.key" x-text="c.title + ' (от ' + fmtCzk(c.default_cost) + ')'"></option>
+          </template>
+        </select>
+        <button type="button" @click="addOption()" class="btn btn-primary btn-inline" data-testid="btn-add-option">
+          + Добавить
+        </button>
+      </div>
+    </div>
+
+    <!-- Options list -->
+    <div class="stack-3">
+      <template x-for="(opt, idx) in options" :key="idx">
+        <div class="box" data-testid="option-row">
+          <div class="row between align-start">
+            <div>
+              <strong class="fs-sm text-dim" x-text="opt.service_name" data-testid="opt-carrier-name"></strong>
+              <div class="fs-xs text-muted">
+                Базовый авто-тариф: <span x-text="fmtCzk(opt.auto_price)"></span>
+              </div>
+            </div>
+            <div class="row tight">
+              <template x-if="opt.is_manual">
+                <span class="badge badge-warning" data-testid="manual-price-badge">Ручная цена</span>
+              </template>
+              <template x-if="!opt.is_manual">
+                <span class="badge badge-info" data-testid="auto-price-badge">Авто-тариф</span>
+              </template>
+              <button type="button" @click="removeOption(idx)" class="btn btn-danger btn-sm" aria-label="Удалить опцию" data-testid="btn-remove-option">
+                ✕
+              </button>
+            </div>
+          </div>
+
+          <div class="box box-subtle ship-metrics">
+            <div class="ship-metric-row">
+              <span class="ship-metric-label">Тариф доставки</span>
+              <div class="ship-metric-input">
+                <input type="number" step="1" x-model.number="opt.price" @input="onPriceChange(idx)" aria-label="Тариф доставки (Kč)" data-testid="input-shipping-cost">
+                <span class="ship-metric-czk">Kč</span>
+              </div>
+              <button type="button" x-show="opt.is_manual" @click="resetToAuto(idx)" class="link-btn" data-testid="btn-reset-auto">
+                Сбросить к авто
+              </button>
+            </div>
+            <div class="ship-metric-row ship-metric-row--split">
+              <div>
+                <span class="ship-metric-label">Итого покупателю</span>
+                <span class="ship-metric-value" x-text="fmtCzk(buyerTotal(opt))" data-testid="buyer-total"></span>
+              </div>
+              <div>
+                <span class="ship-metric-label">На руки продавцу</span>
+                <span class="ship-metric-value ship-metric-value--success" x-text="fmtCzk(sellerNet(opt))" data-testid="seller-net"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+      <div x-show="options.length === 0" class="box-dashed">
+        Нет настроенных опций доставки. Добавьте хотя бы один вариант выше.
+      </div>
+    </div>
+
+    {# Не <form>: конструктор живёт внутри формы _stock_form.html, а вложенные
+       <form> в HTML запрещены — браузер закрывает внешнюю форму. Сохранение —
+       через JS fetch (ТЗ «Склад» §4, фикс вложенной формы). #}
+    <div>
+      <div class="row tight">
+        <button type="button" class="btn btn-primary grow" data-testid="btn-save-shipping" @click="saveShipping()">Сохранить опции доставки</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function shippingConstructor(initialData, lotCode) {
+  return {
+    lotCode: lotCode || '',
+    itemPrice: Number(initialData.item_price || 0),
+    shippingPolicy: initialData.shipping_policy || 'BUYER_PAYS',
+    availableCarriers: initialData.available_carriers || [],
+    selectedCarrier: (initialData.available_carriers && initialData.available_carriers.length > 0) ? initialData.available_carriers[0].key : 'pickup',
+    options: (initialData.options || []).map(opt => ({
+      carrier_key: opt.carrier_key,
+      service_name: opt.service_name,
+      price: Number(opt.price || 0),
+      auto_price: Number(opt.auto_price || 0),
+      is_manual: Boolean(opt.is_manual_price),
+      broker_key: opt.broker_key || null,
+      sender_on_documents: opt.sender_on_documents || 'SELLER',
+      cod_payout_destination: opt.cod_payout_destination || 'SELLER',
+      claims_handler: opt.claims_handler || 'CARRIER',
+      insurance_limit: Number(opt.insurance_limit || 0)
+    })),
+
+    addOption() {
+      const found = this.availableCarriers.find(c => c.key === this.selectedCarrier);
+      if (!found) return;
+      this.options.push({
+        carrier_key: found.key,
+        service_name: found.title,
+        price: Number(found.default_cost || 0),
+        auto_price: Number(found.default_cost || 0),
+        is_manual: false
+      });
+    },
+
+    removeOption(idx) {
+      this.options.splice(idx, 1);
+    },
+
+    onPriceChange(idx) {
+      const opt = this.options[idx];
+      const val = Number(opt.price || 0);
+      opt.is_manual = (val !== opt.auto_price);
+    },
+
+    resetToAuto(idx) {
+      const opt = this.options[idx];
+      opt.price = opt.auto_price;
+      opt.is_manual = false;
+    },
+
+    fmtCzk(n) {
+      const v = Math.round(Number(n || 0) * 100) / 100;
+      const s = String(Math.abs(v));
+      const [i, f] = s.split(".");
+      const gi = i.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+      const num = (f ? gi + "," + f : gi) + " Kč";
+      return v < 0 ? "-" + num : num;
+    },
+
+    buyerTotal(opt) {
+      const p = Number(this.itemPrice || 0);
+      const c = Number(opt.price || 0);
+      return (this.shippingPolicy === 'SELLER_PAYS') ? p : (p + c);
+    },
+
+    sellerNet(opt) {
+      const p = Number(this.itemPrice || 0);
+      const c = Number(opt.price || 0);
+      return (this.shippingPolicy === 'SELLER_PAYS') ? Math.max(0, p - c) : p;
+    },
+
+    async saveShipping() {
+      const payload = JSON.stringify({shipping_policy: this.shippingPolicy, options: this.options});
+      const body = new URLSearchParams();
+      body.set('payload', payload);
+      try {
+        const resp = await fetch(`/ui/lots/${this.lotCode}/shipping`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+          body: body.toString(),
+        });
+        if (resp.redirected) { window.location.href = resp.url; }
+        else if (resp.ok) { window.location.reload(); }
+        else { alert('Ошибка сохранения опций доставки'); }
+      } catch (e) {
+        alert('Ошибка сети: ' + e.message);
+      }
+    }
+  };
+}
+</script>

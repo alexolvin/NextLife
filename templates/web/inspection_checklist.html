@@ -1,0 +1,17 @@
+<ul class="protocol" id="inspection-protocol">
+  <li class="protocol-title">
+    <span>📋</span>
+    <span>{{ category_name }}</span>
+  </li>
+  {% for p in points %}
+  <li class="protocol-item">
+    <input type="checkbox" id="chk_{{ p.id }}" data-point-id="{{ p.id }}">
+    <label for="chk_{{ p.id }}">
+      <span class="fw-medium">{{ loop.index }}. {{ p.text }}</span>
+      {% if p.secondary_text %}
+      <span class="protocol-sub">{{ p.secondary_text }}</span>
+      {% endif %}
+    </label>
+  </li>
+  {% endfor %}
+</ul>

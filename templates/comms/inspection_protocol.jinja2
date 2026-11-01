@@ -1,0 +1,8 @@
+📋 {% if lang == "cs" %}Protokol o převzetí a kontrole ({{ category_name }}):{% else %}Протокол проверки и приёма-передачи ({{ category_name }}):{% endif %}
+
+{% for p in points %}
+{{ loop.index }}. [ ] {{ p.text }}
+{% endfor %}
+{% if extra_notes %}
+{% if lang == "cs" %}Poznámka:{% else %}Примечание:{% endif %} {{ extra_notes }}
+{% endif %}

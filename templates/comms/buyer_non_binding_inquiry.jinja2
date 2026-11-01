@@ -1,0 +1,17 @@
+{% if lang == "cs" %}Dobrý den, obracím se na Vás s nezávazným dotazem ohledně nabídky [{{ query }}].
+
+Rádi bychom se předběžně informovali o stavu předmětu:
+{% for q in questions %}
+- {{ q }}
+{% endfor %}
+
+Zpráva je pouze informativního charakteru a nepředstavuje závaznou rezervaci ani příslib nákupu.
+Děkuji za Váš čas a odpověď.{% else %}Здравствуйте! Обращаюсь к вам с предварительным вопросом по объявлению [{{ query }}].
+
+Уточните, пожалуйста, несколько деталей о состоянии:
+{% for q in questions %}
+- {{ q }}
+{% endfor %}
+
+Данное обращение носит исключительно ознакомительный характер и не является бронированием или обязательством покупки.
+Спасибо за ответ!{% endif %}

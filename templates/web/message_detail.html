@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="message-detail-container" style="padding: 16px; max-width: 800px; margin: 0 auto;" data-testid="thread-detail-screen">
+  <!-- Top Navigation & Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+    <a href="/ui/messages" class="btn btn-secondary btn-sm" data-testid="btn-back-messages">← Все диалоги</a>
+    <!-- Toggle Original / Translation (§7.2.1) -->
+    <div style="display: flex; background: #e2e8f0; border-radius: 8px; padding: 2px;" data-testid="lang-toggle">
+      <a href="/ui/messages/{{ thread.id }}?view_mode=ru"
+         style="padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none; {{ 'background: #fff; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,0.1);' if view_mode != 'original' else 'color: #64748b;' }}">
+        Русский
+      </a>
+      <a href="/ui/messages/{{ thread.id }}?view_mode=original"
+         style="padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none; {{ 'background: #fff; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,0.1);' if view_mode == 'original' else 'color: #64748b;' }}">
+        Оригинал
+      </a>
+    </div>
+  </div>
+
+  <!-- Item & Buyer Card -->
+  <div class="card" style="padding: 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <div style="font-size: 1.05rem; font-weight: 700; color: #0f172a;">{{ thread.counterparty }}</div>
+      <div style="font-size: 0.85rem; color: #64748b; margin-top: 2px;">
+        Площадка: <strong>{{ thread.channel }}</strong> (язык: {{ thread.lang }})
+        {% if item %}
+          • Предмет: <a href="/ui/stock/{{ item.code }}" style="color: #2563eb; font-weight: 600;">#{{ item.code }} {{ item.title }}</a>
+        {% endif %}
+      </div>
+    </div>
+    {% if listing and listing.external_url %}
+      <a href="{{ listing.external_url }}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">На площадке ↗</a>
+    {% endif %}
+  </div>
+
+  <!-- Messages Chat Bubbles (§7.2.1) -->
+  <div class="chat-bubbles" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+    {% if not messages %}
+      <div style="padding: 30px; text-align: center; color: #64748b; background: #f8fafc; border-radius: 8px;">
+        В этом диалоге ещё нет сообщений.
+      </div>
+    {% else %}
+      {% for m in messages %}
+        <div style="display: flex; justify-content: {{ 'flex-end' if m.direction == 'OUT' else 'flex-start' }};">
+          <div style="max-width: 80%; padding: 12px 14px; border-radius: 12px; font-size: 0.95rem; {{ 'background: #2563eb; color: #fff; border-bottom-right-radius: 2px;' if m.direction == 'OUT' else 'background: #f1f5f9; color: #1e293b; border-bottom-left-radius: 2px;' }}">
+            <div>
+              {% if view_mode == 'original' %}
+                {{ m.text_original }}
+              {% else %}
+                {{ m.text_ru }}
+              {% endif %}
+            </div>
+            <div style="font-size: 0.7rem; margin-top: 4px; text-align: right; {{ 'color: #bfdbfe;' if m.direction == 'OUT' else 'color: #94a3b8;' }}">
+              {{ m.created_at.strftime('%H:%M') if m.created_at else '' }}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+
+  <!-- LLM Suggested Reply (§7.2.2) -->
+  {% if suggestion %}
+    <div class="card" style="padding: 14px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; margin-bottom: 16px;" data-testid="suggested-reply-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="font-size: 0.85rem; font-weight: 700; color: #1d4ed8;">💡 Рекомендуемый ответ (ИИ)</span>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="applySuggestion()" data-testid="btn-apply-suggestion" style="padding: 4px 10px; font-size: 0.8rem;">
+          Вставить в ответ
+        </button>
+      </div>
+      <div style="font-size: 0.9rem; color: #1e3a8a; margin-bottom: 4px;">
+        {{ suggestion.reply_ru }}
+      </div>
+      <div style="font-size: 0.8rem; color: #3b82f6; font-style: italic;">
+        {{ suggestion.reply_original }}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Reply Form (§7.2.3) -->
+  <div class="card" style="padding: 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 20px;">
+    <h3 style="font-size: 0.95rem; font-weight: 700; margin-top: 0; margin-bottom: 10px;">Ваш ответ (на русском):</h3>
+    <form method="post" action="/ui/messages/{{ thread.id }}/send">
+      <textarea id="reply-input" name="text_ru" rows="3" required placeholder="Введите текст ответа по-русски..."
+                class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; margin-bottom: 10px;" data-testid="reply-textarea"></textarea>
+
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.8rem; color: #64748b;">
+          Ответ будет переведён на язык покупателя ({{ thread.lang }}).
+        </span>
+        <button type="submit" class="btn btn-primary" style="padding: 10px 20px; font-weight: 700;" data-testid="btn-send-reply">
+          Перевести и отправить
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Deal Schedule Actions (§7.2.4, §7.4: Notion) -->
+  <div class="card" style="padding: 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;" data-testid="deal-schedule-card">
+    <h3 style="font-size: 0.95rem; font-weight: 700; margin-top: 0; margin-bottom: 12px;">Действия по сделке:</h3>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button type="button" class="btn btn-secondary" onclick="openScheduleModal('shipment')" data-testid="btn-plan-shipment">
+        📦 Запланировать отправку
+      </button>
+      <button type="button" class="btn btn-secondary" onclick="openScheduleModal('meeting')" data-testid="btn-plan-meeting">
+        🤝 Запланировать встречу
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Deal Scheduling in Notion (§7.4) -->
+<div id="schedule-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; padding: 16px;" data-testid="schedule-modal">
+  <div style="background: #fff; border-radius: 12px; max-width: 480px; width: 100%; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+      <h3 id="schedule-modal-title" style="margin: 0; font-size: 1.15rem; color: #0f172a;">Запланировать</h3>
+      <button type="button" onclick="closeScheduleModal()" style="border: none; background: transparent; font-size: 1.4rem; cursor: pointer;">✕</button>
+    </div>
+
+    <form method="post" action="/ui/messages/{{ thread.id }}/schedule">
+      <input type="hidden" name="event_type" id="schedule-event-type" value="shipment">
+      <input type="hidden" name="deal_id" value="{{ thread.listing_id or '' }}">
+
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;">Дата и время:</label>
+        <input type="datetime-local" name="dt" required class="input-field" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+      </div>
+
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;">Место встречи или перевозчик:</label>
+        <input type="text" name="location" placeholder="Zásilkovna / метро Мустек" required class="input-field" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;">Заметка:</label>
+        <textarea name="note" rows="2" class="input-field" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px; font-weight: 700;">
+        Сохранить событие в Notion
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+  function applySuggestion() {
+    {% if suggestion %}
+      document.getElementById('reply-input').value = {{ suggestion.reply_ru | tojson }};
+    {% endif %}
+  }
+
+  function openScheduleModal(type) {
+    document.getElementById('schedule-event-type').value = type;
+    document.getElementById('schedule-modal-title').textContent = (type === 'shipment' ? 'Запланировать отправку' : 'Запланировать встречу');
+    const modal = document.getElementById('schedule-modal');
+    modal.style.display = 'flex';
+  }
+
+  function closeScheduleModal() {
+    document.getElementById('schedule-modal').style.display = 'none';
+  }
+</script>
+{% endblock %}

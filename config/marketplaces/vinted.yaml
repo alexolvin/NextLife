@@ -1,0 +1,100 @@
+# Vinted — phone-broker channel (TZ Marketplaces).
+# The broker is the SINGLE source of truth for the app package (fr.vinted)
+# and the rate limits (daily cap / min interval — a broker 403 is the only
+# frequency control). This config keeps only the broker platform id and the
+# version-tied screen fingerprints (the recognizer reference).
+key: vinted
+title: Vinted
+country: CZ
+currency: CZK
+access_mode: ANDROID
+# Owner decision 2026-10-10: Vinted listing goes through the web (vinted.cz
+# in Chrome), not the Android app (Compose form fields are not focusable via
+# ADB). The search channel stays on the phone (access_mode: ANDROID); only
+# the publish path is routed to the web connector (skeleton, dry-run only).
+publish_channel: web
+base_url: "https://www.vinted.cz"
+auth:
+  type: none
+  secret_ref: ""
+capabilities:
+  search: true
+  post: false
+  edit: false
+  archive: false
+  messaging: false
+  max_photos: 20
+  max_title_len: 80
+  max_body_len: 5000
+  allows_generative_photos: false
+  delivery_options:
+    - pickup
+    - post
+    - zasilkovna
+  payment_options:
+    - cash
+    - bank_transfer
+selectors: {}
+rate_limits:
+  requests_per_minute: 0
+  min_delay_seconds: 0
+android:
+  platform_id: vinted
+  search:
+    search_field: input_search
+    # Launch-time Czech cookie consent can block the search field; tap
+    # «Přijmout vše» (accept all) once to dismiss it before searching.
+    consent_selector: "text=Přijmout vše"
+    result_card: item_box_container
+    # Link extraction (Phase 1): toolbar share menu -> "Sdílet" -> share sheet.
+    share_menu: "resource-id=vinted_toolbar_submenu_item"
+    share_action: "text=Sdílet"
+    domain: "vinted.cz"
+  # Real fingerprints captured from the live device on 2026-10-07 via the
+  # phonebroker ui_dump (Bloom/Compose ids, no package prefix). Version-tied:
+  # a versionName mismatch logs a warning + checks the fingerprint; a
+  # fingerprint mismatch is a FAIL ("screen changed"), never a guess.
+  fingerprints:
+    - name: vinted_home
+      version: "0.0.0"
+      resource_ids:
+        - navigation_tab_browse
+        - homepage_chips_list
+      texts:
+        - Domů
+        - Procházej
+    - name: vinted_search_results
+      version: "0.0.0"
+      # 2026-10-11 (live dump, app 26.39.0): the results header text
+      # «Výsledky vyhledávání» scrolls off after the in-app Share flow
+      # (extract_card_links), so it is not a stable identifier.
+      # 2026-10-18: horizontal_filters_list removed — the filter chips scroll
+      # out of the viewport when extract_card_links scrolls down for more
+      # cards (any link_limit beyond the first screen), which broke the
+      # final-screen match ("unknown screen"). item_grid_recycler_view +
+      # item_box_container stay in view before AND after the share flow and
+      # are absent on the home screen.
+      resource_ids:
+        - item_grid_recycler_view
+        - item_box_container
+      texts: []
+    - name: vinted_listing_detail
+      version: "0.0.0"
+      resource_ids:
+        - item_screen_content
+        - item_summary_content
+        - total_price
+      texts:
+        - Koupit
+        - Nabídnout cenu
+media:
+  max_photos: null
+  min_width: null
+  min_height: null
+  max_width: null
+  max_height: null
+  aspect_preferred: null
+  max_file_bytes: null
+  formats: []
+  source_url: null
+  verified_at: null

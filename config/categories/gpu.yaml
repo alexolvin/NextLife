@@ -1,0 +1,16 @@
+key: gpu
+title: "Видеокарты"
+required_fields:
+  - brand
+  - model
+  - condition
+optional_fields:
+  - vram
+  - memory_type
+  - length_mm
+  - power_watts
+defects_options:
+  - fan_noise
+  - thermal_pads_dried
+  - cosmetic_wear
+  - coil_whine

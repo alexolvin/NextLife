@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="stock-new-container" style="padding: 16px; max-width: 600px; margin: 0 auto;">
+  <h1 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 20px;">Новый предмет</h1>
+
+  {% if notice == 'created_next' %}
+    <div class="toast-banner" style="background: #dcfce7; color: #166534; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-weight: 500;">
+      ✓ Предмет <a href="/ui/stock/{{ created_code }}" style="color: #15803d; text-decoration: underline; font-weight: 700;">#{{ created_code }}</a> успешно создан! Введите следующий:
+    </div>
+  {% endif %}
+
+  <form method="post" action="/api/stock" id="stock-new-form" class="card" style="padding: 20px; background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 16px;">
+    <div>
+      <label for="input-title" style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.95rem;">Название предмета *</label>
+      <input type="text" id="input-title" name="title" required autofocus placeholder="Например, Клавиатура Apple Magic Keyboard"
+             class="input-field" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem;" data-testid="input-stock-title">
+    </div>
+
+    <div>
+      <label for="input-location" style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.95rem;">📍 Место на складе</label>
+      <input type="text" id="input-location" name="storage_location" value="{{ location }}" placeholder="Например, Полка A-3"
+             class="input-field" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem;" data-testid="input-stock-location">
+    </div>
+
+    <div style="display: flex; gap: 12px; margin-top: 8px;">
+      <button type="submit" name="action" value="create" class="btn btn-primary" style="flex: 1; padding: 12px; font-size: 1rem; font-weight: 600; border-radius: 8px;" data-testid="btn-create-submit">
+        Создать
+      </button>
+      <button type="submit" name="action" value="create_and_next" class="btn btn-secondary" style="flex: 1; padding: 12px; font-size: 1rem; font-weight: 600; border-radius: 8px;" data-testid="btn-create-and-next">
+        Создать и следующий
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Save/retrieve last location from localStorage
+  const locInput = document.getElementById('input-location');
+  if (locInput) {
+    if (!locInput.value) {
+      const savedLoc = localStorage.getItem('last_stock_location');
+      if (savedLoc) locInput.value = savedLoc;
+    }
+    document.getElementById('stock-new-form').addEventListener('submit', function() {
+      if (locInput.value) {
+        localStorage.setItem('last_stock_location', locInput.value);
+      }
+    });
+  }
+</script>
+{% endblock %}

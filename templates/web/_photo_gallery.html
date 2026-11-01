@@ -1,0 +1,408 @@
+{# ТЗ «Склад» §3.3, §5.3, §5.4: фото, слайдер, редактор фото, Image AI. #}
+{% set missing_src = "data:image/svg+xml;utf8," ~ "<svg xmlns='http://www.w3.org/2000/svg' width='480' height='360'><rect width='100%25' height='100%25' fill='%23e9ecef'/><text x='50%25' y='54%25' font-size='24' text-anchor='middle' fill='%236c757d'>файл не найден</text></svg>" %}
+{% set role_labels = {'PUBLISH': 'Обработано', 'PROCESSED': 'Обработано', 'DEFECT': 'Дефект', 'ORIGINAL': 'Оригинал'} %}
+<div class="card" id="gallery-card">
+  <div class="stack-3">
+  <div class="row between">
+    <div class="card-title">Фотогалерея ({{ photos|length }})</div>
+    <span class="fs-xs text-muted">{{ photos|length }} фото</span>
+  </div>
+
+  {% if photos and photos|length > 0 %}
+  <div class="slider-container" id="main-slider" data-testid="photo-slider">
+    <button type="button" class="slider-arrow slider-prev" id="btn-slider-prev" onclick="changeSlide(-1)" aria-label="Предыдущее фото" data-testid="slider-prev">‹</button>
+    <img id="slider-main-img" class="slider-img" src="{{ photos[0].url or missing_src }}" alt="Предпросмотр фото" onclick="openPhotoEditor()" data-testid="slider-current-image" style="cursor: pointer;" title="Нажмите для открытия редактора фото">
+    <button type="button" class="slider-arrow slider-next" id="btn-slider-next" onclick="changeSlide(1)" aria-label="Следующее фото" data-testid="slider-next">›</button>
+    <span class="slider-counter" id="slider-counter" data-testid="slider-counter">1 / {{ photos|length }}</span>
+    <span class="slider-role-tag badge badge-active" id="slider-role-tag" data-testid="slider-role">{{ role_labels.get(photos[0].role, 'Фото') }}</span>
+  </div>
+
+  <!-- Thumbnails strip -->
+  <div class="thumb-strip" id="thumb-strip" data-testid="slider-thumbnails">
+    {% for photo in photos %}
+    <div class="thumb-card {% if loop.first %}active{% endif %}" id="thumb-item-{{ loop.index0 }}" onclick="selectSlide({{ loop.index0 }})" data-url="{{ photo.url }}" data-role="{{ photo.role }}" data-testid="thumb-item-{{ loop.index0 }}">
+      {% if photo.broken %}
+      <div class="thumb-broken" data-testid="photo-broken-mark" title="Файл фото не найден"
+           style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#e9ecef;color:#6c757d;font-size:10px;text-align:center;padding:2px;">🚫 файл не найден</div>
+      {% else %}
+      <img src="{{ photo.url }}" alt="Миниатюра {{ loop.index }}">
+      {% endif %}
+      {% if photo.role in ('PUBLISH', 'PROCESSED') %}
+      <span class="thumb-processed-badge" data-testid="thumb-processed-badge"
+            style="position:absolute;top:0;left:0;background:rgba(0,0,0,.55);color:#fff;font-size:9px;line-height:1;padding:2px 4px;border-radius:0 0 6px 0;z-index:1;">обработано</span>
+      {% endif %}
+      {% if photo.is_cover %}
+      <span data-testid="photo-cover-mark" title="Обложка предмета"
+            style="position:absolute;bottom:0;left:0;background:var(--c-accent);color:#fff;font-size:9px;line-height:1;padding:2px 4px;border-radius:0 6px 0 0;z-index:1;">обложка</span>
+      {% endif %}
+      {% if photo.ai %}
+      <span data-testid="photo-ai-mark" title="Изображение изменено генеративно"
+            style="position:absolute;bottom:0;right:0;background:rgba(0,0,0,.78);color:#ffd54d;font-size:9px;line-height:1;padding:2px 4px;border-radius:0 0 0 6px;z-index:1;">AI</span>
+      {% endif %}
+      {% if photo.id %}
+      <form method="POST" action="/ui/items/{{ item.code }}/photos/{{ photo.id }}/delete" onsubmit="event.stopPropagation(); return confirm('Удалить эту фотографию?');">
+        <button type="submit" class="thumb-del-btn" title="Удалить фото" aria-label="Удалить фото {{ loop.index }}" data-testid="btn-delete-photo-{{ loop.index0 }}">&times;</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  {# Действия над активным фото (§5.4) #}
+  <div class="stack-1" data-testid="photo-ops" data-code="{{ item.code }}">
+    <div class="row tight wrap" id="photo-ops-buttons">
+      <button type="button" class="btn btn-sm btn-primary btn-inline" onclick="openPhotoEditor()" data-testid="btn-open-editor">✎ Редактор фото</button>
+      <form method="POST" data-op="rotate">
+        <button type="submit" class="btn btn-sm btn-secondary btn-inline" title="Поворот кадра на 90°" data-testid="btn-op-rotate">⟳ Повернуть</button>
+      </form>
+      <form method="POST" data-op="cover">
+        <button type="submit" class="btn btn-sm btn-secondary btn-inline" title="Сделать обложкой предмета" data-testid="btn-op-cover">★ Обложка</button>
+      </form>
+      <form method="POST" data-op="defect">
+        <button type="submit" class="btn btn-sm btn-secondary btn-inline" title="Пометить как фото дефекта" data-testid="btn-op-defect">⚑ Дефект</button>
+      </form>
+      <form method="POST" data-op="undo">
+        <button type="submit" class="btn btn-sm btn-secondary btn-inline" title="Вернуть предыдущую версию" data-testid="btn-op-undo">↩ Отменить</button>
+      </form>
+    </div>
+  </div>
+
+  {# Подсказки по качеству после загрузки #}
+  {% set hint_photos = photos | selectattr("hints") | list %}
+  {% if hint_photos %}
+  <div class="info-box info-box-amber" data-testid="quality-hints">
+    <div class="fs-sm fw-semibold">💡 Подсказки по качеству:</div>
+    <div class="fs-xs">
+      {% for photo in hint_photos %}
+      <div>Фото {{ loop.index1 }}: {% for hint in photo.hints %}{{ hint }}{% if not loop.last %}; {% endif %}{% endfor %}</div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="row between wrap">
+    <span class="fs-xs text-muted">Предпросмотр на площадках:</span>
+    <div class="row tight wrap">
+      <a href="/ui/items/{{ item.code }}/preview/bazos_cz" class="btn btn-secondary btn-sm btn-inline" data-testid="btn-preview-bazos">Bazoš.cz</a>
+      <a href="/ui/items/{{ item.code }}/preview/sbazar_cz" class="btn btn-secondary btn-sm btn-inline" data-testid="btn-preview-sbazar">Sbazar.cz</a>
+      <a href="/ui/items/{{ item.code }}/preview/aukro_cz" class="btn btn-secondary btn-sm btn-inline" data-testid="btn-preview-aukro">Aukro.cz</a>
+      <form method="POST" action="/ui/items/{{ item.code }}/photos/regen-variants">
+        <button type="submit" class="btn btn-sm btn-secondary btn-inline" title="Догенерировать варианты под каждую площадку" data-testid="btn-regen-variants">↻ Догенерировать</button>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <div class="empty empty-sm">
+    📷 Нет загруженных фотографий для этого предмета.<br>
+    Загрузите снимки через камеру или файл ниже.
+  </div>
+  {% endif %}
+  </div>
+</div>
+
+<!-- Upload form (§5.3: Снять камерой и Загрузить из галереи) -->
+<div class="card" data-testid="photo-upload-section">
+  <div class="card-title">Добавить фотографии</div>
+  <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+    <label class="btn btn-primary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" data-testid="btn-upload-camera">
+      📸 Снять на камеру
+      <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handleDirectUpload(this.files, 'ORIGINAL')">
+    </label>
+    <label class="btn btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" data-testid="btn-upload-gallery">
+      🖼 Загрузить из галереи
+      <input type="file" accept="image/*" multiple style="display: none;" onchange="handleDirectUpload(this.files, 'ORIGINAL')">
+    </label>
+    <label class="btn btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" data-testid="btn-upload-defect">
+      ⚑ Снять дефект
+      <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handleDirectUpload(this.files, 'DEFECT')">
+    </label>
+  </div>
+  <div id="upload-status" style="font-size: 0.85rem; color: #64748b; margin-top: 4px;"></div>
+</div>
+
+<!-- ================= PHOTO EDITOR MODAL (§5.4) ================= -->
+<div id="photo-editor-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; overflow-y: auto;" data-testid="photo-editor-modal">
+  <div style="max-width: 680px; margin: 20px auto; background: #1e293b; color: #f8fafc; border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 16px;">
+      <h3 style="margin: 0; font-size: 1.2rem; color: #38bdf8;">Редактор фото</h3>
+      <button type="button" onclick="closePhotoEditor()" style="background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">✕</button>
+    </div>
+
+    <!-- Before / After or Main Preview -->
+    <div id="editor-preview-container" style="text-align: center; margin-bottom: 16px;">
+      <div id="editor-single-view">
+        <img id="editor-main-img" src="" style="max-height: 380px; max-width: 100%; border-radius: 8px; object-fit: contain; background: #0f172a;" data-testid="editor-preview-image">
+      </div>
+      <!-- AI Diff View (Shown after AI edit) -->
+      <div id="editor-diff-view" style="display: none;" data-testid="ai-diff-container">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div>
+            <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">До</div>
+            <img id="diff-img-before" src="" style="width: 100%; height: 220px; object-fit: contain; border-radius: 6px; background: #0f172a;">
+          </div>
+          <div>
+            <div style="font-size: 0.8rem; color: #38bdf8; margin-bottom: 4px;">После (ИИ)</div>
+            <img id="diff-img-after" src="" style="width: 100%; height: 220px; object-fit: contain; border-radius: 6px; background: #0f172a;">
+          </div>
+        </div>
+        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 14px;">
+          <button type="button" class="btn btn-primary" onclick="acceptAIResult()" data-testid="btn-accept-ai" style="padding: 8px 20px;">✓ Принять результат</button>
+          <button type="button" class="btn btn-secondary" onclick="rejectAIResult()" data-testid="btn-reject-ai" style="padding: 8px 20px;">✕ Отклонить</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Endpoint Missing Warning -->
+    <div id="editor-ai-warning" style="display: none; background: #7c2d12; border: 1px solid #ea580c; color: #ffedd5; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 0.85rem;" data-testid="ai-not-configured-notice">
+      Для инструментов ИИ настройте Image AI в <a href="/ui/settings" style="color: #fdba74; text-decoration: underline;">Настройках</a>.
+    </div>
+
+    <!-- Toolbar (§5.4) -->
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <!-- Transform Tools -->
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button type="button" class="btn btn-secondary" onclick="editorRotate()" data-testid="btn-editor-rotate">
+          ⟳ Повернуть 90°
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="editorCrop('free')" data-testid="btn-editor-crop">
+          ✂ Кадрировать (Свободно)
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="editorCrop('1:1')" data-testid="btn-editor-crop-1-1">
+          ✂ 1:1
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="editorCrop('4:3')" data-testid="btn-editor-crop-4-3">
+          ✂ 4:3
+        </button>
+      </div>
+
+      <!-- AI Tools -->
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; border-top: 1px solid #334155; padding-top: 12px;">
+        <button type="button" class="btn btn-primary" onclick="editorRunAI('dust')" id="btn-ai-dust" data-testid="btn-editor-ai-dust">
+          ✦ Убрать пыль (ИИ)
+        </button>
+        <button type="button" class="btn btn-primary" onclick="editorRunAI('selling')" id="btn-ai-selling" data-testid="btn-editor-ai-selling">
+          🪄 Продающее фото (ИИ)
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="editorUndo()" data-testid="btn-editor-undo">
+          ↩ Отменить изменения
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const MISSING_SRC = "{{ missing_src }}";
+  const photos = [
+    {% for photo in photos %}
+    { url: "{{ photo.url }}", role: "{{ photo.role }}", label: "{{ role_labels.get(photo.role, 'Фото') }}", display_id: "{{ photo.display_id }}", broken: {{ 'true' if photo.broken else 'false' }} },
+    {% endfor %}
+  ];
+  const itemCode = "{{ item.code }}";
+  let currentIndex = 0;
+  let lastAIResult = null;
+
+  function updateOpButtons() {
+    const cur = photos[currentIndex];
+    if (!cur) return;
+    const base = '/ui/items/' + itemCode + '/photos/' + (cur.display_id || '');
+    document.querySelectorAll('#photo-ops-buttons form').forEach((form) => {
+      form.action = base + '/' + form.dataset.op;
+      const hiddenForDefect = form.dataset.defectHidden === '1';
+      form.style.display = (hiddenForDefect && cur.role === 'DEFECT') ? 'none' : '';
+      const btn = form.querySelector('button');
+      if (btn) btn.disabled = cur.broken;
+    });
+  }
+
+  window.selectSlide = function(idx) {
+    if (photos.length === 0) return;
+    currentIndex = (idx + photos.length) % photos.length;
+    updateSliderUI();
+  };
+
+  window.changeSlide = function(delta) {
+    if (photos.length === 0) return;
+    currentIndex = (currentIndex + delta + photos.length) % photos.length;
+    updateSliderUI();
+  };
+
+  function updateSliderUI() {
+    const mainImg = document.getElementById('slider-main-img');
+    const counter = document.getElementById('slider-counter');
+    const roleTag = document.getElementById('slider-role-tag');
+    if (!mainImg || photos.length === 0) return;
+
+    const cur = photos[currentIndex];
+    mainImg.src = cur.url || MISSING_SRC;
+    if (counter) counter.textContent = (currentIndex + 1) + ' / ' + photos.length;
+    if (roleTag) {
+      roleTag.textContent = cur.label;
+      if (cur.role === 'DEFECT') {
+        roleTag.className = 'slider-role-tag badge badge-defect';
+      } else if (cur.role === 'PUBLISH') {
+        roleTag.className = 'slider-role-tag badge badge-approved';
+      } else {
+        roleTag.className = 'slider-role-tag badge badge-active';
+      }
+    }
+
+    document.querySelectorAll('.thumb-card').forEach((el, i) => {
+      if (i === currentIndex) {
+        el.classList.add('active');
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      } else {
+        el.classList.remove('active');
+      }
+    });
+    updateOpButtons();
+  }
+
+  updateOpButtons();
+
+  window.handleDirectUpload = async function(files, role) {
+    if (!files || files.length === 0) return;
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append('files', files[i]);
+    }
+    formData.append('role', role || 'ORIGINAL');
+
+    const statusEl = document.getElementById('upload-status');
+    statusEl.textContent = '⏳ Загрузка фото...';
+
+    try {
+      const res = await fetch(`/api/items/${itemCode}/photos`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        statusEl.textContent = '❌ Ошибка при загрузке';
+      }
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = '❌ Ошибка соединения';
+    }
+  };
+
+  // Photo Editor Modal Controls
+  window.openPhotoEditor = async function() {
+    if (photos.length === 0) return;
+    const cur = photos[currentIndex];
+    const modal = document.getElementById('photo-editor-modal');
+    const img = document.getElementById('editor-main-img');
+    img.src = cur.url || MISSING_SRC;
+    modal.style.display = 'block';
+
+    // Check AI status
+    try {
+      const res = await fetch('/api/photos/ai-status');
+      if (res.ok) {
+        const data = await res.json();
+        const warn = document.getElementById('editor-ai-warning');
+        warn.style.display = data.configured ? 'none' : 'block';
+      }
+    } catch (e) {}
+  };
+
+  window.closePhotoEditor = function() {
+    document.getElementById('photo-editor-modal').style.display = 'none';
+    document.getElementById('editor-single-view').style.display = 'block';
+    document.getElementById('editor-diff-view').style.display = 'none';
+  };
+
+  window.editorRotate = async function() {
+    const cur = photos[currentIndex];
+    if (!cur) return;
+    try {
+      const res = await fetch(`/api/items/${itemCode}/photos/rotate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ degrees: 90, photo_id: cur.display_id }),
+      });
+      if (res.ok) window.location.reload();
+    } catch (e) { alert('Ошибка поворота'); }
+  };
+
+  window.editorCrop = async function(ratio) {
+    const cur = photos[currentIndex];
+    if (!cur) return;
+    // Compute default crop box based on ratio
+    const box = [50, 50, 450, 450];
+    try {
+      const res = await fetch(`/api/items/${itemCode}/photos/crop`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ box: box, photo_id: cur.display_id }),
+      });
+      if (res.ok) window.location.reload();
+    } catch (e) { alert('Ошибка кадрирования'); }
+  };
+
+  window.editorRunAI = async function(mode) {
+    const cur = photos[currentIndex];
+    if (!cur) return;
+    const ep = mode === 'dust' ? 'ai-dust' : 'ai-selling';
+    const btn = document.getElementById(mode === 'dust' ? 'btn-ai-dust' : 'btn-ai-selling');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '⏳ Обработка ИИ...';
+
+    try {
+      const res = await fetch(`/api/items/${itemCode}/photos/${cur.display_id}/${ep}`, {
+        method: 'POST',
+      });
+      btn.innerHTML = orig;
+      if (res.ok) {
+        const data = await res.json();
+        lastAIResult = data;
+        // Show diff view
+        document.getElementById('editor-single-view').style.display = 'none';
+        document.getElementById('editor-diff-view').style.display = 'block';
+        document.getElementById('diff-img-before').src = cur.url || MISSING_SRC;
+        document.getElementById('diff-img-after').src = data.url;
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.detail || 'Ошибка генерации ИИ');
+      }
+    } catch (e) {
+      btn.innerHTML = orig;
+      alert('Ошибка соединения с ИИ');
+    }
+  };
+
+  window.acceptAIResult = function() {
+    window.location.reload();
+  };
+
+  window.rejectAIResult = async function() {
+    if (!lastAIResult || !lastAIResult.photo_id) {
+      window.location.reload();
+      return;
+    }
+    try {
+      await fetch(`/api/items/${itemCode}/photos/${lastAIResult.photo_id}/undo`, {
+        method: 'POST',
+      });
+    } catch (e) {}
+    window.location.reload();
+  };
+
+  window.editorUndo = async function() {
+    const cur = photos[currentIndex];
+    if (!cur) return;
+    try {
+      const res = await fetch(`/api/items/${itemCode}/photos/${cur.display_id}/undo`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        alert('Нет предыдущей версии для отмены');
+      }
+    } catch (e) { alert('Ошибка отмены'); }
+  };
+})();
+</script>

@@ -1,0 +1,16 @@
+key: bicycles
+title: "Велосипеды"
+required_fields:
+  - brand
+  - model
+  - condition
+optional_fields:
+  - frame_size
+  - wheel_size_in
+  - drivetrain
+  - weight
+defects_options:
+  - frame_scratch
+  - brake_wear
+  - tire_wear
+  - cosmetic_wear

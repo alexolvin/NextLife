@@ -1,0 +1,158 @@
+schemes:
+  - id: payment_link
+    name: "Odkaz na platbu nebo převzetí peněz"
+    description: "Zpráva obsahuje externí odkaz na údajnou platbu, potvrzení doručení nebo vyzvednutí peněz."
+    requires_url: true
+    keywords:
+      - "potvrzení platby"
+      - "vyzvednout peníze"
+      - "přijmout platbu"
+      - "potvrdit doručení"
+      - "získat peníze"
+      - "klikněte na odkaz"
+      - "obdržet platbu"
+      - "receive payment"
+      - "collect funds"
+    regex_patterns:
+      - "(https?://|www\\.)[a-zA-Z0-9.-]+.*(platb|peniz|pay|receive|vyzved|funds)"
+
+  - id: card_credentials
+    name: "Žádost o údaje platební karty nebo SMS kód"
+    description: "Požadavek na sdělení čísla platební karty, CVV/CVC kódu, data expirace nebo ověřovacího SMS kódu."
+    requires_url: false
+    keywords:
+      - "číslo karty"
+      - "cvv"
+      - "cvc"
+      - "kód z sms"
+      - "sms kód"
+      - "expirace karty"
+      - "platnost karty"
+      - "card number"
+      - "sms code"
+    regex_patterns:
+      - "(cvv|cvc)\\b"
+      - "\\b(číslo|cislo)\\s+(karty|uctu|účtu)"
+      - "\\b(kód|kod)\\s+z\\s+sms\\b"
+      - "\\b(sms|ověřovací|overovaci)\\s+(kód|kod)\\b"
+
+  - id: fake_escrow_service
+    name: "Falešná bezpečná platba třetí strany s odkazem"
+    description: "Nabídka falešné 'bezpečné platby' nebo kurýrní služby (např. DPD, Zásilkovna, Balíkovna, Bazoš platba) přes zaslaný externí odkaz."
+    requires_url: true
+    keywords:
+      - "bezpečná platba"
+      - "bezpecna platba"
+      - "garance platby"
+      - "platba přes kurýra"
+      - "zásilkovna kurýr"
+      - "balíkovna platba"
+      - "dpd kurýr platba"
+    regex_patterns:
+      - "(https?://|www\\.)[a-zA-Z0-9.-]+.*(zasilkovna|balikovna|dpd|gls|posta|aukro|bazos).*(platb|pay|order|doprav)"
+
+  - id: external_messenger_redirect
+    name: "Přesměrování do externího komunikátoru s odkazem"
+    description: "Snaha převést komunikaci mimo platformu na WhatsApp, Telegram nebo Viber pomocí externího odkazu."
+    requires_url: true
+    keywords:
+      - "whatsapp"
+      - "telegram"
+      - "viber"
+      - "napište na whatsapp"
+      - "klikněte na whatsapp"
+      - "t.me/"
+      - "wa.me/"
+    regex_patterns:
+      - "(https?://|www\\.)(wa\\.me|api\\.whatsapp\\.com|t\\.me|telegram\\.me)/"
+
+  - id: overpayment_refund
+    name: "Přeplatek s žádostí o vrácení rozdílu"
+    description: "Tvrzení o neúmyslném přeplatku a žádost o okamžité vrácení rozdílu kupujícím."
+    requires_url: false
+    keywords:
+      - "přeplatek"
+      - "preplatek"
+      - "poslal jsem více"
+      - "omylem jsem poslal více"
+      - "vraťte rozdíl"
+      - "vrátit rozdíl"
+      - "přebytek částky"
+      - "overpaid"
+      - "refund the difference"
+    regex_patterns:
+      - "(poslal|odeslal)\\s+(jsem\\s+)?(omylem\\s+)?(více|vic|více peněz)"
+      - "(vraťte|vratte|zaslat)\\s+(mi\\s+)?(rozdíl|rozdil|přeplatek|preplatek)"
+
+  - id: advance_shipment_claim
+    name: "Požadavek na odeslání před připsáním peněz"
+    description: "Požadavek na okamžité odeslání zboží pod záminkou, že peníze už byly odeslány a banka je zpracovává."
+    requires_url: false
+    keywords:
+      - "peníze jsou na cestě"
+      - "penize jsou na ceste"
+      - "banka to zpracovává"
+      - "odešlete ihned"
+      - "odešlete před připsáním"
+      - "pošlete dnes"
+      - "doklad o platbě stačí"
+      - "ship before payment"
+    regex_patterns:
+      - "(peníze|penize)\\s+jsou\\s+(již\\s+)?na\\s+cestě"
+      - "(odešlete|odeslete|pošlete|poslete)\\s+(prosím\\s+)?(hned|ihned|dnes|ještě dnes)\\s+.*(peníze|penize)"
+      - "banka\\s+(to\\s+)?zpracovává"
+
+  - id: payment_screenshot
+    name: "Snímek obrazovky místo připsané platby"
+    description: "Zaslání screenshotu nebo potvrzení o platbě jako náhrada za reálné připsání finančních prostředků na účet."
+    requires_url: false
+    keywords:
+      - "screenshot platby"
+      - "snímek platby"
+      - "potvrzení o odeslání peněz"
+      - "posílám potvrzení"
+      - "zde je screenshot"
+      - "tady je potvrzení"
+      - "payment screenshot"
+    regex_patterns:
+      - "(screenshot|snímek|snimek)\\s+(o\\s+)?platb"
+      - "(zde|tady|posílám|posilam)\\s+.*potvrzení\\s+o\\s+platbě"
+
+  - id: fake_courier_pickup
+    name: "Falešný kurýr s hotovostí v obálce"
+    description: "Kupující tvrdí, že pošle kurýra (DPD, FedEx, Zásilkovna), který přiveze hotovost v obálce a převezme zboží."
+    requires_url: false
+    keywords:
+      - "kurýr přiveze peníze"
+      - "kuryr priveze penize"
+      - "peníze v obálce"
+      - "penize v obalce"
+      - "kurýr vám předá peníze"
+      - "kurýr to sám zařídí"
+      - "kurýr dpd přiveze hotovost"
+      - "courier will bring cash"
+    regex_patterns:
+      - "kurýr\\s+.*(přiveze|preda|předá|dá)\\s+peníze"
+      - "peníze\\s+v\\s+obálce"
+      - "kurýr\\s+.*(sám|sam)\\s+(vše|vse)\\s+zařídí"
+
+  - id: urgency_pressure
+    name: "Nátlak na okamžité rozhodnutí a odeslání"
+    description: "Psychologický nátlak na rychlé jednání, hrozba zrušením zájmu nebo požadavek odeslat zboží do několika minut."
+    requires_url: false
+    keywords:
+      - "spěchá to"
+      - "specha to"
+      - "rozhoduji se hned"
+      - "musíte poslat ihned"
+      - "platí jen teď"
+      - "odpovězte do 5 minut"
+      - "odešlete okamžitě"
+      - "urgent, send now"
+    regex_patterns:
+      - "(spěchá|specha)\\s+to"
+      - "(musíte|musite)\\s+.*(ihned|okamžitě|okamzite)"
+      - "rozhoduji\\s+se\\s+(teď|ted|hned)"
+
+safe_refusal_cs: "Dobrý den, děkuji za zprávu. Komunikuji a obchoduji výhradně v rámci oficiálního systému platformy a běžného bankovního převodu nebo osobního předání. Na externí platební odkazy neklikám a zboží odesílám až po ověření připsání platby na bankovní účet."
+safe_refusal_en: "Hello, thank you for your message. I communicate and trade exclusively within the official platform interface and standard bank transfer or in-person pickup. I do not follow external payment links and dispatch items only after funds are verified in my bank account."

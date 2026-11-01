@@ -1,0 +1,30 @@
+# Конфигурация типов упаковки (Раздел III.2.4 ТЗ v2.0)
+packaging_types:
+  envelope:
+    display_name: "Пузырчатый конверт"
+    weight_add_g: 50
+    dim_add_l_mm: 15
+    dim_add_w_mm: 15
+    dim_add_h_mm: 5
+    cost_czk: 15.00
+  box_small:
+    display_name: "Картонная коробка S"
+    weight_add_g: 150
+    dim_add_l_mm: 30
+    dim_add_w_mm: 30
+    dim_add_h_mm: 30
+    cost_czk: 30.00
+  box_medium:
+    display_name: "Картонная коробка M"
+    weight_add_g: 300
+    dim_add_l_mm: 50
+    dim_add_w_mm: 50
+    dim_add_h_mm: 50
+    cost_czk: 50.00
+  box_large:
+    display_name: "Картонная коробка L"
+    weight_add_g: 600
+    dim_add_l_mm: 60
+    dim_add_w_mm: 60
+    dim_add_h_mm: 60
+    cost_czk: 80.00

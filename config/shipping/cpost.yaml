@@ -1,0 +1,143 @@
+carrier: CeskaPosta
+display_name: "Česká pošta"
+status: "ACTIVE"
+services:
+  - name: cpost_balik_do_ruky_s
+    service_type: "Balík Do ruky (velikost S)"
+    weight_max_g: 31500
+    size_class:
+      name: "S"
+      max_weight_kg: 31.5
+      max_longest_side_cm: 35.0
+    dim_rule:
+      max_single_side_mm: 350
+    price: 129.00
+    country_pricing:
+      CZ: 129.00
+    price_pdf:
+      pdf_section: "Velikostní kategorie"
+      pdf_row: "Základní cena"
+      pdf_column: 0
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Velikostní kategorie"
+        pdf_row: "Základní cena"
+        pdf_column: 0
+    currency: CZK
+    cod_supported: true
+    cod_fee: 36.00
+    dobirka_fee: 36.00
+    insurance_included: 50000.00
+    insurance_limit: 50000.00
+    insurance_max: 1000000.00
+    countries:
+      - CZ
+    source_file: "config/shipping/_sources/balikovna_lide_2026-09-09.pdf"
+    source_page: 2
+    source_url: "https://www.balikovna.cz/cs/dokumenty-ke-stazeni"
+    fetched_at: "2026-09-09"
+
+  - name: cpost_balik_do_ruky_m
+    service_type: "Balík Do ruky (velikost M)"
+    weight_max_g: 31500
+    size_class:
+      name: "M"
+      max_weight_kg: 31.5
+      max_longest_side_cm: 50.0
+    dim_rule:
+      max_single_side_mm: 500
+    price: 169.00
+    country_pricing:
+      CZ: 169.00
+    price_pdf:
+      pdf_section: "Velikostní kategorie"
+      pdf_row: "Základní cena"
+      pdf_column: 1
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Velikostní kategorie"
+        pdf_row: "Základní cena"
+        pdf_column: 1
+    currency: CZK
+    cod_supported: true
+    cod_fee: 36.00
+    dobirka_fee: 36.00
+    insurance_included: 50000.00
+    insurance_limit: 50000.00
+    insurance_max: 1000000.00
+    countries:
+      - CZ
+    source_file: "config/shipping/_sources/balikovna_lide_2026-09-09.pdf"
+    source_page: 2
+    source_url: "https://www.balikovna.cz/cs/dokumenty-ke-stazeni"
+    fetched_at: "2026-09-09"
+
+  - name: cpost_balik_do_ruky_l
+    service_type: "Balík Do ruky (velikost L)"
+    weight_max_g: 31500
+    size_class:
+      name: "L"
+      max_weight_kg: 31.5
+      max_longest_side_cm: 100.0
+    dim_rule:
+      max_single_side_mm: 1000
+    price: 229.00
+    country_pricing:
+      CZ: 229.00
+    price_pdf:
+      pdf_section: "Velikostní kategorie"
+      pdf_row: "Základní cena"
+      pdf_column: 2
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Velikostní kategorie"
+        pdf_row: "Základní cena"
+        pdf_column: 2
+    currency: CZK
+    cod_supported: true
+    cod_fee: 36.00
+    dobirka_fee: 36.00
+    insurance_included: 50000.00
+    insurance_limit: 50000.00
+    insurance_max: 1000000.00
+    countries:
+      - CZ
+    source_file: "config/shipping/_sources/balikovna_lide_2026-09-09.pdf"
+    source_page: 2
+    source_url: "https://www.balikovna.cz/cs/dokumenty-ke-stazeni"
+    fetched_at: "2026-09-09"
+
+  - name: cpost_balik_do_ruky_xl
+    service_type: "Balík Do ruky (velikost XL)"
+    weight_max_g: 31500
+    size_class:
+      name: "XL"
+      max_weight_kg: 31.5
+      max_longest_side_cm: 200.0
+    dim_rule:
+      max_single_side_mm: 2000
+    price: 419.00
+    country_pricing:
+      CZ: 419.00
+    price_pdf:
+      pdf_section: "Velikostní kategorie"
+      pdf_row: "Základní cena"
+      pdf_column: 3
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Velikostní kategorie"
+        pdf_row: "Základní cena"
+        pdf_column: 3
+    currency: CZK
+    cod_supported: true
+    cod_fee: 36.00
+    dobirka_fee: 36.00
+    insurance_included: 50000.00
+    insurance_limit: 50000.00
+    insurance_max: 1000000.00
+    countries:
+      - CZ
+    source_file: "config/shipping/_sources/balikovna_lide_2026-09-09.pdf"
+    source_page: 2
+    source_url: "https://www.balikovna.cz/cs/dokumenty-ke-stazeni"
+    fetched_at: "2026-09-09"

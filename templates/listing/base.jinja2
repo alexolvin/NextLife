@@ -1,0 +1,26 @@
+{{ title }}
+
+{{ condition_headline }}
+
+{{ description }}
+
+{% if defects %}
+STAV A ZNÁMKY POUŽÍVÁNÍ:
+{% for defect in defects %}
+- {{ defect.description_cs }} (viz detailní foto #{{ defect.photo_id }})
+{% endfor %}
+{% endif %}
+
+{% if completeness %}
+OBSAH BALENÍ:
+{% for item in completeness %}
+- {{ item }}
+{% endfor %}
+{% endif %}
+
+DOPRAVA A PŘEVZETÍ:
+{% for opt in delivery_options %}
+- {{ opt.summary_text_cs }}
+{% endfor %}
+
+{{ legal_disclaimer }}

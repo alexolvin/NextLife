@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<!-- SYNTHETIC uiautomator dump — CI reference for the screen recognizer (TZ M1 B.5 test part; no dedicated phone yet, Ч-6). Re-verify against real device dumps during B6. -->
+<hierarchy rotation="0" width="1080" height="2340">
+<node index="0" text="" resource-id="com.vinted:id/nav_home" class="android.widget.FrameLayout" package="com.vinted" content-desc="" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" selected="false" bounds="[0,0][1080,2340]"/>
+<node index="1" text="Je k dispozici aktualizace aplikace" resource-id="com.vinted:id/update_dialog_title" class="android.widget.TextView" package="com.vinted" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" selected="false" bounds="[140,900][940,1020]"/>
+<node index="2" text="Aktualizovat" resource-id="com.vinted:id/update_dialog_button" class="android.widget.Button" package="com.vinted" content-desc="" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" selected="false" bounds="[560,1100][940,1240]"/>
+<node index="3" text="Později" resource-id="com.vinted:id/update_dialog_dismiss" class="android.widget.Button" package="com.vinted" content-desc="" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" selected="false" bounds="[140,1100][520,1240]"/>
+</hierarchy>

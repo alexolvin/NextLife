@@ -1,0 +1,15 @@
+# Консервативный профиль медиа по умолчанию (Раздел IV.1 ТЗ v2.0)
+# Применяется для площадок с verified_at: null
+media_defaults:
+  max_photos: 10
+  min_width: 800
+  min_height: 600
+  max_width: 1920
+  max_height: 1440
+  aspect_preferred: "4:3"
+  max_file_bytes: 5242880  # 5 MB
+  formats:
+    - JPEG
+    - PNG
+  source_url: "internal://config/media_defaults.yaml"
+  verified_at: "2026-09-08"

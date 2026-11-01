@@ -1,0 +1,40 @@
+{{ title }}
+
+POPIS A STAV:
+{{ condition_grade_label }} (Stupeň {{ condition_grade }}): {{ condition_grade_definition }}
+{% if usage_profile %}
+{{ usage_profile }}
+{% endif %}
+{% if description %}
+{{ description }}
+{% endif %}
+- Krabice / originální balení: {{ "Ano" if box_present else "Ne" }}
+- Doklad o koupi / účtenka: {{ "Ano" if receipt_present else "Ne" }}
+{% if warranty_text %}
+- Záruka výrobce: {{ warranty_text }}
+{% endif %}
+{% if seller_guarantee_text %}
+- Osobní záruka na vyzkoušení: {{ seller_guarantee_text }}
+{% endif %}
+
+{% if defects %}
+ZNÁMÉ VADY A POŠKOZENÍ:
+{% for defect in defects %}
+- {{ defect.zone }}: {{ defect.text }}{% if defect.photo_id %} (viz foto #{{ defect.photo_id }}){% endif %}
+{% endfor %}
+{% endif %}
+
+{% if completeness %}
+OBSAH BALENÍ:
+{% for item in completeness %}
+- {{ item }}
+{% endfor %}
+{% endif %}
+
+MOŽNOSTI DOPRAVY A PŘEDÁNÍ (CELKEM PRO KUPUJÍCÍHO):
+{% for opt in delivery_options %}
+- {{ opt.name }}: {{ opt.buyer_total_str }}{% if opt.details %} ({{ opt.details }}){% endif %}
+
+{% endfor %}
+
+{{ legal_disclaimer }}

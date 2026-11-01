@@ -1,0 +1,16 @@
+key: furniture
+title: "Мебель"
+required_fields:
+  - brand
+  - model
+  - condition
+optional_fields:
+  - material
+  - color
+  - dimensions
+  - weight
+defects_options:
+  - scratches
+  - stains
+  - wobbling_legs
+  - cosmetic_wear

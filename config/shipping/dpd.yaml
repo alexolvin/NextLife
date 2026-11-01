@@ -1,0 +1,5 @@
+carrier: DPD
+display_name: "DPD CZ"
+status: "BLOCKED-EXTERNAL"
+blocked_reason: "Dopravce DPD CZ neposkytuje statický veřejný ceník v PDF pro soukromé osoby. Kalkulace služeb Z ruky do ruky a DPD Pickup probíhá výhradně online přes dynamický webový kalkulátor / API na dpd.cz."
+services: []

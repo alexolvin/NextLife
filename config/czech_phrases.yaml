@@ -1,0 +1,31 @@
+# Чешские устойчивые обороты для объявлений рекоммерса (Раздел V.2 ТЗ v2.0)
+phrases:
+  condition:
+    like_new: "stav nového kusu"
+    fully_functional: "plně funkční, bez vad"
+    normal_wear: "nese běžné známky používání"
+    minor_scratches: "drobné oděrky od běžného používání"
+  packaging:
+    original_box: "původní balení součástí"
+    without_box: "bez původního obalu"
+  delivery:
+    personal_prague: "osobní předání Praha / možnost zaslání"
+    pickup_only: "pouze osobní převzetí v Praze"
+  reason:
+    upgrade: "prodávám z důvodu přechodu na jiný model"
+    unused: "prodávám z důvodu nevyužití"
+  warranty:
+    with_warranty: "záruka do {date} u {seller}"
+    no_warranty: "soukromý prodej, bez záruky"
+
+# Запрещённые кальки с русского и английского языков
+forbidden_calques:
+  - "в отличном состоянии"
+  - "полный комплект"
+  - "без торга"
+  - "состояние нового"
+  - "быстрым торг"
+  - "in great condition"
+  - "full set"
+  - "mint condition"
+  - "no negotiation"

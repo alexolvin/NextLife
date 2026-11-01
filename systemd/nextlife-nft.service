@@ -1,0 +1,13 @@
+[Unit]
+Description=NextLife nftables rules (port 8081 from lo + tailscale only)
+Before=nextlife-web.service
+After=nftables.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/nft -f /etc/nftables/nextlife.nft
+ExecStop=/usr/sbin/nft delete table inet nextlife
+
+[Install]
+WantedBy=multi-user.target

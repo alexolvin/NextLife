@@ -1,0 +1,18 @@
+key: laptops
+title: "Ноутбуки"
+required_fields:
+  - brand
+  - model
+  - condition
+optional_fields:
+  - cpu
+  - ram_gb
+  - storage_gb
+  - screen_size_in
+  - battery_health
+defects_options:
+  - screen_scratch
+  - hinge_wear
+  - keyboard_wear
+  - battery_worn
+  - cosmetic_wear

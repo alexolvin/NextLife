@@ -1,0 +1,8 @@
+{
+  "llm": {
+    "endpoint": "",
+    "api_key": "",
+    "model": ""
+  },
+  "marketplace_overrides": {}
+}

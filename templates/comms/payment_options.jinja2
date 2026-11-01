@@ -1,0 +1,11 @@
+Способы оплаты:
+{% for opt in options %}
+- {{ opt.title }}: {{ "Доступно" if opt.is_available else "Недоступно" }} (Подтверждает: {{ opt.confirmed_by }})
+  {% if not opt.is_available and opt.restriction_reason %}
+  * Причина: {{ opt.restriction_reason }}
+  {% endif %}
+{% endfor %}
+{% if prepay_mandatory %}
+Внимание: сумма превышает порог {{ threshold }} {{ currency }}. Предоплата обязательна!
+{% endif %}
+Банковские карты не запрашиваются и не хранятся. Оплата только по IBAN или наличными при встрече.

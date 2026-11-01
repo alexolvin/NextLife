@@ -1,0 +1,80 @@
+key: sbazar_cz
+title: Sbazar.cz
+country: CZ
+currency: CZK
+access_mode: DIRECT
+base_url: "https://www.sbazar.cz"
+# D.1 daily canary: harmless query; search cards expose no date (honest None).
+canary_query: "notebook"
+auth:
+  type: none
+  secret_ref: ""
+capabilities:
+  search: true
+  # Ч-5/Ч-6 (TZ M1): публикация не реализована — нужна сессия Seznam
+  # Владельца (Playwright, А.4). До этого capabilities обязаны отражать
+  # реальность: публикация/правка/снятие/переписка на Sbazar не выполняются.
+  post: false
+  edit: false
+  archive: false
+  messaging: false
+  max_photos: 10
+  max_title_len: 60
+  max_body_len: 3000
+  allows_generative_photos: false
+  delivery_options:
+    - pickup
+    - post
+    - zasilkovna
+    - balikovna
+  payment_options:
+    - cash
+    - bank_transfer
+    - cod
+selectors:
+  # Live markup captured 2026-10-03 (raw HTML: .a/reports/m1/probes/2026-10-03/sbazar_cz.html):
+  # ul[data-test=offer-list] > li[data-offer-id] > a[href*=/inzerat/], price = <b>.
+  search_result: "li[data-offer-id]"
+  price: "b"
+  title: "div.line-clamp-2"
+routes:
+  # Live route verified 2026-10-03: /hledat/ is 404, /hledej/ returns 200 SSR.
+  search: "/hledej/{query}"
+  search_params:
+    min_price: "cena-od"
+    max_price: "cena-do"
+mapping:
+  category_map:
+    electronics: "elektronika"
+  condition_map:
+    used: "použité"
+  delivery_map:
+    pickup: "Osobní odběr"
+    post: "Poštou"
+    zasilkovna: "Zásilkovna"
+    balikovna: "Balíkovna"
+  payment_map:
+    cash: "Hotově"
+    bank_transfer: "Bankovní převod"
+    cod: "Dobírka"
+rate_limits:
+  requests_per_minute: 20
+  min_delay_seconds: 2
+# TZ Marketplaces: phone-broker channel. The broker is the SINGLE source of
+# truth for the app package (cz.seznam.sbazar) and the rate limits.
+# Fingerprints are captured during Phase 2 (sale via phone, dry_run) and are
+# version-tied.
+android:
+  platform_id: sbazar_cz
+  fingerprints: []
+media:
+  max_photos: null
+  min_width: null
+  min_height: null
+  max_width: null
+  max_height: null
+  aspect_preferred: null
+  max_file_bytes: null
+  formats: []
+  source_url: null
+  verified_at: null

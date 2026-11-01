@@ -1,0 +1,51 @@
+{# TZ-NextLife-UI-N2 §4 V5 (P-R07/P-R08): блок разведки рынка.
+
+   Включается в три экрана: шаг 4 мастера, карточка предмета, черновик.
+   Честность (П-1.3): диапазон — только при выборке не меньше порога,
+   в валюте предмета, с числом аналогов и ссылками-источниками; иначе —
+   явное сообщение. Без найденных аналогов вариантов текста нет.
+   Контекст: item (code), research (dict|None), research_notice, research_back.
+#}
+<div class="card research-block" id="wz-research" data-testid="research-panel" style="margin-top:16px">
+  <h4 class="card-title">Разведка рынка</h4>
+  <form method="post" action="/ui/items/{{ item.code }}/research">
+    <input type="hidden" name="next" value="{{ research_back or '' }}">
+    <button type="submit" class="btn btn-primary" data-testid="btn-research-run">Запустить разведку</button>
+  </form>
+  {% if research %}
+    {% if research_notice == "research_done" %}
+    <div class="info-box" data-testid="research-notice">Разведка завершена — отчёт обновлён ниже.</div>
+    {% elif research_notice == "research_failed" %}
+    <div class="info-box-red" data-testid="research-notice">Не удалось запустить разведку — смотрите журнал сервера.</div>
+    {% endif %}
+    <div data-testid="research-count">Найдено аналогов: {{ research.total_found }}</div>
+    {% if research.range %}
+    <div class="info-box-slate" data-testid="research-range">Похожие предложения: {{ research.range.min }} – {{ research.range.max }}</div>
+    {% endif %}
+    {% if research.message %}
+    <div class="info-box-amber" data-testid="research-message">{{ research.message }}</div>
+    {% endif %}
+    {% if research.links %}
+    <ul data-testid="research-links" style="padding-left:18px">
+      {% for l in research.links %}
+      <li><a href="{{ l.url }}" target="_blank" rel="noopener">{{ l.title }} — {{ l.marketplace }}</a></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if research.variants %}
+    <div data-testid="research-variants" class="stack-2">
+      <p class="fs-sm text-muted">Готовые варианты текста объявления по найденным аналогам (редактируются):</p>
+      {% for v in research.variants %}
+      <div class="field">
+        <form method="post" action="/ui/draft/{{ item.code }}/update">
+          <textarea name="listing_text" rows="3" data-testid="research-variant-{{ loop.index }}">{{ v }}</textarea>
+          <button type="submit" class="btn btn-secondary btn-sm" data-testid="research-apply-{{ loop.index }}">Использовать этот текст</button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% else %}
+  <div data-testid="research-empty">Разведка ещё не запускалась.</div>
+  {% endif %}
+</div>

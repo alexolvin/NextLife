@@ -1,0 +1,9 @@
+{% if lang == "cs" %}Dobrý den, navrhuji osobní předání na veřejném místě:
+Místo: {{ place_name }} ({{ place_address }})
+Čas: {{ meeting_time }}
+{% if notes %}Upřesnění: {{ notes }}{% endif %}
+Vyhovuje Vám tento termín a místo?{% else %}Здравствуйте, предлагаю встретиться в публичном месте:
+Место: {{ place_name }} ({{ place_address }})
+Время: {{ meeting_time }}
+{% if notes %}Уточнение: {{ notes }}{% endif %}
+Вам подходит это время и место?{% endif %}

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Фотостенд — NextLife</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .stand-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+    }
+    .stand-exit {
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 1.2rem;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: #334155;
+    }
+    .stand-progress {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #38bdf8;
+    }
+    .stand-body {
+      flex: 1;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .item-card-stand {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .item-code-lg {
+      font-family: ui-monospace, monospace;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #38bdf8;
+    }
+    .item-title-lg {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-top: 4px;
+      margin-bottom: 8px;
+    }
+    .item-loc-lg {
+      font-size: 0.95rem;
+      color: #fbbf24;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .samples-ribbon {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .samples-title {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .samples-scroll {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+    .sample-thumb {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 2px solid #475569;
+      flex-shrink: 0;
+    }
+    .camera-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .btn-shoot {
+      width: 100%;
+      max-width: 320px;
+      padding: 18px 24px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+      transition: background 0.2s;
+    }
+    .btn-shoot:active {
+      background: #1d4ed8;
+      transform: scale(0.98);
+    }
+    .btn-gallery {
+      background: #334155;
+      color: #cbd5e1;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border: none;
+    }
+    .current-photos-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .current-photo-thumb {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #334155;
+    }
+    .current-photo-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .stand-footer {
+      padding: 14px 16px;
+      background: #1e293b;
+      border-top: 1px solid #334155;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .btn-nav {
+      flex: 1;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-prev {
+      background: #334155;
+      color: #cbd5e1;
+    }
+    .btn-prev:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .btn-next {
+      background: #10b981;
+      color: #fff;
+    }
+    .summary-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #334155;
+    }
+  </style>
+</head>
+<body data-testid="photo-stand-screen">
+
+  <!-- Header -->
+  <header class="stand-header">
+    <a href="/ui/stock" class="stand-exit" data-testid="btn-stand-exit">✕ Выход</a>
+    <div class="stand-progress" id="stand-progress-text">Предмет 1 из {{ items|length }}</div>
+    <div style="width: 40px;"></div>
+  </header>
+
+  <!-- Main View -->
+  <main class="stand-body" id="stand-active-view">
+    <!-- Item Info -->
+    <div class="item-card-stand">
+      <div class="item-code-lg" id="stand-item-code" data-testid="current-item-code">#{{ items[0].code }}</div>
+      <div class="item-title-lg" id="stand-item-title" data-testid="current-item-title">{{ items[0].title }}</div>
+      <div class="item-loc-lg" id="stand-item-loc" data-testid="current-item-location">
+        📍 {{ items[0].storage_location or 'Место не указано' }}
+      </div>
+    </div>
+
+    <!-- Samples Ribbon -->
+    <div class="samples-ribbon" id="stand-samples-container" style="display: {% if items[0].samples %}block{% else %}none{% endif %};">
+      <div class="samples-title">
+        <span>Образцы ракурсов (из оценки):</span>
+        <span style="font-size: 0.75rem;">Повторите ракурс</span>
+      </div>
+      <div class="samples-scroll" id="stand-samples-list">
+        {% for s in items[0].samples %}
+          <img src="{{ s.url }}" class="sample-thumb" alt="Образец" title="{{ s.title }}">
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Camera / Shoot -->
+    <div class="camera-section">
+      <label class="btn-shoot" data-testid="btn-capture">
+        📸 Снять фото
+        <input type="file" accept="image/*" capture="environment" id="camera-input" style="display: none;">
+      </label>
+
+      <label class="btn-gallery">
+        🖼 Из галереи
+        <input type="file" accept="image/*" multiple id="gallery-input" style="display: none;">
+      </label>
+
+      <div style="font-size: 1rem; color: #94a3b8; margin-top: 4px;" data-testid="photo-counter" id="photo-counter-text">
+        Фото этого предмета: <strong style="color: #38bdf8;" id="photos-count-val">{{ items[0].photos_count }}</strong>
+      </div>
+    </div>
+
+    <!-- Thumbnails of taken photos -->
+    <div class="current-photos-grid" id="stand-thumbs-grid">
+      {% for p in items[0].photos %}
+        <div class="current-photo-thumb">
+          <img src="{{ p.url }}" alt="Фото">
+        </div>
+      {% endfor %}
+    </div>
+  </main>
+
+  <!-- Summary View (Hidden initially) -->
+  <div class="stand-body" id="stand-summary-view" style="display: none;" data-testid="photo-stand-summary">
+    <div class="summary-card">
+      <h2 style="margin-top: 0; color: #38bdf8;">Сводка фотосессии</h2>
+      <p style="color: #94a3b8; font-size: 0.95rem;">Все предметы очереди отсняты:</p>
+      <div id="summary-items-list">
+        <!-- Rendered by JS -->
+      </div>
+      <div style="margin-top: 24px;">
+        <a href="/ui/stock" class="btn btn-primary" style="display: block; text-align: center; padding: 14px; font-size: 1.1rem; font-weight: 700; border-radius: 8px; text-decoration: none;" data-testid="btn-finish-stand">
+          ✓ Готово (вернуться на Склад)
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Footer -->
+  <footer class="stand-footer" id="stand-footer">
+    <button type="button" class="btn-nav btn-prev" id="btn-prev-item" onclick="navigateItem(-1)" disabled data-testid="btn-prev-item">
+      ← Предыдущий
+    </button>
+    <button type="button" class="btn-nav btn-next" id="btn-next-item" onclick="navigateItem(1)" data-testid="btn-next-item">
+      Следующий предмет →
+    </button>
+  </footer>
+
+  <script>
+    const items = {{ items_json | safe }};
+    let currentIndex = 0;
+
+    function renderCurrentItem() {
+      const it = items[currentIndex];
+      document.getElementById('stand-progress-text').textContent = `Предмет ${currentIndex + 1} из ${items.length}`;
+      document.getElementById('stand-item-code').textContent = `#${it.code}`;
+      document.getElementById('stand-item-title').textContent = it.title;
+      document.getElementById('stand-item-loc').textContent = `📍 ${it.storage_location || 'Место не указано'}`;
+      document.getElementById('photos-count-val').textContent = it.photos_count || 0;
+
+      // Samples
+      const samplesCont = document.getElementById('stand-samples-container');
+      const samplesList = document.getElementById('stand-samples-list');
+      if (it.samples && it.samples.length > 0) {
+        samplesCont.style.display = 'block';
+        samplesList.innerHTML = it.samples.map(s => `<img src="${s.url}" class="sample-thumb" alt="Образец" title="${s.title || ''}">`).join('');
+      } else {
+        samplesCont.style.display = 'none';
+        samplesList.innerHTML = '';
+      }
+
+      // Photos Grid
+      const grid = document.getElementById('stand-thumbs-grid');
+      grid.innerHTML = (it.photos || []).map(p => `<div class="current-photo-thumb"><img src="${p.url}"></div>`).join('');
+
+      // Navigation buttons
+      const prevBtn = document.getElementById('btn-prev-item');
+      const nextBtn = document.getElementById('btn-next-item');
+      prevBtn.disabled = (currentIndex === 0);
+
+      if (currentIndex === items.length - 1) {
+        nextBtn.textContent = 'Завершить съёмку ✓';
+        nextBtn.style.background = '#059669';
+      } else {
+        nextBtn.textContent = 'Следующий предмет →';
+        nextBtn.style.background = '#10b981';
+      }
+    }
+
+    function navigateItem(delta) {
+      const nextIdx = currentIndex + delta;
+      if (nextIdx < 0) return;
+      if (nextIdx >= items.length) {
+        showSummary();
+        return;
+      }
+      currentIndex = nextIdx;
+      renderCurrentItem();
+    }
+
+    function showSummary() {
+      document.getElementById('stand-active-view').style.display = 'none';
+      document.getElementById('stand-footer').style.display = 'none';
+      document.getElementById('stand-summary-view').style.display = 'block';
+
+      const summaryList = document.getElementById('summary-items-list');
+      summaryList.innerHTML = items.map(it => `
+        <div class="summary-row">
+          <div>
+            <strong style="color: #38bdf8;">#${it.code}</strong> ${it.title}
+          </div>
+          <div>
+            <strong>${it.photos_count || 0}</strong> фото
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function uploadFiles(files) {
+      if (!files || files.length === 0) return;
+      const it = items[currentIndex];
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+      }
+      formData.append('role', 'ORIGINAL');
+
+      try {
+        const btn = document.querySelector('.btn-shoot');
+        const origText = btn.innerHTML;
+        btn.innerHTML = '⏳ Загрузка...';
+
+        const res = await fetch(`/api/items/${it.code}/photos`, {
+          method: 'POST',
+          body: formData,
+        });
+        if (res.ok) {
+          const data = await res.json();
+          it.photos = data.photos || [];
+          it.photos_count = it.photos.length;
+          renderCurrentItem();
+        } else {
+          alert('Ошибка загрузки фото');
+        }
+        btn.innerHTML = origText;
+      } catch (err) {
+        console.error(err);
+        alert('Не удалось отправить фото');
+      }
+    }
+
+    document.getElementById('camera-input').addEventListener('change', function(e) {
+      uploadFiles(e.target.files);
+      e.target.value = '';
+    });
+
+    document.getElementById('gallery-input').addEventListener('change', function(e) {
+      uploadFiles(e.target.files);
+      e.target.value = '';
+    });
+
+    renderCurrentItem();
+  </script>
+</body>
+</html>

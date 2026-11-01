@@ -1,0 +1,37 @@
+# Verified public meeting spots (TZ v2.0 Section III.5.2)
+places:
+  - id: oc_palladium
+    name_ru: ТЦ Палладиум (Главный вход)
+    name_cs: OC Palladium (Hlavní vchod)
+    address: Náměstí Republiky 1, 110 00 Praha 1
+    metro_station: Náměstí Republiky (B)
+    available_hours: "10:00 - 20:00"
+    safety_level: PUBLIC_MALL
+    description: Публичное охраняемое пространство, камеры видеонаблюдения
+
+  - id: oc_novy_smichov
+    name_ru: ТЦ Новый Смихов (Инфостойка)
+    name_cs: OC Nový Smíchov (Infostánek)
+    address: Plzeňská 8, 150 00 Praha 5
+    metro_station: Anděl (B)
+    available_hours: "10:00 - 20:00"
+    safety_level: PUBLIC_MALL
+    description: Оживленное место рядом с метро
+
+  - id: hlavni_nadrazi
+    name_ru: Главный вокзал (У касс ČD)
+    name_cs: Hlavní nádraží (U pokladen ČD)
+    address: Wilsonova 300/8, 120 00 Praha 2
+    metro_station: Hlavní nádraží (C)
+    available_hours: "09:00 - 21:00"
+    safety_level: TRANSIT_HUB
+    description: Постоянное присутствие полиции и охрана
+
+  - id: police_station_praha1
+    name_ru: Полицейский участок Прага 1 (Вход / фойе)
+    name_cs: Policejní služebna Praha 1 (Vstupní hala)
+    address: Bartolomějská 14, 110 00 Praha 1
+    metro_station: Národní třída (B)
+    available_hours: "09:00 - 18:00"
+    safety_level: POLICE_STATION
+    description: Максимальная безопасность для дорогостоящих сделок и передачи крупных сумм наличных

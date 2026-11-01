@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Вход — NextLife{% endblock %}
+{% block content %}
+<div class="card login-card centered">
+  <div class="brand-icon login-brand">⚡</div>
+  <h2 class="page-title">NextLife Re-Commerce</h2>
+  <p class="page-subtitle">
+    Введите секретный токен для авторизации и доступа к консоли управления
+  </p>
+  {% if error %}
+  <div class="info-box info-box-red row tight">
+    <span>⚠️</span>
+    <span>{{ error }}</span>
+  </div>
+  {% endif %}
+  <form method="POST" action="/ui/login" class="stack-3">
+    <input type="hidden" name="next_url" value="{{ next_url or '/ui/items' }}">
+    <div class="field">
+      <label class="field-label" for="token-input">Токен безопасности</label>
+      <input type="password" name="token" id="token-input" placeholder="Вставьте токен безопасности..." required autofocus autocomplete="current-password" class="input-text">
+    </div>
+    <button type="submit" class="btn btn-primary">
+      Войти в систему
+    </button>
+  </form>
+</div>
+{% endblock %}

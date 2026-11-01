@@ -1,0 +1,232 @@
+carrier: Packeta
+display_name: "Zásilkovna / Packeta"
+status: "ACTIVE"
+services:
+  - name: zasilkovna_vydejni_misto_standard
+    service_type: "výdejní místo / Z-BOX"
+    weight_max_g: 5000
+    size_class:
+      name: "standard"
+      max_weight_kg: 5.0
+      max_longest_side_cm: 60.0
+      max_sum_sides_cm: 120.0
+      box_max_dimensions_cm: [35.0, 43.0, 60.0]
+    dim_rule:
+      max_single_side_mm: 600
+      max_sum_of_sides_mm: 1200
+    price: 89.00
+    country_pricing:
+      CZ: 89.00
+      SK: 99.00
+      HU: 109.00
+      RO: 119.00
+    price_pdf:
+      pdf_section: "Doručení na výdejní místa a do Z-BOXů"
+      pdf_row: "Česká republika"
+      pdf_column: 0
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Doručení na výdejní místa a do Z-BOXů"
+        pdf_row: "Česká republika"
+        pdf_column: 0
+      SK:
+        pdf_section: "Doručení na výdejní místa a do Z-BOXů"
+        pdf_row: "Slovensko"
+        pdf_column: 0
+      HU:
+        pdf_section: "Doručení na výdejní místa a do Z-BOXů"
+        pdf_row: "Maďarsko"
+        pdf_column: 0
+      RO:
+        pdf_section: "Doručení na výdejní místa a do Z-BOXů"
+        pdf_row: "Rumunsko"
+        pdf_column: 0
+    currency: CZK
+    cod_supported: true
+    cod_fee: 26.00
+    dobirka_fee: 26.00
+    dobirka_limit: 10000.00
+    unregistered_surcharge: 0.00
+    insurance_included: 300.00
+    insurance_limit: 300.00
+    insurance_max: 10000.00
+    countries:
+      - CZ
+      - SK
+      - HU
+      - RO
+    source_file: "config/shipping/_sources/zasilkovna_mezi_nami_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.zasilkovna.cz/ceniky-a-priplatky"
+    fetched_at: "2026-09-09"
+
+  - name: zasilkovna_vydejni_misto_nadrozmer
+    service_type: "výdejní místo (nadrozměrná)"
+    weight_max_g: 15000
+    size_class:
+      name: "nadrozmerna"
+      max_weight_kg: 15.0
+      max_longest_side_cm: 120.0
+      max_sum_sides_cm: 150.0
+    dim_rule:
+      max_single_side_mm: 1200
+      max_sum_of_sides_mm: 1500
+    price: 149.00
+    country_pricing:
+      CZ: 149.00
+      SK: 159.00
+      HU: 169.00
+      RO: 179.00
+    price_pdf:
+      pdf_section: "Doručení na výdejní místa a do Z-BOXů"
+      pdf_row: "Česká republika"
+      pdf_column: 1
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Doručení na výdejní místa a do Z-BOXů"
+        pdf_row: "Česká republika"
+        pdf_column: 1
+      SK:
+        pdf_section: "Doručení na výdejní místa a do Z-BOXů"
+        pdf_row: "Slovensko"
+        pdf_column: 1
+      HU:
+        pdf_section: "Doručení na výdejní místa a do Z-BOXů"
+        pdf_row: "Maďarsko"
+        pdf_column: 1
+      RO:
+        pdf_section: "Doručení na výdejní místa a do Z-BOXů"
+        pdf_row: "Rumunsko"
+        pdf_column: 1
+    currency: CZK
+    cod_supported: true
+    cod_fee: 26.00
+    dobirka_fee: 26.00
+    dobirka_limit: 10000.00
+    unregistered_surcharge: 0.00
+    insurance_included: 300.00
+    insurance_limit: 300.00
+    insurance_max: 10000.00
+    countries:
+      - CZ
+      - SK
+      - HU
+      - RO
+    source_file: "config/shipping/_sources/zasilkovna_mezi_nami_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.zasilkovna.cz/ceniky-a-priplatky"
+    fetched_at: "2026-09-09"
+
+  - name: zasilkovna_na_adresu_standard
+    service_type: "doručení na adresu"
+    weight_max_g: 5000
+    size_class:
+      name: "standard"
+      max_weight_kg: 5.0
+      max_longest_side_cm: 60.0
+      max_sum_sides_cm: 120.0
+    dim_rule:
+      max_single_side_mm: 600
+      max_sum_of_sides_mm: 1200
+    price: 129.00
+    country_pricing:
+      CZ: 129.00
+      SK: 169.00
+      HU: 199.00
+      RO: 209.00
+    price_pdf:
+      pdf_section: "Podání zásilky na podacích místech"
+      pdf_row: "České republice"
+      pdf_column: 0
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Podání zásilky na podacích místech"
+        pdf_row: "České republice"
+        pdf_column: 0
+      SK:
+        pdf_section: "Podání zásilky na podacích místech"
+        pdf_row: "Slovensko"
+        pdf_column: 0
+      HU:
+        pdf_section: "Podání zásilky na podacích místech"
+        pdf_row: "Maďarska"
+        pdf_column: 0
+      RO:
+        pdf_section: "Podání zásilky na podacích místech"
+        pdf_row: "Rumunska"
+        pdf_column: 0
+    currency: CZK
+    cod_supported: true
+    cod_fee: 26.00
+    dobirka_fee: 26.00
+    dobirka_limit: 10000.00
+    unregistered_surcharge: 0.00
+    insurance_included: 10000.00
+    insurance_limit: 10000.00
+    insurance_max: 10000.00
+    countries:
+      - CZ
+      - SK
+      - HU
+      - RO
+    source_file: "config/shipping/_sources/zasilkovna_mezi_nami_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.zasilkovna.cz/ceniky-a-priplatky"
+    fetched_at: "2026-09-09"
+
+  - name: zasilkovna_na_adresu_nadrozmer
+    service_type: "doručení na adresu (nadrozměrná)"
+    weight_max_g: 15000
+    size_class:
+      name: "nadrozmerna"
+      max_weight_kg: 15.0
+      max_longest_side_cm: 120.0
+      max_sum_sides_cm: 150.0
+    dim_rule:
+      max_single_side_mm: 1200
+      max_sum_of_sides_mm: 1500
+    price: 179.00
+    country_pricing:
+      CZ: 179.00
+      SK: 219.00
+      HU: 249.00
+      RO: 259.00
+    price_pdf:
+      pdf_section: "Podání zásilky na podacích místech"
+      pdf_row: "České republice"
+      pdf_column: 1
+    country_pricing_pdf:
+      CZ:
+        pdf_section: "Podání zásilky na podacích místech"
+        pdf_row: "České republice"
+        pdf_column: 1
+      SK:
+        pdf_section: "Podání zásilky na podacích místech"
+        pdf_row: "Slovensko"
+        pdf_column: 1
+      HU:
+        pdf_section: "Podání zásilky na podacích místech"
+        pdf_row: "Maďarska"
+        pdf_column: 1
+      RO:
+        pdf_section: "Podání zásilky na podacích místech"
+        pdf_row: "Rumunska"
+        pdf_column: 1
+    currency: CZK
+    cod_supported: true
+    cod_fee: 26.00
+    dobirka_fee: 26.00
+    dobirka_limit: 10000.00
+    unregistered_surcharge: 0.00
+    insurance_included: 10000.00
+    insurance_limit: 10000.00
+    insurance_max: 10000.00
+    countries:
+      - CZ
+      - SK
+      - HU
+      - RO
+    source_file: "config/shipping/_sources/zasilkovna_mezi_nami_2026-09-09.pdf"
+    source_page: 1
+    source_url: "https://www.zasilkovna.cz/ceniky-a-priplatky"
+    fetched_at: "2026-09-09"
