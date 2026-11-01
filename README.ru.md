@@ -2,6 +2,8 @@
 
 **Языки:** [English](README.md) | Русский
 
+**Версия:** 2026.11.0
+
 <p align="left">
   <img alt="Лицензия" src="https://img.shields.io/badge/лицензия-MIT-blue.svg">
   <img alt="Python" src="https://img.shields.io/badge/python-3.12%2B-blue">

@@ -101,10 +101,13 @@ def screen_settings(
     buy_config = settings.get("buy", {"default_currency": "CZK", "profit_threshold_pct": 25})
     listing_ttl_days = settings.get("listing_ttl_days", 30)
 
+    from nextlife.version import get_version_str
+
     return templates.TemplateResponse(
         request=request,
         name="settings.html",
         context={
+            "app_version": get_version_str(),
             "tab": tab,
             "notice": notice,
             "err": err,

@@ -36,6 +36,8 @@ from nextlife.storage.models import Item
 
 router = APIRouter()
 
+from nextlife.version import get_version_str
+
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent.parent / "templates" / "web"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 # TZ-NextLife-UI-N2 §1.4: единственная точка форматирования сумм в шаблонах.
@@ -44,6 +46,7 @@ templates.env.filters["money"] = format_money
 # изменении файла, чтобы клиенты (в т.ч. DuckDuckGo с кэшем по ETag) подхватили новые стили.
 _APP_CSS = Path(__file__).resolve().parent / "static" / "app.css"
 templates.env.globals["asset_ver"] = int(_APP_CSS.stat().st_mtime)
+templates.env.globals["app_version"] = get_version_str()
 # TZ-NextLife-UI-N2 §4 V4 (P-E15): статусы — только по-русски (Э-6).
 templates.env.filters["status_ru"] = status_label_ru
 templates.env.filters["deal_status_ru"] = deal_status_label_ru

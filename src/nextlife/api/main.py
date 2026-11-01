@@ -41,8 +41,10 @@ def create_app() -> FastAPI:
     # SecretResolutionError that names it. This makes a botched deploy (env var
     # not exported) abort at startup instead of dying on the first DB request.
     # It only resolves the secret — it does NOT open a connection.
+    from nextlife.version import get_version_str
+
     get_database_url(config)
-    app = FastAPI(title="NextLife API", version="0.1.0")
+    app = FastAPI(title="NextLife API", version=get_version_str())
 
     media_dir = get_media_dir()
     media_dir.mkdir(parents=True, exist_ok=True)
