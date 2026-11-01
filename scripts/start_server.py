@@ -50,16 +50,13 @@ def start_server(host: str = DEFAULT_HOST, port: int = DEFAULT_PORT) -> bool:
         return False
 
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-    dsn = os.environ.get("NEXTLIFE_DSN")
-    if not dsn:
-        print("Missing required environment variable: NEXTLIFE_DSN")
-        return False
+    dsn = os.environ.get("NEXTLIFE_DSN") or "postgresql+psycopg2:///nextlife?host=/var/run/postgresql"
 
     # The web token is NOT injected here: the app resolves it at runtime via
     # resolve_secret (process environment first, then the project-root .env).
     # Force-setting an empty value here would shadow the .env fallback.
     env = os.environ.copy()
-    env.setdefault("NEXTLIFE_DSN", dsn)
+    env["NEXTLIFE_DSN"] = dsn
 
     # The launcher runs from the project .venv (sys.executable), which already
     # carries every dependency. PYTHONPATH only needs the repo src/ tree.

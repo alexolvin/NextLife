@@ -86,21 +86,20 @@ log "  build-info: commit=$GIT_COMMIT version=$VERSION_STR built_at=$BUILT_AT"
 
 # ── 6. Web service verification ─────────────────────────────────────────────
 set_step "6-web-service"
-log "Step 6: web service healthcheck"
+log "Step 6: web service reload / restart"
+export NEXTLIFE_DSN="${NEXTLIFE_DSN:-postgresql+psycopg2:///nextlife?host=/var/run/postgresql}"
+
+log "  Restarting server on port $PORT via scripts/start_server.py..."
+"$VENV_PYTHON" "$REPO_ROOT/scripts/start_server.py" restart --port "$PORT" || true
+
 HEALTH=""
-for i in $(seq 1 10); do
+for i in $(seq 1 15); do
     HEALTH="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/health" || true)"
     [ "$HEALTH" = "200" ] && break
     sleep 1
 done
-
-if [ "$HEALTH" != "200" ]; then
-    log "  Port $PORT not responding, starting via scripts/start_server.py..."
-    "$VENV_PYTHON" "$REPO_ROOT/scripts/start_server.py" start --port "$PORT" || true
-    sleep 2
-    HEALTH="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/health" || true)"
-fi
 log "  GET /health: $HEALTH"
+[ "$HEALTH" = "200" ] || die "GET /health returned $HEALTH (expected 200)"
 
 # ── 7. Gateway & UI verification ────────────────────────────────────────────
 set_step "7-gateway"
