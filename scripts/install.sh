@@ -212,6 +212,12 @@ run rsync -a --delete \
     --exclude '.mypy_cache' --exclude '.ruff_cache' \
     --exclude '.a' --exclude 'data' --exclude '.env' \
     "$REPO_ROOT/" "$CODE_DIR/"
+if [ -f "$ENV_FILE" ]; then
+    run cp "$ENV_FILE" "$CODE_DIR/.env"
+    run chown "$NEXTLIFE_USER:$NEXTLIFE_USER" "$CODE_DIR/.env"
+    run chmod 600 "$CODE_DIR/.env"
+    log "  Installed $CODE_DIR/.env (mode 600, user $NEXTLIFE_USER)"
+fi
 if [ "$DRY_RUN" -eq 1 ] || [ ! -d "$VENV_DIR" ]; then
     run python3 -m venv "$VENV_DIR"
 fi

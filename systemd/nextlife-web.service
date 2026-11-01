@@ -9,7 +9,7 @@ User=nextlife
 Group=nextlife
 WorkingDirectory=/opt/nextlife/app
 # Single secret source (web/openclaw/phonebroker tokens)
-EnvironmentFile=/opt/nextlife/app/.env
+EnvironmentFile=-/opt/nextlife/app/.env
 # DSN: peer via unix socket, no password. Data dir + publish kill-switch.
 Environment=NEXTLIFE_DSN=postgresql+psycopg2:///nextlife?host=/var/run/postgresql
 Environment=NEXTLIFE_DATA_DIR=/var/lib/nextlife
@@ -18,8 +18,8 @@ ExecStart=/opt/nextlife/venv/bin/nextlife-api
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true
-ProtectSystem=strict
-ReadWritePaths=/var/lib/nextlife
+ProtectSystem=full
+ReadWritePaths=/var/lib/nextlife /opt/nextlife
 PrivateTmp=true
 
 [Install]
