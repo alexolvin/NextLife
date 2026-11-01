@@ -202,3 +202,21 @@ def test_stock_item_template_renders_empty_research():
     )
     body2 = resp2.body.decode("utf-8")
     assert "предложений на площадках пока не найдено" in body2
+
+
+def test_fx_rate_fallback_when_db_empty():
+    """get_latest_rate_prior_or_on must return baseline fallback rate when fx_rate table is empty."""
+    from datetime import date
+
+    from nextlife.money.money import get_latest_rate_prior_or_on
+
+    session = MagicMock()
+    # Mock empty query results
+    session.execute.return_value.first.return_value = None
+
+    rate, r_date = get_latest_rate_prior_or_on(session, "CZK", date(2026, 11, 1))
+    assert rate == Decimal("25.0")
+    assert r_date == date(2026, 11, 1)
+
+    rate_pln, _ = get_latest_rate_prior_or_on(session, "PLN", date(2026, 11, 1))
+    assert rate_pln == Decimal("4.30")

@@ -19,7 +19,9 @@
   {% elif notice == 'research_done' %}
     <div class="toast-banner" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Поиск аналогов на площадках завершён</div>
   {% elif notice == 'research_failed' %}
-    <div class="toast-banner" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">⚠ Не удалось выполнить поиск аналогов</div>
+    <div class="toast-banner" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">
+      ⚠ Не удалось выполнить поиск аналогов{% if request.query_params.get('reason') %}: {{ request.query_params.get('reason') }}{% endif %}
+    </div>
   {% elif notice == 'photo_rotated' %}
     <div class="toast-banner" style="background: #dcfce7; color: #166534; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Фотография повёрнута</div>
   {% elif notice == 'photos_uploaded' %}

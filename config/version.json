@@ -1,9 +1,9 @@
 {
   "year": 2026,
   "month": 11,
-  "revision": 8,
-  "version": "2026.11.8",
-  "theme": "Forest Green",
-  "accent_hex": "#0e6239",
-  "updated_at": "2026-11-01T19:18:21Z"
+  "revision": 9,
+  "version": "2026.11.9",
+  "theme": "Carrot Rust",
+  "accent_hex": "#a83e0c",
+  "updated_at": "2026-11-01T19:52:16Z"
 }

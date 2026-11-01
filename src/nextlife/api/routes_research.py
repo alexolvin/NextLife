@@ -81,20 +81,26 @@ async def ui_run_research(
         search_query = query or item.title
         config = load_config()
         notice = "research_done"
+        reason = ""
         try:
             run_research(session, item.code, search_query, config)
             session.commit()
-        except Exception:
+        except Exception as exc:
             session.rollback()
+            import logging
+            logging.getLogger(__name__).exception("Failed to run research on item %s: %s", item.code, exc)
             notice = "research_failed"
+            reason = str(exc)
     target = next_url if next_url.startswith("/ui/") else f"/ui/stock/{item_code}#price"
+    from urllib.parse import quote
+    reason_param = f"&reason={quote(reason[:120])}" if reason else ""
     if "#" in target:
         base, fragment = target.split("#", 1)
         sep = "&" if "?" in base else "?"
-        final_url = f"{base}{sep}notice={notice}#{fragment}"
+        final_url = f"{base}{sep}notice={notice}{reason_param}#{fragment}"
     else:
         sep = "&" if "?" in target else "?"
-        final_url = f"{target}{sep}notice={notice}"
+        final_url = f"{target}{sep}notice={notice}{reason_param}"
     return RedirectResponse(
         url=final_url, status_code=status.HTTP_303_SEE_OTHER
     )

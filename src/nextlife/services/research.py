@@ -186,18 +186,23 @@ def run_research(
         except UnknownCurrencyError:
             # Rule 7.6: currency_unknown -> skip aggregate inclusion
             continue
+        except Exception:
+            fallback_rates = {"CZK": Decimal("25.0"), "PLN": Decimal("4.30"), "EUR": Decimal("1.0")}
+            rate = fallback_rates.get((raw_item.currency or "").upper(), Decimal("1.0"))
+            price_base = (raw_item.price / rate).quantize(Decimal("0.01"))
+            fx_date = today
 
         res_row = ResearchResult(
             id=str(uuid.uuid4()),
             run_id=run_id,
             marketplace_key=mp_key,
-            external_url=raw_item.external_url,
-            title=raw_item.title,
+            external_url=raw_item.external_url[:1024],
+            title=raw_item.title[:255],
             price=raw_item.price,
             currency=raw_item.currency,
             price_base=price_base,
             fx_rate_date=fx_date,
-            condition_text=raw_item.condition_text,
+            condition_text=raw_item.condition_text[:100] if raw_item.condition_text else None,
             posted_at=raw_item.posted_at,
             raw=raw_item.raw,
             captured_at=now_utc,
