@@ -275,3 +275,57 @@ def test_ui_cancel_deal_endpoint():
         assert deal.status == "CANCELLED"
         assert deal.closed_at is not None
 
+
+def test_stock_item_mobile_stepper_and_navigation_controls():
+    """Stock item screen must render touch-friendly stepper pills, toolbar controls (Вернуться / Вперёд), and footer stage nav."""
+    from starlette.requests import Request
+
+    from nextlife.api.routes_stock import templates
+
+    item = {
+        "code": "130",
+        "title": "AMD Radeon RX 7900 XTX",
+        "status": "IN_STOCK",
+        "status_badge_cls": "badge-ready",
+        "description": "GPU description",
+        "created_at": None,
+        "target_price": Decimal("22000"),
+        "target_currency": "CZK",
+        "price_estimate_median": Decimal("21500"),
+        "price_estimate_currency": "CZK",
+        "storage_location": "Полка A-1",
+        "photos": [],
+        "listings": [],
+        "listings_count": 0,
+        "deal": None,
+        "warranty_until": None,
+    }
+
+    req = Request({"type": "http", "method": "GET", "path": "/ui/stock/130", "headers": []})
+    resp = templates.TemplateResponse(
+        request=req,
+        name="stock_item.html",
+        context={"item": item, "it": item, "research": None, "listings": [], "deal": None, "photos": [], "approved_count": 0, "notice": None},
+    )
+    body = resp.body.decode("utf-8")
+
+    # Stepper toolbar controls
+    assert 'data-testid="btn-stepper-prev"' in body
+    assert "Вернуться" in body
+    assert 'data-testid="btn-stepper-next"' in body
+    assert "Вперёд" in body
+    assert 'data-testid="stepper-stage-indicator"' in body
+
+    # Stepper pills
+    assert 'data-testid="item-stepper"' in body
+    assert 'data-testid="tab-price"' in body
+    assert 'data-testid="tab-photos"' in body
+    assert 'data-testid="tab-describe"' in body
+    assert 'data-testid="tab-listings"' in body
+    assert 'data-testid="tab-sale"' in body
+    assert 'data-testid="tab-warranty"' in body
+
+    # Stage footer navigation
+    assert 'data-testid="btn-stage-footer-prev"' in body
+    assert 'data-testid="btn-stage-footer-next"' in body
+
