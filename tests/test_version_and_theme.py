@@ -58,7 +58,7 @@ def test_monthly_reset_rule(tmp_path):
             mock_dt.now.return_value = datetime(2026, 11, 1, tzinfo=timezone.utc)
             mock_dt.timezone = timezone
 
-            ver, theme = bump_version()
+            ver, theme = bump_version(write_files=False)
             assert ver == "2026.11.0"
             assert theme["hex"] == "#0a3d7a"
 

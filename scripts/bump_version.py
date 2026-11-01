@@ -109,7 +109,7 @@ def update_pyproject(version_str: str) -> None:
         pyproject.write_text(text, encoding="utf-8")
 
 
-def bump_version(force_rev: int | None = None) -> tuple[str, dict[str, str]]:
+def bump_version(force_rev: int | None = None, write_files: bool = True) -> tuple[str, dict[str, str]]:
     current = load_version_info()
     now = datetime.now(timezone.utc)
 
@@ -143,14 +143,15 @@ def bump_version(force_rev: int | None = None) -> tuple[str, dict[str, str]]:
         "updated_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
 
-    VERSION_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(VERSION_JSON_PATH, "w", encoding="utf-8") as f:
-        json.dump(info, f, indent=2, ensure_ascii=False)
-        f.write("\n")
+    if write_files:
+        VERSION_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with open(VERSION_JSON_PATH, "w", encoding="utf-8") as f:
+            json.dump(info, f, indent=2, ensure_ascii=False)
+            f.write("\n")
 
-    update_css(theme)
-    update_readme(version_str)
-    update_pyproject(version_str)
+        update_css(theme)
+        update_readme(version_str)
+        update_pyproject(version_str)
 
     return version_str, theme
 
