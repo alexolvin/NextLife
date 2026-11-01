@@ -52,7 +52,7 @@ mkdir -p "$BACKUP_DIR"
 BACKUP_FILE="$BACKUP_DIR/pre-deploy-$(date +%Y%m%d-%H%M%S).sql"
 
 if command -v pg_dump >/dev/null 2>&1; then
-    if pg_dump "postgresql:///nextlife?host=/var/run/postgresql" > "$BACKUP_FILE" 2>/dev/null; then
+    if pg_dump -h /var/run/postgresql -d nextlife > "$BACKUP_FILE" 2>/dev/null; then
         log "  Backup saved: $BACKUP_FILE ($(du -sh "$BACKUP_FILE" 2>/dev/null | cut -f1))"
     else
         log "  pg_dump returned non-zero (continuing with existing data state)"

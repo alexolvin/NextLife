@@ -19,9 +19,10 @@ def client():
 
 @pytest.fixture
 def clean_db():
+    from tests.conftest import clean_database
+
     from nextlife.connectors.registry import sync_marketplaces
     from nextlife.core.config import load_config
-    from tests.conftest import clean_database
 
     with get_db_session() as session:
         sync_marketplaces(session, load_config())
@@ -198,6 +199,28 @@ def test_stock_item_screen_renders(client, clean_db):
     assert 'data-testid="stock-listings"' in r.text
     assert 'data-testid="btn-mark-sold"' in r.text
     assert 'data-testid="btn-delete-item"' in r.text
+
+
+def test_stock_item_screen_renders_with_listings(client, clean_db):
+    """Проверка рендера карточки предмета с листингами (защита от NameError: ListingStatus)."""
+    with get_db_session() as session:
+        c = create_item_and_lot(session, title="Предмет с листингом", category_key="gpu", price=Decimal("1500"), currency="CZK")
+        code = c["item_code"]
+        session.add(
+            Listing(
+                item_code=code,
+                marketplace_key="bazos_cz",
+                price=Decimal("1500"),
+                currency="CZK",
+                price_base=Decimal("1500"),
+                status="APPROVED",
+            )
+        )
+        session.commit()
+    r = client.get(f"/ui/stock/{code}", headers=_auth())
+    assert r.status_code == 200
+    assert "Предмет с листингом" in r.text
+    assert "bazos_cz" in r.text
 
 
 def test_stock_item_screen_404(client, clean_db):

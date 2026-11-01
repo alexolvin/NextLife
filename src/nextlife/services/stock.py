@@ -21,7 +21,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from nextlife.core.exceptions import NextLifeError
-from nextlife.core.status import ItemStatus, validate_transition
+from nextlife.core.status import ItemStatus, ListingStatus, validate_transition
 from nextlife.core.text import build_item_search_text, normalize_search_text
 from nextlife.media.ops import delete_photo_and_derived
 from nextlife.obs.audit import record_audit_event
