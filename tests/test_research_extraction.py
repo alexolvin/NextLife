@@ -264,6 +264,19 @@ def test_classify_results_rule_based_gpu():
         assert res["assignments"][3] == "Комплектующие / Охлаждение"
 
 
+def test_classify_gaming_beast_pc_is_bundle():
+    from nextlife.services.llm_filter import classify_results_rule_based
+
+    results = [
+        {"title": "Sapphire RX 7900 XTX Nitro+ 24GB", "url": "https://pc.bazos.cz/inzerat/123/rx-7900-xtx.php"},
+        {"title": "Exkluzivní herní bestie na prodej!", "url": "https://www.sbazar.cz/inzerat/234824235-exkluzivni-herni-bestie-na-prodej"},
+    ]
+    res = classify_results_rule_based("7900 xtx", results)
+    assert res is not None
+    assert res["assignments"][0] == "Самостоятельный товар"
+    assert res["assignments"][1] == "Наборы, комплекты"
+
+
 def test_classify_results_rule_based_sofa():
     from nextlife.services.llm_filter import classify_results_rule_based
 

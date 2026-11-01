@@ -336,7 +336,8 @@ def build_research_panel(
 
     from nextlife.services.llm_filter import classify_results_rule_based
 
-    cat_result = classify_results_rule_based(current_query, [{"title": r.title} for r in own])
+    items_data = [{"title": r.title, "url": r.external_url, "price": r.price, "currency": r.currency} for r in own]
+    cat_result = classify_results_rule_based(current_query, items_data)
     categories = cat_result.get("options", []) if cat_result else []
     assignments = cat_result.get("assignments", []) if cat_result else []
 
@@ -348,8 +349,7 @@ def build_research_panel(
         r.price for idx, r in enumerate(own)
         if not _is_auction(r) and (idx < len(assignments) and assignments[idx] == "Самостоятельный товар")
     )
-    min_comp = getattr(config.app, "min_comparables", 5)
-    min_comp = min_comp if isinstance(min_comp, int) else 5
+    min_comp = int(getattr(config.app, "min_comparables", 5) or 5)
     valid_prices = standalone_prices if len(standalone_prices) >= min_comp else sorted(candidate_prices)
     stats = calculate_price_stats(valid_prices, min_comparables=min_comp)
 

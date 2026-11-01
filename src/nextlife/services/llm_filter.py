@@ -171,7 +171,14 @@ def classify_results_rule_based(query: str, results: list[dict[str, Any]]) -> di
         "herní pc", "herni pc", "herní počítač", "herni pocitac", "herní sestava", "herni sestava",
         "pc sestava", "gaming pc", "desktop", "stolní pc", "stolni pc", "компьютер",
         "сборка", "системный блок", "celé pc", "cele pc", "herný počítač", "herny pocitac",
-        "celá sestava", "cela sestava", "workstation", "mining rig"
+        "celá sestava", "cela sestava", "workstation", "mining rig", "herní komp", "herni komp",
+    )
+
+    pc_slang_re = re.compile(
+        r"\b(hern[íi]\s+(bestie|dělo|delo|mašin[ayieou]|masin[ayieou]|stroj|monstrum|raket[ayieou])|"
+        r"výkonn[ýé]\s+(herní\s+)?(stroj|mašina|masina|dělo|delo|bestie)|"
+        r"počítačov[áé]|počítač|pocitac)\b",
+        re.IGNORECASE,
     )
 
     kit_re = re.compile(
@@ -198,7 +205,9 @@ def classify_results_rule_based(query: str, results: list[dict[str, Any]]) -> di
     assignments: list[str] = []
 
     for r in results:
-        t = (r.get("title") or "").lower()
+        title_text = r.get("title") or ""
+        url_text = (r.get("url") or r.get("external_url") or "").replace("-", " ").replace("/", " ").replace(".php", "").replace(".html", "")
+        t = f"{title_text} {url_text}".lower()
 
         # 1. Demand / Wanted check
         if demand_re.search(t):
@@ -206,11 +215,17 @@ def classify_results_rule_based(query: str, results: list[dict[str, Any]]) -> di
             continue
 
         # 2. Builds / Kits / Bundles check
-        is_build = any(k in t for k in pc_build_keywords)
+        is_build = any(k in t for k in pc_build_keywords) or bool(pc_slang_re.search(t))
         if not is_build and re.search(r"\bsestav[ayieou]?\b", t):
             is_build = True
         if not is_build and is_gpu:
-            if re.search(r"\b(ryzen\s+[3579]|core\s+i[3579]|i[3579][-\s]\d{4,5}|7800x3d|5800x3d|13700k|14700k|13900k|14900k)\b", t):
+            if re.search(
+                r"\b(ryzen|intel core|i[3579][-\s]\d{4,5}|[579]\d00x3d|1[234]\d00k[f]?|"
+                r"\d+\s*gb\s+(?:ram|ddr[45])|ddr[45]|nvme|m\.2\s+ssd|"
+                r"základní deska|zakladni deska|motherboard)\b",
+                t,
+                re.IGNORECASE,
+            ):
                 is_build = True
 
         is_kit = is_build or bool(kit_re.search(t))
