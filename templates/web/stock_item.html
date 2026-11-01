@@ -108,51 +108,34 @@
         </div>
       {% endif %}
 
-      <!-- Statistical Block (§5.2.3) -->
-      {% if item.price_estimate_median %}
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; text-align: center;">
-          <div style="background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <div style="font-size: 0.75rem; color: #64748b;">P25 (низ рынка)</div>
-            <div style="font-size: 1.1rem; font-weight: 700; color: #334155;">{{ item.price_estimate_low or '—' }} {{ item.price_estimate_currency }}</div>
-          </div>
-          <div style="background: #eff6ff; padding: 10px; border-radius: 8px; border: 1px solid #bfdbfe;">
-            <div style="font-size: 0.75rem; color: #1d4ed8; font-weight: 600;">Медиана (P50)</div>
-            <div style="font-size: 1.2rem; font-weight: 800; color: #1e40af;">{{ item.price_estimate_median }} {{ item.price_estimate_currency }}</div>
-          </div>
-          <div style="background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <div style="font-size: 0.75rem; color: #64748b;">P75 (верх рынка)</div>
-            <div style="font-size: 1.1rem; font-weight: 700; color: #334155;">{{ item.price_estimate_high or '—' }} {{ item.price_estimate_currency }}</div>
-          </div>
-        </div>
-      {% endif %}
-
-      <!-- Decisions (§5.2.4) -->
+      <!-- Price Decisions: owner determines price -->
       <div style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
-        <h3 style="font-size: 0.95rem; font-weight: 600; margin-top: 0; margin-bottom: 10px;">Решение по цене:</h3>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          {% if item.price_estimate_median %}
-            <form method="post" action="/api/stock/{{ item.code }}/price-estimate" style="margin: 0;">
-              <input type="hidden" name="price" value="{{ item.price_estimate_median }}">
-              <input type="hidden" name="currency" value="{{ item.price_estimate_currency or 'CZK' }}">
-              <button type="submit" class="btn btn-primary" style="padding: 10px 16px; font-weight: 600;" data-testid="btn-sell-median">
-                Продавать за {{ item.price_estimate_median }} {{ item.price_estimate_currency or 'CZK' }}
-              </button>
-            </form>
-          {% endif %}
-        </div>
-
-        <form method="post" action="/api/stock/{{ item.code }}/price-estimate" style="margin-top: 12px; display: flex; gap: 8px; align-items: center;">
+        <h3 style="font-size: 0.95rem; font-weight: 600; margin-top: 0; margin-bottom: 10px;">Цена продажи:</h3>
+        
+        <form method="post" action="/api/stock/{{ item.code }}/price-estimate" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
           <input type="number" step="1" name="price" placeholder="Своя цена" value="{{ item.target_price or '' }}" required
                  class="input-field" style="width: 140px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px;" data-testid="input-custom-price">
           <select name="currency" class="input-field" style="padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
-            <option value="CZK" selected>CZK</option>
-            <option value="EUR">EUR</option>
-            <option value="PLN">PLN</option>
+            <option value="CZK" {% if (item.target_currency or 'CZK') == 'CZK' %}selected{% endif %}>CZK</option>
+            <option value="EUR" {% if item.target_currency == 'EUR' %}selected{% endif %}>EUR</option>
+            <option value="PLN" {% if item.target_currency == 'PLN' %}selected{% endif %}>PLN</option>
           </select>
-          <button type="submit" class="btn btn-secondary" style="padding: 8px 14px; font-weight: 600;" data-testid="btn-save-price">
-            Задать свою цену
+          <button type="submit" class="btn btn-primary" style="padding: 8px 16px; font-weight: 600;" data-testid="btn-save-price">
+            Сохранить цену
           </button>
         </form>
+
+        {% if item.price_estimate_median %}
+          <div style="margin-top: 10px;">
+            <form method="post" action="/api/stock/{{ item.code }}/price-estimate" style="margin: 0; display: inline;">
+              <input type="hidden" name="price" value="{{ item.price_estimate_median }}">
+              <input type="hidden" name="currency" value="{{ item.price_estimate_currency or 'CZK' }}">
+              <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 4px 8px;" data-testid="btn-sell-median">
+                Установить {{ item.price_estimate_median }} {{ item.price_estimate_currency or 'CZK' }}
+              </button>
+            </form>
+          </div>
+        {% endif %}
       </div>
 
       <!-- Live Search & Comparables Panel (§5.2) -->
@@ -255,8 +238,10 @@
 
                   <!-- Price -->
                   <div style="font-weight: 700; color: #0f172a; white-space: nowrap; margin-left: 8px; text-align: right; flex-shrink: 0;">
-                    {% if l.price %}
+                    {% if l.price and not l.is_auction %}
                       <span style="font-size: 1.05rem;">{{ l.price }}</span> <span style="font-size: 0.85rem; color: #64748b;">{{ l.currency }}</span>
+                    {% elif l.is_auction %}
+                      <span style="color: #64748b; font-weight: 500; font-size: 0.85rem; background: #f1f5f9; padding: 2px 8px; border-radius: 4px;" data-testid="auction-no-price">Аукцион (без цены)</span>
                     {% else %}
                       <span style="color: #94a3b8; font-weight: 400; font-size: 0.85rem;">Цена не указана</span>
                     {% endif %}

@@ -173,24 +173,38 @@ def run_research(
     now_utc = datetime.now(UTC)
 
     for mp_key, raw_item in raw_items:
-        try:
-            triple = convert_price(
-                session=session,
-                amount=raw_item.price,
-                currency=raw_item.currency,
-                target_date=today,
-                base_currency=config.app.base_currency,
-            )
-            price_base = triple.amount_base
-            fx_date = triple.rate_date
-        except UnknownCurrencyError:
-            # Rule 7.6: currency_unknown -> skip aggregate inclusion
-            continue
-        except Exception:
-            fallback_rates = {"CZK": Decimal("25.0"), "PLN": Decimal("4.30"), "EUR": Decimal("1.0")}
-            rate = fallback_rates.get((raw_item.currency or "").upper(), Decimal("1.0"))
-            price_base = (raw_item.price / rate).quantize(Decimal("0.01"))
+        raw_dict = dict(raw_item.raw or {}) if isinstance(raw_item.raw, dict) else {}
+        is_auction = (
+            mp_key == "aukro_cz" and not raw_dict.get("buy_now_active")
+        ) or bool(raw_dict.get("auction") and not raw_dict.get("buy_now_active"))
+
+        if is_auction:
+            item_price = Decimal("0.00")
+            price_base = Decimal("0.00")
             fx_date = today
+            raw_dict["is_auction"] = True
+            raw_dict["buy_now_active"] = False
+        else:
+            item_price = raw_item.price
+            raw_dict["is_auction"] = False
+            try:
+                triple = convert_price(
+                    session=session,
+                    amount=raw_item.price,
+                    currency=raw_item.currency,
+                    target_date=today,
+                    base_currency=config.app.base_currency,
+                )
+                price_base = triple.amount_base
+                fx_date = triple.rate_date
+            except UnknownCurrencyError:
+                # Rule 7.6: currency_unknown -> skip aggregate inclusion
+                continue
+            except Exception:
+                fallback_rates = {"CZK": Decimal("25.0"), "PLN": Decimal("4.30"), "EUR": Decimal("1.0")}
+                rate = fallback_rates.get((raw_item.currency or "").upper(), Decimal("1.0"))
+                price_base = (raw_item.price / rate).quantize(Decimal("0.01"))
+                fx_date = today
 
         res_row = ResearchResult(
             id=str(uuid.uuid4()),
@@ -198,13 +212,13 @@ def run_research(
             marketplace_key=mp_key,
             external_url=raw_item.external_url[:1024],
             title=raw_item.title[:255],
-            price=raw_item.price,
+            price=item_price,
             currency=raw_item.currency,
             price_base=price_base,
             fx_rate_date=fx_date,
             condition_text=raw_item.condition_text[:100] if raw_item.condition_text else None,
             posted_at=raw_item.posted_at,
-            raw=raw_item.raw,
+            raw=raw_dict,
             captured_at=now_utc,
         )
         session.add(res_row)
@@ -217,35 +231,6 @@ def run_research(
     run.finished_at = datetime.now(UTC)
     run.status = "FINISHED"
     session.flush()
-
-    # Автоматический расчёт статистики цен и сохранение в Item для витрины Склада
-    item_row = session.get(Item, item_code)
-    if item_row:
-        curr = item_row.target_currency or "CZK"
-        own_prices = sorted(
-            r.price for r in session.scalars(
-                select(ResearchResult).where(
-                    ResearchResult.run_id == run_id,
-                    ResearchResult.currency == curr,
-                )
-            ).all()
-        )
-        if not own_prices:
-            own_prices = sorted(
-                r.price for r in session.scalars(
-                    select(ResearchResult).where(ResearchResult.run_id == run_id)
-                ).all()
-            )
-        if own_prices:
-            stats = calculate_price_stats(own_prices, min_comparables=min(len(own_prices), 3))
-            if stats.get("median"):
-                item_row.price_estimate_median = Decimal(str(stats["median"]))
-                item_row.price_estimate_low = Decimal(str(stats.get("q25") or stats.get("min") or stats["median"]))
-                item_row.price_estimate_high = Decimal(str(stats.get("q75") or stats.get("max") or stats["median"]))
-                item_row.price_estimate_currency = curr
-                item_row.price_estimate_at = datetime.now(UTC)
-                session.flush()
-
     return run_id
 
 
@@ -339,16 +324,24 @@ def build_research_panel(
     if not own and results:
         own = list(results)
 
-    prices = sorted(r.price for r in own)
+    def _is_auction(r: ResearchResult) -> bool:
+        raw_dict = r.raw if isinstance(r.raw, dict) else {}
+        if r.marketplace_key == "aukro_cz" and not raw_dict.get("buy_now_active"):
+            return True
+        if raw_dict.get("is_auction") or (raw_dict.get("auction") and not raw_dict.get("buy_now_active")):
+            return True
+        return r.price <= 0
+
+    valid_prices = sorted(r.price for r in own if not _is_auction(r))
     min_comp = getattr(config.app, "min_comparables", 5)
     min_comp = min_comp if isinstance(min_comp, int) else 5
-    stats = calculate_price_stats(prices, min_comparables=min_comp)
+    stats = calculate_price_stats(valid_prices, min_comparables=min_comp)
 
     current_query = (run.marketplaces or {}).get("query") or (run.marketplaces or {}).get("original_query") or item.title
 
-    from nextlife.services.llm_filter import get_filter_options
+    from nextlife.services.llm_filter import classify_results_rule_based
 
-    cat_result = get_filter_options(current_query, [{"title": r.title} for r in own])
+    cat_result = classify_results_rule_based(current_query, [{"title": r.title} for r in own])
     categories = cat_result.get("options", []) if cat_result else []
     assignments = cat_result.get("assignments", []) if cat_result else []
 
@@ -357,10 +350,11 @@ def build_research_panel(
             "marketplace": r.marketplace_key,
             "title": r.title,
             "url": r.external_url,
-            "price": str(r.price),
+            "price": None if _is_auction(r) else str(r.price),
             "currency": r.currency,
             "image_url": (r.raw or {}).get("image_url") if isinstance(r.raw, dict) else None,
             "category": assignments[idx] if idx < len(assignments) else "Другое",
+            "is_auction": _is_auction(r),
         }
         for idx, r in enumerate(own)
     ]
@@ -378,8 +372,8 @@ def build_research_panel(
             generate_research_texts(
                 item.title,
                 len(own),
-                prices[0] if prices else None,
-                prices[-1] if prices else None,
+                valid_prices[0] if valid_prices else None,
+                valid_prices[-1] if valid_prices else None,
                 currency=item.target_currency or "CZK",
             )
             if own

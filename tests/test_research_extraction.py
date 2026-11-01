@@ -295,3 +295,105 @@ def test_get_filter_options_falls_back_to_rules(monkeypatch):
     assert "Только видеокарта" in res["options"]
     assert "В составе сборки (ПК)" in res["options"]
 
+
+def test_build_research_panel_excludes_aukro_auction_from_prices():
+    from nextlife.services.research import build_research_panel
+
+    session = MagicMock()
+    item = MagicMock()
+    item.code = "130"
+    item.title = "RX 7900 XTX"
+    item.target_currency = "CZK"
+
+    mock_run = MagicMock()
+    mock_run.id = "run-1"
+    mock_run.status = "SUCCESS"
+    mock_run.marketplaces = {"query": "RX 7900 XTX"}
+
+    # Result 1: Bazos fixed price 20000
+    r1 = MagicMock()
+    r1.marketplace_key = "bazos_cz"
+    r1.title = "RX 7900 XTX"
+    r1.price = Decimal("20000")
+    r1.currency = "CZK"
+    r1.external_url = "https://bazos.cz/1"
+    r1.raw = {"image_url": "img1.jpg"}
+
+    # Result 2: Aukro auction without buy_now, bid 150 CZK (should be zero/excluded)
+    r2 = MagicMock()
+    r2.marketplace_key = "aukro_cz"
+    r2.title = "Aukce RX 7900 XTX od koruny"
+    r2.price = Decimal("150")
+    r2.currency = "CZK"
+    r2.external_url = "https://aukro.cz/2"
+    r2.raw = {"auction": True, "buy_now_active": False, "image_url": "img2.jpg"}
+
+    session.execute.return_value.scalars.return_value.first.return_value = mock_run
+    session.execute.return_value.scalars.return_value.all.return_value = [r1, r2]
+
+    config = MagicMock()
+    config.app.min_comparables = 1
+    panel = build_research_panel(session, item, config)
+
+    assert panel is not None
+    assert panel["total_found"] == 2
+    # Only r1 is a valid price, so range should reflect 20000, not 150
+    assert panel["range"] is not None
+    assert "20" in panel["range"]["min"]
+
+    # Aukro link should have price=None and is_auction=True
+    aukro_link = [item_link for item_link in panel["links"] if item_link["marketplace"] == "aukro_cz"][0]
+    assert aukro_link["is_auction"] is True
+    assert aukro_link["price"] is None
+
+
+def test_stock_item_template_renders_auction_without_price():
+    from starlette.requests import Request
+
+    from nextlife.api.routes import templates
+
+    item = {
+        "code": "130",
+        "title": "RX 7900 XTX",
+        "status": "IN_STOCK",
+        "status_badge_cls": "badge-ready",
+        "target_price": Decimal("20000"),
+        "target_currency": "CZK",
+        "photos": [],
+    }
+
+    research = {
+        "status": "SUCCESS",
+        "badge_class": "badge-ready",
+        "badge_text": "Оценка готова",
+        "total_found": 1,
+        "marketplaces_scanned": ["aukro_cz"],
+        "range": None,
+        "categories": ["Показать все"],
+        "links": [
+            {
+                "marketplace": "aukro_cz",
+                "title": "RX 7900 XTX Aukce",
+                "url": "https://aukro.cz/item",
+                "price": None,
+                "currency": "CZK",
+                "image_url": None,
+                "category": "Только видеокарта",
+                "is_auction": True,
+            }
+        ],
+        "query": "RX 7900 XTX",
+        "run": {"id": "test-run", "created_at": None, "status": "SUCCESS"},
+    }
+
+    req = Request({"type": "http", "method": "GET", "path": "/ui/stock/130", "headers": []})
+    resp = templates.TemplateResponse(
+        request=req,
+        name="stock_item.html",
+        context={"item": item, "it": item, "research": research, "listings": [], "deal": None, "notice": None, "photos": []},
+    )
+    body = resp.body.decode("utf-8")
+    assert 'data-testid="auction-no-price"' in body
+    assert "Аукцион (без цены)" in body
+
+
