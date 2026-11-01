@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="stock-item-container" style="padding: 16px; max-width: 900px; margin: 0 auto; padding-bottom: 80px;"
-     x-data="{ activeTab: window.location.hash || '#price' }"
-     x-init="window.addEventListener('hashchange', () => { activeTab = window.location.hash || '#price' })">
+     x-data="{ activeTab: (window.location.hash ? window.location.hash.split('?')[0] : '#price') }"
+     x-init="window.addEventListener('hashchange', () => { activeTab = (window.location.hash ? window.location.hash.split('?')[0] : '#price') })">
 
   <!-- Toast Banners -->
   {% if notice == 'saved' %}
@@ -16,6 +16,10 @@
     <div class="toast-banner" style="background: #dcfce7; color: #166534; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Предмет отмечен проданным</div>
   {% elif notice == 'returned' %}
     <div class="toast-banner" style="background: #fef9c3; color: #854d0e; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Оформлен возврат по гарантии</div>
+  {% elif notice == 'research_done' %}
+    <div class="toast-banner" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Поиск аналогов на площадках завершён</div>
+  {% elif notice == 'research_failed' %}
+    <div class="toast-banner" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">⚠ Не удалось выполнить поиск аналогов</div>
   {% endif %}
 
   <!-- Persistent Header (§5.1) -->
@@ -139,14 +143,78 @@
         </form>
       </div>
 
-      <!-- Trigger Live Search Panel -->
-      <div style="margin-top: 16px;">
-        <form method="post" action="/ui/stock/{{ item.code }}/research" style="margin: 0; display: inline;">
+      <!-- Live Search & Comparables Panel (§5.2) -->
+      <div style="margin-top: 20px; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;" data-testid="research-panel">
+        <div style="font-weight: 700; font-size: 1rem; color: #1e293b; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+          <span>🔍 Поиск аналогов на площадках (Bazoš, Sbazar, Aukro)</span>
+          {% if research and research.badge_text %}
+            <span class="badge" style="font-size: 0.8rem; font-weight: 600; padding: 4px 8px; border-radius: 6px; background: #e2e8f0; color: #334155;">{{ research.badge_text }}</span>
+          {% endif %}
+        </div>
+
+        <form method="post" action="/ui/stock/{{ item.code }}/research" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px;">
           <input type="hidden" name="next" value="/ui/stock/{{ item.code }}#price">
-          <button type="submit" class="btn btn-secondary btn-sm" data-testid="btn-run-research">
-            🔍 Запустить поиск аналогов на площадках
+          <input type="text" name="q" value="{{ (research and research.query) or item.title }}" placeholder="Ключевые слова модели для поиска..."
+                 class="input-field" style="flex: 1; min-width: 240px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px;" data-testid="input-research-query">
+          <button type="submit" class="btn btn-primary" style="padding: 8px 16px; font-weight: 600;" data-testid="btn-run-research">
+            Найти аналоги
           </button>
         </form>
+
+        {% if research and research.query and research.query != item.title %}
+          <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 12px;">
+            💡 Поисковый запрос был оптимизирован под площадки: «<strong>{{ research.query }}</strong>»
+          </div>
+        {% endif %}
+
+        {% if research and research.total_found > 0 %}
+          <div style="margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">
+              <span style="font-size: 0.9rem; font-weight: 600; color: #334155;">
+                Найдено предложений: {{ research.total_found }}
+                {% if research.range %}
+                  (диапазон: {{ research.range.min }} – {{ research.range.max }} {{ research.range.currency }})
+                {% endif %}
+              </span>
+              {% if research.run and research.run.created_at %}
+                <span style="font-size: 0.75rem; color: #94a3b8;">Обновлено: {{ research.run.created_at.strftime('%d.%m.%Y %H:%M') if research.run.created_at.strftime is defined else research.run.created_at }}</span>
+              {% endif %}
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px;" data-testid="research-links-list">
+              {% for l in research.links %}
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
+                  <div style="display: flex; align-items: center; gap: 10px; overflow: hidden;">
+                    <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: #f1f5f9; color: #475569; white-space: nowrap;">
+                      {{ l.marketplace }}
+                    </span>
+                    <a href="{{ l.url }}" target="_blank" rel="noopener noreferrer" style="color: #0284c7; text-decoration: none; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ l.title }}">
+                      {{ l.title }} ↗
+                    </a>
+                  </div>
+                  <div style="font-weight: 700; color: #0f172a; white-space: nowrap; margin-left: 12px;">
+                    {% if l.price %}
+                      {{ l.price }} {{ l.currency }}
+                    {% else %}
+                      <span style="color: #94a3b8; font-weight: 400;">Цена не указана</span>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% elif research and research.run %}
+          <div style="margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+            <div style="background: #fffbeb; border: 1px solid #fef3c7; color: #92400e; padding: 12px; border-radius: 6px; font-size: 0.9rem;">
+              По запросу «<strong>{{ research.query or item.title }}</strong>» предложений на площадках пока не найдено.<br>
+              Попробуйте сократить запрос в строке выше (например, оставить только короткое название модели) и нажать «Найти аналоги».
+            </div>
+          </div>
+        {% else %}
+          <div style="font-size: 0.85rem; color: #64748b; margin-top: 6px;">
+            Нажмите кнопку «Найти аналоги», чтобы автоматически собрать актуальные цены с Bazoš, Sbazar и Aukro и рассчитать рыночную оценку.
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>

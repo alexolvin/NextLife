@@ -105,6 +105,17 @@ def _item_screen_context(request: Request, code: str | None, notice: str | None,
             except ValueError:
                 item["shipping_summary"] = None
                 item["shipping_summary_json"] = "{}"
+
+            # Данные разведки аналогов для Этапа 1 (Оценка цены)
+            try:
+                from nextlife.core.config import load_config
+                from nextlife.services.research import build_research_panel
+
+                item_model = session.get(Item, code)
+                if item_model:
+                    ctx["research"] = build_research_panel(session, item_model, load_config())
+            except Exception:
+                ctx["research"] = None
         ctx["item"] = item
     ctx.update(extra)
     return ctx

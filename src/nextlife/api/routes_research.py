@@ -61,29 +61,40 @@ async def ui_run_research(
 ) -> RedirectResponse:
     """Запустить разведку (UI-кнопка/ссылка) и вернуться на экран предмета."""
     next_url = ""
+    query = ""
     if request.method == "POST":
         try:
             form = await request.form()
             next_url = str(form.get("next") or "")
+            query = str(form.get("q") or "").strip()
         except Exception:
             pass
     if not next_url:
         next_url = str(request.query_params.get("next") or "")
+    if not query:
+        query = str(request.query_params.get("q") or "").strip()
 
     with get_db_session() as session:
         item = session.get(Item, item_code)
         if not item:
             raise HTTPException(status_code=404, detail="Item not found")
+        search_query = query or item.title
         config = load_config()
         notice = "research_done"
         try:
-            run_research(session, item.code, item.title, config)
+            run_research(session, item.code, search_query, config)
             session.commit()
         except Exception:
             session.rollback()
             notice = "research_failed"
     target = next_url if next_url.startswith("/ui/") else f"/ui/stock/{item_code}#price"
-    sep = "&" if "?" in target else "?"
+    if "#" in target:
+        base, fragment = target.split("#", 1)
+        sep = "&" if "?" in base else "?"
+        final_url = f"{base}{sep}notice={notice}#{fragment}"
+    else:
+        sep = "&" if "?" in target else "?"
+        final_url = f"{target}{sep}notice={notice}"
     return RedirectResponse(
-        url=f"{target}{sep}notice={notice}", status_code=status.HTTP_303_SEE_OTHER
+        url=final_url, status_code=status.HTTP_303_SEE_OTHER
     )
