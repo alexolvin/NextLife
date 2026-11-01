@@ -107,6 +107,7 @@ log "Step 7: verify endpoints"
 
 LOGIN_STATUS="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/ui/login" || true)"
 log "  GET /ui/login: $LOGIN_STATUS"
+[ "$LOGIN_STATUS" = "200" ] || die "GET /ui/login failed with status $LOGIN_STATUS"
 
 # Read tokens from .env if present
 OC_TOKEN=""
@@ -116,14 +117,20 @@ if [ -f "$REPO_ROOT/.env" ]; then
     WEB_TOKEN="$(grep -E '^NEXTLIFE_WEB_TOKEN=' "$REPO_ROOT/.env" | head -1 | cut -d= -f2- | tr -d ' \r\n')"
 fi
 
-if [ -n "$OC_TOKEN" ]; then
-    STOCK_STATUS="$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $OC_TOKEN" "http://127.0.0.1:$PORT/api/oc/stock" || true)"
-    log "  GET /api/oc/stock: $STOCK_STATUS"
-fi
-
 if [ -n "$WEB_TOKEN" ]; then
     SETTINGS_STATUS="$(curl -s -o /dev/null -w '%{http_code}' -L -b "nextlife_token=$WEB_TOKEN" "http://127.0.0.1:$PORT/ui/settings" || true)"
     log "  GET /ui/settings: $SETTINGS_STATUS"
+    [ "$SETTINGS_STATUS" = "200" ] || die "GET /ui/settings failed with status $SETTINGS_STATUS"
+
+    STOCK_UI_STATUS="$(curl -s -o /dev/null -w '%{http_code}' -L -b "nextlife_token=$WEB_TOKEN" "http://127.0.0.1:$PORT/ui/stock" || true)"
+    log "  GET /ui/stock: $STOCK_UI_STATUS"
+    [ "$STOCK_UI_STATUS" = "200" ] || die "GET /ui/stock failed with status $STOCK_UI_STATUS (database or backend error)"
+fi
+
+if [ -n "$OC_TOKEN" ]; then
+    STOCK_STATUS="$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $OC_TOKEN" "http://127.0.0.1:$PORT/api/oc/stock" || true)"
+    log "  GET /api/oc/stock: $STOCK_STATUS"
+    [ "$STOCK_STATUS" = "200" ] || die "GET /api/oc/stock failed with status $STOCK_STATUS"
 fi
 
 # ── 8. Summary ──────────────────────────────────────────────────────────────
