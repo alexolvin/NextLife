@@ -12,6 +12,7 @@ function returns ``None`` — the UI then hides the filter element entirely
 
 import json
 import logging
+import re
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -136,21 +137,58 @@ def classify_results_rule_based(query: str, results: list[dict[str, Any]]) -> di
         return None
 
     q_lower = (query or "").lower().strip()
+    query_words = set(re.findall(r"\w+", q_lower))
 
     # 1. Video Cards / PC Components
-    gpu_terms = ("rtx", "gtx", "radeon", "geforce", "rx ", "gpu", "видеокарт", "grafická", "graficka")
-    is_gpu = any(t in q_lower for t in gpu_terms)
-
-    pc_build_keywords = (
-        "herní pc", "herni pc", "herní počítač", "herni pocitac", "sestava",
-        "gaming pc", "desktop", "i9", "i7", "i5", "ryzen", "компьютер", "сборка", "системный блок"
+    gpu_terms = (
+        "rtx", "gtx", "radeon", "geforce", "gpu", "видеокарт", "grafická", "graficka", "xtx"
     )
-    demand_keywords = ("koupím", "koupim", "sháním", "shanim", "купить", "куплю", "vyměním", "vymenim", "обмен")
-    cooling_keywords = ("chlazení", "chlazeni", "waterblock", "blok", "ventilátor", "ventilator", "cooler", "кулер", "охлаждение")
+    gpu_code_words = (
+        "rx", "xt", "gre", "ti", "super",
+        "7900", "7800", "7700", "7600", "6950", "6900", "6800", "6700", "6650", "6600", "5700", "5600",
+        "4090", "4080", "4070", "4060", "3090", "3080", "3070", "3060", "2080", "2070", "2060",
+        "1080", "1070", "1060", "1660"
+    )
+    is_gpu = any(t in q_lower for t in gpu_terms) or any(w in query_words for w in gpu_code_words)
+    if not is_gpu:
+        gpu_matches = sum(
+            1 for r in results
+            if any(k in (r.get("title") or "").lower() for k in ("grafick", "radeon", "geforce", "rtx", "gtx", "xtx", "vram"))
+        )
+        if gpu_matches >= max(1, len(results) // 4):
+            is_gpu = True
 
     # 2. Sofas / Furniture
     sofa_terms = ("диван", "pohovka", "sedačka", "sedacka", "gauč", "gauc", "диван-кровать")
     is_sofa = any(t in q_lower for t in sofa_terms)
+
+    demand_re = re.compile(
+        r"\b(koupím|koupim|sháním|shanim|shánim|hledám|hledam|купить|куплю|vyměním|vymenim|обмен|poptávka|poptavka|poptávám|poptavam|výkup|vykup|odkoupím|odkoupim)\b",
+        re.IGNORECASE,
+    )
+
+    pc_build_keywords = (
+        "herní pc", "herni pc", "herní počítač", "herni pocitac", "herní sestava", "herni sestava",
+        "pc sestava", "gaming pc", "desktop", "stolní pc", "stolni pc", "компьютер",
+        "сборка", "системный блок", "celé pc", "cele pc", "herný počítač", "herny pocitac",
+        "celá sestava", "cela sestava", "workstation", "mining rig"
+    )
+
+    kit_re = re.compile(
+        r"\b(комплект|комплекты|набор|наборы|бандл|в сборе|sada|sady|bundle|balík|balik|komplet|kit|lot|balení|baleni|souprava|гарнитур)\b",
+        re.IGNORECASE,
+    )
+
+    cooling_keywords = (
+        "chlazení", "chlazeni", "waterblock", "vodní blok", "vodni blok", "blok",
+        "ventilátor", "ventilator", "cooler", "кулер", "охлаждение", "backplate",
+        "držák", "drzak", "riser"
+    )
+
+    accessory_keywords = (
+        "krabice", "jen krabice", "pouze krabice", "obal", "kryt", "чехол", "аксессуары",
+        "kabel", "adaptér", "adapter", "pouzdro", "stojánek", "stojanek"
+    )
 
     sofa_folding_kw = ("rozkládací", "rozkladaci", "раскладн", "спальн")
     sofa_leather_kw = ("kožená", "kozena", "kůže", "kuze", "кож", "leather")
@@ -159,20 +197,40 @@ def classify_results_rule_based(query: str, results: list[dict[str, Any]]) -> di
 
     assignments: list[str] = []
 
-    if is_gpu:
-        for r in results:
-            t = (r.get("title") or "").lower()
-            if any(k in t for k in demand_keywords):
-                assignments.append("Спрос / Покупка")
-            elif any(k in t for k in pc_build_keywords):
-                assignments.append("В составе сборки (ПК)")
-            elif any(k in t for k in cooling_keywords):
-                assignments.append("Комплектующие / Охлаждение")
-            else:
-                assignments.append("Только видеокарта")
-    elif is_sofa:
-        for r in results:
-            t = (r.get("title") or "").lower()
+    for r in results:
+        t = (r.get("title") or "").lower()
+
+        # 1. Demand / Wanted check
+        if demand_re.search(t):
+            assignments.append("Спрос / Покупка")
+            continue
+
+        # 2. Builds / Kits / Bundles check
+        is_build = any(k in t for k in pc_build_keywords)
+        if not is_build and re.search(r"\bsestav[ayieou]?\b", t):
+            is_build = True
+        if not is_build and is_gpu:
+            if re.search(r"\b(ryzen\s+[3579]|core\s+i[3579]|i[3579][-\s]\d{4,5}|7800x3d|5800x3d|13700k|14700k|13900k|14900k)\b", t):
+                is_build = True
+
+        is_kit = is_build or bool(kit_re.search(t))
+        if not is_kit and re.search(r"(?<!nitro)(?<!oc)\+\s*(monitor|hry|hra|ovladač|ovladac|zdroj|case|ram|cpu|deska|ssd|chladič|chladic|myš|mys|kláves|klaves)", t):
+            is_kit = True
+
+        if is_kit:
+            assignments.append("Наборы, комплекты")
+            continue
+
+        # 3. Cooling / Components / Accessories check
+        if any(k in t for k in cooling_keywords):
+            assignments.append("Комплектующие / Охлаждение")
+            continue
+        if any(k in t for k in accessory_keywords):
+            assignments.append("Аксессуары")
+            continue
+
+        # 4. Sofa-specific breakdown if applicable
+        if is_sofa:
             if any(k in t for k in sofa_ikea_kw):
                 assignments.append("IKEA")
             elif any(k in t for k in sofa_folding_kw):
@@ -182,23 +240,31 @@ def classify_results_rule_based(query: str, results: list[dict[str, Any]]) -> di
             elif any(k in t for k in sofa_leather_kw):
                 assignments.append("Кожаные")
             else:
-                assignments.append("Другие диваны")
-    else:
-        for r in results:
-            t = (r.get("title") or "").lower()
-            if any(k in t for k in demand_keywords):
-                assignments.append("Спрос / Покупка")
-            elif any(k in t for k in ("příslušenství", "prislusenstvi", "obal", "kryt", "чехол", "аксессуары", "kabel")):
-                assignments.append("Аксессуары")
-            else:
-                assignments.append("Основной товар")
+                assignments.append("Самостоятельный товар")
+            continue
+
+        # 5. Default standalone item
+        assignments.append("Самостоятельный товар")
 
     unique_cats = [c for c in dict.fromkeys(assignments) if c]
     if len(unique_cats) < 2:
         return None
 
+    preferred_order = [
+        "Самостоятельный товар",
+        "Наборы, комплекты",
+        "Спрос / Покупка",
+        "Комплектующие / Охлаждение",
+        "Аксессуары",
+        "IKEA",
+        "Раскладные",
+        "Угловые",
+        "Кожаные",
+    ]
+    sorted_cats = [c for c in preferred_order if c in unique_cats] + [c for c in unique_cats if c not in preferred_order]
+
     return {
-        "options": ["Показать все"] + unique_cats,
+        "options": ["Показать все"] + sorted_cats,
         "assignments": assignments,
     }
 
@@ -225,10 +291,12 @@ def get_filter_options(query: str, results: list[dict[str, Any]]) -> dict[str, A
         prompt = (
             f"Search query: {query}\n"
             f"Results (index: title):\n{numbered}\n\n"
-            "Classify these results by product type.\n"
-            "1. Suggest 3-5 short product-type category labels (Russian, max 30 chars each), "
-            "e.g. «Только видеокарта», «Готовый ПК», «Оперативная память».\n"
-            "2. Assign each result index to exactly one of your labels.\n\n"
+            "Classify these classifieds results by product type into Russian categories:\n"
+            "- «Самостоятельный товар» (standalone single item e.g. GPU card, smartphone, console);\n"
+            "- «Наборы, комплекты» (full PC builds, assemblies, sets, bundles, lots);\n"
+            "- «Спрос / Покупка» (buy / wanted requests: koupím, sháním, poptávka, куплю);\n"
+            "- «Комплектующие / Аксессуары» (cooling, waterblocks, cables, cases, parts).\n"
+            "Assign each result index to exactly one of these labels.\n\n"
             'Return ONLY a JSON object: {"categories": ["..."], "assignments": ["...", ...]}\n'
             f"where assignments has exactly {len(titles)} entries, one per result index.\n"
             "No explanation."

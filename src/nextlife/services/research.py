@@ -332,11 +332,6 @@ def build_research_panel(
             return True
         return r.price <= 0
 
-    valid_prices = sorted(r.price for r in own if not _is_auction(r))
-    min_comp = getattr(config.app, "min_comparables", 5)
-    min_comp = min_comp if isinstance(min_comp, int) else 5
-    stats = calculate_price_stats(valid_prices, min_comparables=min_comp)
-
     current_query = (run.marketplaces or {}).get("query") or (run.marketplaces or {}).get("original_query") or item.title
 
     from nextlife.services.llm_filter import classify_results_rule_based
@@ -344,6 +339,19 @@ def build_research_panel(
     cat_result = classify_results_rule_based(current_query, [{"title": r.title} for r in own])
     categories = cat_result.get("options", []) if cat_result else []
     assignments = cat_result.get("assignments", []) if cat_result else []
+
+    candidate_prices = [
+        r.price for idx, r in enumerate(own)
+        if not _is_auction(r) and (idx >= len(assignments) or assignments[idx] != "Спрос / Покупка")
+    ]
+    standalone_prices = sorted(
+        r.price for idx, r in enumerate(own)
+        if not _is_auction(r) and (idx < len(assignments) and assignments[idx] == "Самостоятельный товар")
+    )
+    min_comp = getattr(config.app, "min_comparables", 5)
+    min_comp = min_comp if isinstance(min_comp, int) else 5
+    valid_prices = standalone_prices if len(standalone_prices) >= min_comp else sorted(candidate_prices)
+    stats = calculate_price_stats(valid_prices, min_comparables=min_comp)
 
     links = [
         {

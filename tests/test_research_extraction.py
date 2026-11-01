@@ -102,7 +102,7 @@ def test_stock_item_template_renders_research():
         "total_found": 14,
         "marketplaces_scanned": ["bazos_cz", "sbazar_cz", "aukro_cz"],
         "range": {"min": 19000, "max": 24000, "currency": "CZK"},
-        "categories": ["Показать все", "Только видеокарта", "В составе сборки (ПК)"],
+        "categories": ["Показать все", "Самостоятельный товар", "Наборы, комплекты"],
         "links": [
             {
                 "marketplace": "bazos_cz",
@@ -111,7 +111,7 @@ def test_stock_item_template_renders_research():
                 "price": 20500,
                 "currency": "CZK",
                 "image_url": "https://www.bazos.cz/img/1.jpg",
-                "category": "Только видеокарта",
+                "category": "Самостоятельный товар",
             },
             {
                 "marketplace": "sbazar_cz",
@@ -120,7 +120,7 @@ def test_stock_item_template_renders_research():
                 "price": 55000,
                 "currency": "CZK",
                 "image_url": None,
-                "category": "В составе сборки (ПК)",
+                "category": "Наборы, комплекты",
             },
         ],
         "query": "RX 7900 XTX",
@@ -150,7 +150,7 @@ def test_stock_item_template_renders_research():
     assert "Поиск аналогов на площадках завершён" in body
     # Verify thumbnail and category filter
     assert 'data-testid="select-research-category"' in body
-    assert "В составе сборки (ПК)" in body
+    assert "Наборы, комплекты" in body
     assert 'data-testid="research-thumb"' in body
     assert 'https://www.bazos.cz/img/1.jpg' in body
 
@@ -248,18 +248,20 @@ def test_classify_results_rule_based_gpu():
         {"title": "Koupím RX 7900 XTX v záruce"},
         {"title": "Vodní blok chlazení pro RX 7900 XTX"},
     ]
-    res = classify_results_rule_based("RX 7900 XTX", results)
-    assert res is not None
-    assert "Показать все" in res["options"]
-    assert "Только видеокарта" in res["options"]
-    assert "В составе сборки (ПК)" in res["options"]
-    assert "Спрос / Покупка" in res["options"]
-    assert "Комплектующие / Охлаждение" in res["options"]
+    # Test both with prefix "RX 7900 XTX" and user's exact search "7900 xtx"
+    for q in ("RX 7900 XTX", "7900 xtx"):
+        res = classify_results_rule_based(q, results)
+        assert res is not None
+        assert "Показать все" in res["options"]
+        assert "Самостоятельный товар" in res["options"]
+        assert "Наборы, комплекты" in res["options"]
+        assert "Спрос / Покупка" in res["options"]
+        assert "Комплектующие / Охлаждение" in res["options"]
 
-    assert res["assignments"][0] == "Только видеокарта"
-    assert res["assignments"][1] == "В составе сборки (ПК)"
-    assert res["assignments"][2] == "Спрос / Покупка"
-    assert res["assignments"][3] == "Комплектующие / Охлаждение"
+        assert res["assignments"][0] == "Самостоятельный товар"
+        assert res["assignments"][1] == "Наборы, комплекты"
+        assert res["assignments"][2] == "Спрос / Покупка"
+        assert res["assignments"][3] == "Комплектующие / Охлаждение"
 
 
 def test_classify_results_rule_based_sofa():
@@ -292,8 +294,8 @@ def test_get_filter_options_falls_back_to_rules(monkeypatch):
     ]
     res = get_filter_options("RTX 4070", results)
     assert res is not None
-    assert "Только видеокарта" in res["options"]
-    assert "В составе сборки (ПК)" in res["options"]
+    assert "Самостоятельный товар" in res["options"]
+    assert "Наборы, комплекты" in res["options"]
 
 
 def test_build_research_panel_excludes_aukro_auction_from_prices():
@@ -378,7 +380,7 @@ def test_stock_item_template_renders_auction_without_price():
                 "price": None,
                 "currency": "CZK",
                 "image_url": None,
-                "category": "Только видеокарта",
+                "category": "Самостоятельный товар",
                 "is_auction": True,
             }
         ],
