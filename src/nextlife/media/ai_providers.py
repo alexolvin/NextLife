@@ -6,11 +6,13 @@ Rule K-1: Module must strictly be <= 400 lines.
 from __future__ import annotations
 
 import base64
+import io
 import logging
 import time
 from typing import Any
 
 import httpx
+from PIL import Image
 
 log = logging.getLogger("nextlife.media.ai_providers")
 
@@ -94,6 +96,19 @@ def call_gemini_content(target_model: str, prompt: str, image_bytes: bytes, base
     raise ValueError("Изображение не найдено в ответе Image AI (Gemini)")
 
 
+def _generate_default_mask_bytes(image_bytes: bytes) -> bytes:
+    """Generate a white inpainting mask matching the image dimensions."""
+    try:
+        with Image.open(io.BytesIO(image_bytes)) as img:
+            w, h = img.size
+        mask = Image.new("L", (w, h), 255)
+        buf = io.BytesIO()
+        mask.save(buf, format="PNG")
+        return buf.getvalue()
+    except Exception:
+        return b""
+
+
 def call_cloudflare_image(prompt: str, image_bytes: bytes, cfg: dict[str, str], model: str | None = None) -> bytes:
     """Call Cloudflare Workers AI image run endpoint."""
     endpoint = (cfg.get("endpoint") or "").strip()
@@ -101,17 +116,37 @@ def call_cloudflare_image(prompt: str, image_bytes: bytes, cfg: dict[str, str], 
     target_model = (model or cfg.get("model") or "@cf/runwayml/stable-diffusion-v1-5-inpainting").strip()
 
     if not endpoint:
-        endpoint = "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/"
+        raise ImageAIError(
+            "URL эндпоинта или Account ID для Cloudflare Workers AI не задан. "
+            "Укажите ваш Account ID в Настройках (или полный URL https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/run/)."
+        )
+
+    # If user provided raw 32-character Account ID without http
+    if "/" not in endpoint and "." not in endpoint and len(endpoint) > 10:
+        endpoint = f"https://api.cloudflare.com/client/v4/accounts/{endpoint}/ai/run/"
+
+    if "{account_id}" in endpoint or "%7Baccount_id%7D" in endpoint:
+        raise ImageAIError(
+            "В URL эндпоинта Cloudflare остался шаблон '{account_id}'. "
+            "Замените {account_id} на ваш реальный Cloudflare Account ID из панели управления Cloudflare Dashboard "
+            "(раздел Account details на главной странице или в строке адреса dash.cloudflare.com/<ACCOUNT_ID>)."
+        )
 
     url = endpoint.rstrip("/")
     if not url.endswith(target_model):
         url = f"{url}/{target_model}"
 
     headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
-    payload = {
+    payload: dict[str, Any] = {
         "prompt": prompt,
         "image_b64": base64.b64encode(image_bytes).decode("ascii") if image_bytes else "",
     }
+    if "inpainting" in target_model and image_bytes:
+        mask_bytes = _generate_default_mask_bytes(image_bytes)
+        if mask_bytes:
+            payload["mask_b64"] = base64.b64encode(mask_bytes).decode("ascii")
+            payload["mask"] = list(mask_bytes)
+            payload["image"] = list(image_bytes)
 
     resp: httpx.Response | None = None
     for attempt in range(3):

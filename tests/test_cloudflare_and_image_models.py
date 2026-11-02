@@ -152,3 +152,40 @@ def test_settings_save_and_load_cloudflare(tmp_path: Path, monkeypatch: pytest.M
     assert cfg["model_dust"] == "@cf/runwayml/stable-diffusion-v1-5-inpainting"
     assert cfg["model_selling"] == "@cf/black-forest-labs/flux-1-schnell"
     assert cfg["model_bg"] == "@cf/runwayml/stable-diffusion-v1-5-inpainting"
+
+
+def test_cloudflare_account_id_placeholder_detected():
+    with pytest.raises(ImageAIError) as exc_info:
+        call_cloudflare_image(
+            prompt="Remove dust",
+            image_bytes=b"raw_bytes",
+            cfg={
+                "endpoint": "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/",
+                "api_key": "cf_token_abc",
+            },
+        )
+    assert "{account_id}" in str(exc_info.value)
+    assert "Cloudflare Account ID" in str(exc_info.value)
+
+
+def test_cloudflare_short_account_id_expansion():
+    dummy_jpeg = _make_dummy_jpeg()
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.headers = {"content-type": "image/jpeg"}
+    mock_resp.content = dummy_jpeg
+
+    with patch("httpx.post", return_value=mock_resp) as mock_post:
+        res = call_cloudflare_image(
+            prompt="Selling photo",
+            image_bytes=dummy_jpeg,
+            cfg={
+                "endpoint": "a1b2c3d4e5f6789012345678abcdef01",
+                "api_key": "cf_token_abc",
+                "model": "@cf/black-forest-labs/flux-1-schnell",
+            },
+        )
+        assert res == dummy_jpeg
+        call_url = mock_post.call_args[0][0]
+        assert call_url == "https://api.cloudflare.com/client/v4/accounts/a1b2c3d4e5f6789012345678abcdef01/ai/run/@cf/black-forest-labs/flux-1-schnell"
+
