@@ -65,35 +65,54 @@ def load_settings() -> dict[str, Any]:
         return {}
 
 
-def get_image_ai_config() -> dict[str, str]:
+def get_image_ai_config(func_key: str | None = None) -> dict[str, str]:
     """Return Image AI configuration from settings or environment variables."""
     cfg = load_settings().get("image_ai", {})
     if not isinstance(cfg, dict):
         cfg = {}
-    provider = (cfg.get("provider") or os.environ.get("NEXTLIFE_IMAGE_AI_PROVIDER") or "openai").strip().lower()
-    endpoint = (cfg.get("endpoint") or cfg.get("url") or os.environ.get("NEXTLIFE_IMAGE_AI_ENDPOINT") or "").strip()
-    api_key = (cfg.get("api_key") or cfg.get("key") or os.environ.get("NEXTLIFE_IMAGE_AI_KEY") or "").strip()
-    default_model = "gemini-2.5-flash-image" if provider == "gemini" else ("@cf/runwayml/stable-diffusion-v1-5-inpainting" if provider == "cloudflare" else "dall-e-2")
+    base_provider = (cfg.get("provider") or os.environ.get("NEXTLIFE_IMAGE_AI_PROVIDER") or "openai").strip().lower()
+    base_endpoint = (cfg.get("endpoint") or cfg.get("url") or os.environ.get("NEXTLIFE_IMAGE_AI_ENDPOINT") or "").strip()
+    base_api_key = (cfg.get("api_key") or cfg.get("key") or os.environ.get("NEXTLIFE_IMAGE_AI_KEY") or "").strip()
+    default_model = "gemini-2.5-flash-image" if base_provider == "gemini" else ("@cf/runwayml/stable-diffusion-v1-5-inpainting" if base_provider == "cloudflare" else "dall-e-2")
     base_model = (cfg.get("model") or default_model).strip()
-    default_selling = "@cf/bria/remove-background" if provider == "cloudflare" else base_model
-    default_bg = "@cf/bria/remove-background" if provider == "cloudflare" else base_model
-    return {
-        "provider": provider,
-        "endpoint": endpoint,
-        "api_key": api_key,
+    default_selling = "@cf/bria/remove-background" if base_provider == "cloudflare" else base_model
+    default_bg = "@cf/bria/remove-background" if base_provider == "cloudflare" else base_model
+
+    raw_cfg = {
+        "provider": base_provider,
+        "endpoint": base_endpoint,
+        "api_key": base_api_key,
         "model": base_model,
         "model_dust": (cfg.get("model_dust") or base_model).strip(),
         "model_selling": (cfg.get("model_selling") or default_selling).strip(),
         "model_bg": (cfg.get("model_bg") or default_bg).strip(),
+        "endpoint_dust": (cfg.get("endpoint_dust") or "").strip(),
+        "endpoint_selling": (cfg.get("endpoint_selling") or "").strip(),
+        "endpoint_bg": (cfg.get("endpoint_bg") or "").strip(),
+        "provider_dust": (cfg.get("provider_dust") or "").strip().lower(),
+        "provider_selling": (cfg.get("provider_selling") or "").strip().lower(),
+        "provider_bg": (cfg.get("provider_bg") or "").strip().lower(),
+        "api_key_dust": (cfg.get("api_key_dust") or "").strip(),
+        "api_key_selling": (cfg.get("api_key_selling") or "").strip(),
+        "api_key_bg": (cfg.get("api_key_bg") or "").strip(),
     }
+    if not func_key:
+        return raw_cfg
+
+    fk = func_key.lower().replace("ai_", "").replace("remove_", "").replace("replace_", "").replace("_image", "")
+    eff_p = raw_cfg.get(f"provider_{fk}") or base_provider
+    eff_ep = raw_cfg.get(f"endpoint_{fk}") or base_endpoint
+    eff_k = raw_cfg.get(f"api_key_{fk}") or base_api_key
+    eff_m = raw_cfg.get(f"model_{fk}") or base_model
+    return {**raw_cfg, "provider": eff_p, "endpoint": eff_ep, "api_key": eff_k, "model": eff_m}
 
 
 def is_image_ai_configured() -> bool:
     cfg = get_image_ai_config()
-    provider = cfg.get("provider", "openai")
-    if provider == "gemini":
-        return bool(cfg.get("endpoint") or cfg.get("api_key"))
-    return bool(cfg.get("endpoint"))
+    p = cfg.get("provider", "openai")
+    has_global = bool(cfg.get("endpoint") or (p == "gemini" and cfg.get("api_key")))
+    has_op = any(bool(cfg.get(f"endpoint_{k}") or (cfg.get(f"provider_{k}") == "gemini" and cfg.get(f"api_key_{k}"))) for k in ("dust", "selling", "bg"))
+    return has_global or has_op
 
 
 def _compute_sha256(file_path: Path) -> str:
@@ -151,16 +170,31 @@ def call_image_ai_edits(
     prompt: str,
     config: dict[str, str] | None = None,
     model_override: str | None = None,
+    func_key: str | None = None,
 ) -> bytes:
     """Call generative Image AI endpoint (OpenAI, Google Gemini, or Cloudflare Workers AI)."""
-    cfg = config or get_image_ai_config()
-    provider = (cfg.get("provider") or "openai").strip().lower()
+    cfg = config or get_image_ai_config(func_key=func_key)
+    if func_key:
+        fk = func_key.lower().replace("ai_", "").replace("remove_", "").replace("replace_", "").replace("_image", "")
+        p = (cfg.get(f"provider_{fk}") or cfg.get("provider") or "openai").strip().lower()
+        ep = (cfg.get(f"endpoint_{fk}") or cfg.get("endpoint") or "").strip()
+        ak = (cfg.get(f"api_key_{fk}") or cfg.get("api_key") or "").strip()
+        m = (model_override or cfg.get(f"model_{fk}") or cfg.get("model") or "").strip()
+        effective_cfg = {**cfg, "provider": p, "endpoint": ep, "api_key": ak, "model": m}
+    else:
+        effective_cfg = cfg
+        p = (effective_cfg.get("provider") or "openai").strip().lower()
+        m = (model_override or effective_cfg.get("model") or "").strip()
 
-    if provider == "gemini":
-        return _call_gemini_image(prompt=prompt, image_bytes=image_bytes, cfg=cfg, model_override=model_override)
-    if provider == "cloudflare":
-        return call_cloudflare_image(prompt=prompt, image_bytes=image_bytes, cfg=cfg, model=model_override)
-    return call_openai_image(prompt=prompt, image_bytes=image_bytes, cfg=cfg, model=model_override)
+    if p == "gemini":
+        if not effective_cfg.get("endpoint") and not effective_cfg.get("api_key"):
+            raise ImageAINotConfiguredError("Image AI EndPoint или API Key не настроен. Настройте Image AI в Настройках.")
+        return _call_gemini_image(prompt=prompt, image_bytes=image_bytes, cfg=effective_cfg, model_override=m)
+    if not effective_cfg.get("endpoint"):
+        raise ImageAINotConfiguredError("Image AI EndPoint не настроен. Настройте Image AI в Настройках.")
+    if p == "cloudflare":
+        return call_cloudflare_image(prompt=prompt, image_bytes=image_bytes, cfg=effective_cfg, model=m)
+    return call_openai_image(prompt=prompt, image_bytes=image_bytes, cfg=effective_cfg, model=m)
 
 
 def _save_derived_ai_photo(
@@ -235,7 +269,8 @@ def _run_ai_photo_step(
     if not p_path.exists():
         raise FileNotFoundError(f"Файл фото {photo.path} не найден на диске")
 
-    cfg = config or get_image_ai_config()
+    func_key = model_key.replace("model_", "")
+    cfg = config or get_image_ai_config(func_key=func_key)
     target_prompt = (prompt or "").strip() or default_prompt
     target_model = cfg.get(model_key) or cfg.get("model")
 
@@ -247,6 +282,7 @@ def _run_ai_photo_step(
         prompt=target_prompt,
         config=cfg,
         model_override=target_model,
+        func_key=func_key,
     )
     return _save_derived_ai_photo(session, photo, edited_bytes, step_name, target_prompt)
 

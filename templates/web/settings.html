@@ -243,25 +243,102 @@
         <input type="password" name="image_ai_api_key" id="image_ai_api_key" value="{{ image_ai_config.api_key or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="sk-..." data-testid="input-image-ai-key">
       </div>
 
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 1.5rem;">
-        <div style="font-size: 0.875rem; font-weight: 600; color: #334155; margin-bottom: 10px;">Модели для операций над изображениями</div>
-        
-        <div style="margin-bottom: 0.85rem;">
-          <label style="display: block; font-weight: 500; font-size: 0.8rem; margin-bottom: 0.25rem; color: #475569;">1. Убрать пыль и дефекты (Inpainting)</label>
-          <input type="text" name="image_ai_model_dust" id="image_ai_model_dust" value="{{ image_ai_config.model_dust or image_ai_config.model or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="gemini-2.5-flash-image" data-testid="input-image-ai-model-dust">
-          <div id="image_ai_model_dust_help" style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Для Cloudflare: <code>@cf/runwayml/stable-diffusion-v1-5-inpainting</code></div>
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+          <div style="font-size: 0.95rem; font-weight: 600; color: #1e293b;">Настройки ИИ функций (отдельно для каждой операции)</div>
+        </div>
+        <p style="font-size: 0.78rem; color: #64748b; margin-top: 0; margin-bottom: 12px;">
+          Вы можете настроить индивидуальный эндпоинт (URL), провайдер, API ключ и модель для каждой функции отдельно. Если поле оставлено пустым, автоматически используется значение из общих настроек выше.
+        </p>
+
+        <!-- 1. Убрать пыль -->
+        <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 0.85rem;" data-testid="section-ai-func-dust">
+          <div style="font-size: 0.875rem; font-weight: 600; color: #334155; margin-bottom: 0.6rem;">1. 🧹 Удаление пыли и дефектов</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.65rem; margin-bottom: 0.5rem;">
+            <div>
+              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Модель</label>
+              <input type="text" name="image_ai_model_dust" id="image_ai_model_dust" value="{{ image_ai_config.model_dust or image_ai_config.model or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="@cf/runwayml/stable-diffusion-v1-5-inpainting" data-testid="input-image-ai-model-dust">
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Провайдер</label>
+              <select name="image_ai_provider_dust" id="image_ai_provider_dust" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; background: #fff;" data-testid="select-image-ai-provider-dust">
+                <option value="" {% if not image_ai_config.provider_dust %}selected{% endif %}>Как в общих настройках</option>
+                <option value="cloudflare" {% if image_ai_config.provider_dust == 'cloudflare' %}selected{% endif %}>Cloudflare Workers AI</option>
+                <option value="gemini" {% if image_ai_config.provider_dust == 'gemini' %}selected{% endif %}>Google Gemini</option>
+                <option value="openai" {% if image_ai_config.provider_dust == 'openai' %}selected{% endif %}>OpenAI совместимый</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.65rem;">
+            <div>
+              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Индивидуальный URL / Account ID</label>
+              <input type="text" name="image_ai_endpoint_dust" id="image_ai_endpoint_dust" value="{{ image_ai_config.endpoint_dust or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="По умолчанию (из общих)" data-testid="input-image-ai-endpoint-dust">
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Индивидуальный API Key / Token</label>
+              <input type="password" name="image_ai_api_key_dust" id="image_ai_api_key_dust" value="{{ image_ai_config.api_key_dust or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="По умолчанию (из общих)" data-testid="input-image-ai-key-dust">
+            </div>
+          </div>
         </div>
 
-        <div style="margin-bottom: 0.85rem;">
-          <label style="display: block; font-weight: 500; font-size: 0.8rem; margin-bottom: 0.25rem; color: #475569;">2. Продающее фото (Студия / Свет)</label>
-          <input type="text" name="image_ai_model_selling" id="image_ai_model_selling" value="{{ image_ai_config.model_selling or image_ai_config.model or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="gemini-2.5-flash-image" data-testid="input-image-ai-model-selling">
-          <div id="image_ai_model_selling_help" style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Для Cloudflare: <code>@cf/bria/remove-background</code> или <code>@cf/black-forest-labs/flux-1-schnell</code></div>
+        <!-- 2. Продающее фото -->
+        <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 0.85rem;" data-testid="section-ai-func-selling">
+          <div style="font-size: 0.875rem; font-weight: 600; color: #334155; margin-bottom: 0.6rem;">2. 💎 Продающее фото (Студия / Свет)</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.65rem; margin-bottom: 0.5rem;">
+            <div>
+              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Модель</label>
+              <input type="text" name="image_ai_model_selling" id="image_ai_model_selling" value="{{ image_ai_config.model_selling or image_ai_config.model or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="@cf/bria/remove-background" data-testid="input-image-ai-model-selling">
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Провайдер</label>
+              <select name="image_ai_provider_selling" id="image_ai_provider_selling" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; background: #fff;" data-testid="select-image-ai-provider-selling">
+                <option value="" {% if not image_ai_config.provider_selling %}selected{% endif %}>Как в общих настройках</option>
+                <option value="cloudflare" {% if image_ai_config.provider_selling == 'cloudflare' %}selected{% endif %}>Cloudflare Workers AI</option>
+                <option value="gemini" {% if image_ai_config.provider_selling == 'gemini' %}selected{% endif %}>Google Gemini</option>
+                <option value="openai" {% if image_ai_config.provider_selling == 'openai' %}selected{% endif %}>OpenAI совместимый</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.65rem;">
+            <div>
+              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Индивидуальный URL / Account ID</label>
+              <input type="text" name="image_ai_endpoint_selling" id="image_ai_endpoint_selling" value="{{ image_ai_config.endpoint_selling or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="По умолчанию (из общих)" data-testid="input-image-ai-endpoint-selling">
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Индивидуальный API Key / Token</label>
+              <input type="password" name="image_ai_api_key_selling" id="image_ai_api_key_selling" value="{{ image_ai_config.api_key_selling or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="По умолчанию (из общих)" data-testid="input-image-ai-key-selling">
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label style="display: block; font-weight: 500; font-size: 0.8rem; margin-bottom: 0.25rem; color: #475569;">3. Замена фона</label>
-          <input type="text" name="image_ai_model_bg" id="image_ai_model_bg" value="{{ image_ai_config.model_bg or image_ai_config.model or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="gemini-2.5-flash-image" data-testid="input-image-ai-model-bg">
-          <div id="image_ai_model_bg_help" style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Для Cloudflare: <code>@cf/bria/remove-background</code> или <code>@cf/runwayml/stable-diffusion-v1-5-inpainting</code></div>
+        <!-- 3. Замена фона -->
+        <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px;" data-testid="section-ai-func-bg">
+          <div style="font-size: 0.875rem; font-weight: 600; color: #334155; margin-bottom: 0.6rem;">3. 🎨 Замена фона</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.65rem; margin-bottom: 0.5rem;">
+            <div>
+              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Модель</label>
+              <input type="text" name="image_ai_model_bg" id="image_ai_model_bg" value="{{ image_ai_config.model_bg or image_ai_config.model or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="@cf/bria/remove-background" data-testid="input-image-ai-model-bg">
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Провайдер</label>
+              <select name="image_ai_provider_bg" id="image_ai_provider_bg" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; background: #fff;" data-testid="select-image-ai-provider-bg">
+                <option value="" {% if not image_ai_config.provider_bg %}selected{% endif %}>Как в общих настройках</option>
+                <option value="cloudflare" {% if image_ai_config.provider_bg == 'cloudflare' %}selected{% endif %}>Cloudflare Workers AI</option>
+                <option value="gemini" {% if image_ai_config.provider_bg == 'gemini' %}selected{% endif %}>Google Gemini</option>
+                <option value="openai" {% if image_ai_config.provider_bg == 'openai' %}selected{% endif %}>OpenAI совместимый</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.65rem;">
+            <div>
+              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Индивидуальный URL / Account ID</label>
+              <input type="text" name="image_ai_endpoint_bg" id="image_ai_endpoint_bg" value="{{ image_ai_config.endpoint_bg or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="По умолчанию (из общих)" data-testid="input-image-ai-endpoint-bg">
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Индивидуальный API Key / Token</label>
+              <input type="password" name="image_ai_api_key_bg" id="image_ai_api_key_bg" value="{{ image_ai_config.api_key_bg or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="По умолчанию (из общих)" data-testid="input-image-ai-key-bg">
+            </div>
+          </div>
         </div>
         <input type="hidden" name="image_ai_model" id="image_ai_model" value="{{ image_ai_config.model or '' }}">
       </div>

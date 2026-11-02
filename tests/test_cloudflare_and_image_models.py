@@ -154,6 +154,120 @@ def test_settings_save_and_load_cloudflare(tmp_path: Path, monkeypatch: pytest.M
     assert cfg["model_bg"] == "@cf/runwayml/stable-diffusion-v1-5-inpainting"
 
 
+def test_per_function_distinct_endpoints_and_providers():
+    dummy_jpeg = _make_dummy_jpeg()
+    b64 = base64.b64encode(dummy_jpeg).decode("ascii")
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.headers = {"content-type": "application/json"}
+    mock_resp.content = dummy_jpeg
+    mock_resp.json.return_value = {"data": [{"b64_json": b64}], "result": {"image": b64}}
+
+    cfg = {
+        "provider": "openai",
+        "endpoint": "https://default.openai.com/v1",
+        "api_key": "default_key",
+        "model": "dall-e-2",
+        # Custom endpoint for dust
+        "endpoint_dust": "https://custom-dust-endpoint.example.com/v1",
+        "model_dust": "custom-dust-model",
+        # Cloudflare for selling
+        "provider_selling": "cloudflare",
+        "endpoint_selling": "https://api.cloudflare.com/client/v4/accounts/acc_selling/ai/run/",
+        "api_key_selling": "cf_token_selling",
+        "model_selling": "@cf/bria/remove-background",
+        # Gemini for bg
+        "provider_bg": "gemini",
+        "endpoint_bg": "https://generativelanguage.googleapis.com",
+        "api_key_bg": "gemini_secret_key",
+        "model_bg": "gemini-2.5-flash-image",
+    }
+
+    # 1. Dust should use custom endpoint and OpenAI provider
+    with patch("httpx.post", return_value=mock_resp) as mock_post:
+        call_image_ai_edits(dummy_jpeg, "dust prompt", config=cfg, func_key="dust")
+        called_url = mock_post.call_args[0][0]
+        assert "custom-dust-endpoint.example.com" in called_url
+
+    # 2. Selling should route to Cloudflare account acc_selling
+    with patch("httpx.post", return_value=mock_resp) as mock_post:
+        call_image_ai_edits(dummy_jpeg, "selling prompt", config=cfg, func_key="selling")
+        called_url = mock_post.call_args[0][0]
+        assert "accounts/acc_selling/ai/run/@cf/bria/remove-background" in called_url
+        assert mock_post.call_args[1]["headers"]["Authorization"] == "Bearer cf_token_selling"
+
+    # 3. BG should route to Google Gemini with gemini_secret_key
+    with patch("httpx.post", return_value=mock_resp) as mock_post:
+        mock_resp.json.return_value = {"candidates": [{"content": {"parts": [{"inlineData": {"data": b64}}]}}]}
+        call_image_ai_edits(dummy_jpeg, "bg prompt", config=cfg, func_key="bg")
+        called_url = mock_post.call_args[0][0]
+        assert "generativelanguage.googleapis.com" in called_url
+        assert "gemini-2.5-flash-image:generateContent" in called_url
+        assert mock_post.call_args[1]["headers"]["x-goog-api-key"] == "gemini_secret_key"
+
+
+def test_settings_save_and_load_per_function_ai_fields(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr("nextlife.services.llm_filter.get_data_dir", lambda: tmp_path)
+    monkeypatch.setattr("nextlife.media.ai_edit.get_data_dir", lambda: tmp_path)
+
+    from nextlife.api.routes import check_auth
+
+    app = create_app()
+    app.dependency_overrides[check_auth] = lambda: True
+    client = TestClient(app)
+
+    resp = client.post(
+        "/ui/settings/ai",
+        data={
+            "llm_provider": "openai",
+            "llm_endpoint": "https://api.openai.com/v1/chat/completions",
+            "llm_api_key": "sk-global",
+            "llm_model": "gpt-4o-mini",
+            "image_ai_provider": "cloudflare",
+            "image_ai_endpoint": "https://api.cloudflare.com/client/v4/accounts/global_acc/ai/run/",
+            "image_ai_api_key": "global_token",
+            "image_ai_model": "global_model",
+            "image_ai_model_dust": "@cf/runwayml/stable-diffusion-v1-5-inpainting",
+            "image_ai_endpoint_dust": "https://custom-dust.workers.dev",
+            "image_ai_provider_dust": "cloudflare",
+            "image_ai_api_key_dust": "dust_token",
+            "image_ai_model_selling": "@cf/bria/remove-background",
+            "image_ai_endpoint_selling": "",
+            "image_ai_provider_selling": "",
+            "image_ai_api_key_selling": "",
+            "image_ai_model_bg": "gemini-2.5-flash-image",
+            "image_ai_endpoint_bg": "https://generativelanguage.googleapis.com",
+            "image_ai_provider_bg": "gemini",
+            "image_ai_api_key_bg": "AIzaSySpecialKey",
+        },
+        follow_redirects=True,
+    )
+    assert resp.status_code == 200
+
+    cfg = get_image_ai_config()
+    assert cfg["endpoint_dust"] == "https://custom-dust.workers.dev"
+    assert cfg["api_key_dust"] == "dust_token"
+    assert cfg["provider_dust"] == "cloudflare"
+    assert cfg["endpoint_bg"] == "https://generativelanguage.googleapis.com"
+    assert cfg["provider_bg"] == "gemini"
+    assert cfg["api_key_bg"] == "AIzaSySpecialKey"
+
+    # Effective config for selling should fall back to global
+    eff_selling = get_image_ai_config(func_key="selling")
+    assert eff_selling["endpoint"] == "https://api.cloudflare.com/client/v4/accounts/global_acc/ai/run/"
+    assert eff_selling["provider"] == "cloudflare"
+    assert eff_selling["model"] == "@cf/bria/remove-background"
+
+    # Effective config for bg should use specific
+    eff_bg = get_image_ai_config(func_key="bg")
+    assert eff_bg["endpoint"] == "https://generativelanguage.googleapis.com"
+    assert eff_bg["provider"] == "gemini"
+    assert eff_bg["api_key"] == "AIzaSySpecialKey"
+    assert eff_bg["model"] == "gemini-2.5-flash-image"
+
+
+
+
 def test_cloudflare_account_id_placeholder_detected():
     with pytest.raises(ImageAIError) as exc_info:
         call_cloudflare_image(
@@ -278,6 +392,4 @@ def test_cloudflare_bria_remove_background():
         assert kwargs["json"]["image"].startswith("data:image/jpeg;base64,")
         assert "prompt" not in kwargs["json"]
         mock_get.assert_called_once_with("https://cdn.example.com/cutout.png", timeout=30.0)
-
-
 

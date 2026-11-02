@@ -215,38 +215,28 @@ async def save_settings_marketplaces(
 
 
 @settings_router.post("/ui/settings/ai")
-def save_settings_ai(
-    request: Request,
-    llm_provider: str = Form("openai"),
-    llm_endpoint: str = Form(""),
-    llm_api_key: str = Form(""),
-    llm_model: str = Form(""),
-    image_ai_provider: str = Form("openai"),
-    image_ai_endpoint: str = Form(""),
-    image_ai_api_key: str = Form(""),
-    image_ai_model: str = Form(""),
-    image_ai_model_dust: str = Form(""),
-    image_ai_model_selling: str = Form(""),
-    image_ai_model_bg: str = Form(""),
-    auth: bool = Depends(check_auth),
-) -> RedirectResponse:
+async def save_settings_ai(request: Request, auth: bool = Depends(check_auth)) -> RedirectResponse:
     """Save Text LLM and Image AI settings (TZ §11 item 3)."""
+    form = await request.form()
     settings = load_settings()
     settings["llm"] = {
-        "provider": llm_provider.strip().lower() or "openai",
-        "endpoint": llm_endpoint.strip(),
-        "api_key": llm_api_key.strip(),
-        "model": llm_model.strip(),
+        "provider": str(form.get("llm_provider", "openai")).strip().lower() or "openai",
+        "endpoint": str(form.get("llm_endpoint", "")).strip(),
+        "api_key": str(form.get("llm_api_key", "")).strip(),
+        "model": str(form.get("llm_model", "")).strip(),
     }
-    settings["image_ai"] = {
-        "provider": image_ai_provider.strip().lower() or "openai",
-        "endpoint": image_ai_endpoint.strip(),
-        "api_key": image_ai_api_key.strip(),
-        "model": image_ai_model.strip(),
-        "model_dust": image_ai_model_dust.strip(),
-        "model_selling": image_ai_model_selling.strip(),
-        "model_bg": image_ai_model_bg.strip(),
+    img_ai: dict[str, str] = {
+        "provider": str(form.get("image_ai_provider", "openai")).strip().lower() or "openai",
+        "endpoint": str(form.get("image_ai_endpoint", "")).strip(),
+        "api_key": str(form.get("image_ai_api_key", "")).strip(),
+        "model": str(form.get("image_ai_model", "")).strip(),
     }
+    for op in ("dust", "selling", "bg"):
+        img_ai[f"model_{op}"] = str(form.get(f"image_ai_model_{op}", "")).strip()
+        img_ai[f"endpoint_{op}"] = str(form.get(f"image_ai_endpoint_{op}", "")).strip()
+        img_ai[f"provider_{op}"] = str(form.get(f"image_ai_provider_{op}", "")).strip().lower()
+        img_ai[f"api_key_{op}"] = str(form.get(f"image_ai_api_key_{op}", "")).strip()
+    settings["image_ai"] = img_ai
     save_settings(settings)
     return RedirectResponse(url="/ui/settings?tab=ai&notice=ai_saved", status_code=status.HTTP_303_SEE_OTHER)
 
@@ -365,8 +355,8 @@ def test_notion_endpoint(auth: bool = Depends(check_auth)) -> RedirectResponse:
 
 # Backward-compatible endpoints
 @settings_router.post("/ui/settings")
-def legacy_save_settings_llm(request: Request, llm_endpoint: str = Form(""), llm_api_key: str = Form(""), llm_model: str = Form(""), auth: bool = Depends(check_auth)) -> Any:
-    return save_settings_ai(request=request, llm_provider="openai", llm_endpoint=llm_endpoint, llm_api_key=llm_api_key, llm_model=llm_model, image_ai_provider="openai", image_ai_endpoint="", image_ai_api_key="", image_ai_model="", image_ai_model_dust="", image_ai_model_selling="", image_ai_model_bg="", auth=auth)
+async def legacy_save_settings_llm(request: Request, auth: bool = Depends(check_auth)) -> Any:
+    return await save_settings_ai(request=request, auth=auth)
 
 
 @settings_router.post("/ui/settings/secrets")
