@@ -1,6 +1,69 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+  .stepper-bar {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 6px 2px 14px 2px;
+    margin-bottom: 16px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+  .stepper-bar::-webkit-scrollbar {
+    display: none;
+  }
+  .stepper-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    min-height: 44px !important;
+    min-width: 96px !important;
+    padding: 10px 20px !important;
+    border-radius: 8px !important;
+    text-decoration: none !important;
+    font-size: 0.92rem !important;
+    font-weight: 600 !important;
+    flex-shrink: 0 !important;
+    scroll-snap-align: center !important;
+    transition: all 0.15s ease !important;
+    background: #ffffff !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    cursor: pointer !important;
+    box-sizing: border-box !important;
+  }
+  .stepper-pill:hover {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+    border-color: #94a3b8 !important;
+  }
+  .stepper-pill:active {
+    transform: scale(0.97) !important;
+  }
+  .stepper-pill.active,
+  .stepper-pill.is-active {
+    background: var(--c-accent, #801432) !important;
+    color: #ffffff !important;
+    border-color: var(--c-accent, #801432) !important;
+    box-shadow: 0 2px 6px rgba(128, 20, 50, 0.3) !important;
+    font-weight: 700 !important;
+  }
+  @media (max-width: 480px) {
+    .stepper-pill {
+      min-height: 42px !important;
+      min-width: 86px !important;
+      padding: 8px 16px !important;
+      border-radius: 8px !important;
+      font-size: 0.88rem !important;
+    }
+  }
+</style>
 <div class="stock-item-container" style="padding: 16px; max-width: 900px; margin: 0 auto; padding-bottom: 80px;"
      x-data="{
        activeTab: (window.location.hash ? window.location.hash.split('?')[0] : '#price'),
@@ -142,48 +205,46 @@
   </div>
 
   <!-- 6-Stage Stepper Buttons (§5.1) -->
-  <div class="stepper-bar"
-       style="display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 14px 2px; margin-bottom: 16px; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory;"
-       data-testid="item-stepper">
+  <div class="stepper-bar" data-testid="item-stepper">
     <a href="#price" @click.prevent="goToTab('#price')"
-       class="stepper-pill" data-tab="#price"
-       :style="activeTab === '#price' ? 'background: var(--c-accent, #0a3d7a); color: #ffffff; border: 1px solid var(--c-accent, #0a3d7a); box-shadow: 0 2px 6px rgba(10,61,122,0.25); font-weight: 700;' : 'background: #ffffff; color: #334155; border: 1px solid #cbd5e1; font-weight: 600;'"
-       style="min-height: 42px; min-width: 90px; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 0.92rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center; flex-shrink: 0; scroll-snap-align: center; transition: all 0.15s ease;"
+       class="stepper-pill" :class="{ 'active': activeTab === '#price' }"
+       data-tab="#price"
+       style="min-height: 44px; min-width: 96px; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 0.92rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center; flex-shrink: 0; scroll-snap-align: center;"
        data-testid="tab-price">
       <span>Оценка</span>
     </a>
     <a href="#photos" @click.prevent="goToTab('#photos')"
-       class="stepper-pill" data-tab="#photos"
-       :style="activeTab === '#photos' ? 'background: var(--c-accent, #0a3d7a); color: #ffffff; border: 1px solid var(--c-accent, #0a3d7a); box-shadow: 0 2px 6px rgba(10,61,122,0.25); font-weight: 700;' : 'background: #ffffff; color: #334155; border: 1px solid #cbd5e1; font-weight: 600;'"
-       style="min-height: 42px; min-width: 90px; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 0.92rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center; flex-shrink: 0; scroll-snap-align: center; transition: all 0.15s ease;"
+       class="stepper-pill" :class="{ 'active': activeTab === '#photos' }"
+       data-tab="#photos"
+       style="min-height: 44px; min-width: 96px; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 0.92rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center; flex-shrink: 0; scroll-snap-align: center;"
        data-testid="tab-photos">
       <span>Фото</span>
     </a>
     <a href="#describe" @click.prevent="goToTab('#describe')"
-       class="stepper-pill" data-tab="#describe"
-       :style="activeTab === '#describe' ? 'background: var(--c-accent, #0a3d7a); color: #ffffff; border: 1px solid var(--c-accent, #0a3d7a); box-shadow: 0 2px 6px rgba(10,61,122,0.25); font-weight: 700;' : 'background: #ffffff; color: #334155; border: 1px solid #cbd5e1; font-weight: 600;'"
-       style="min-height: 42px; min-width: 90px; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 0.92rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center; flex-shrink: 0; scroll-snap-align: center; transition: all 0.15s ease;"
+       class="stepper-pill" :class="{ 'active': activeTab === '#describe' }"
+       data-tab="#describe"
+       style="min-height: 44px; min-width: 96px; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 0.92rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center; flex-shrink: 0; scroll-snap-align: center;"
        data-testid="tab-describe">
       <span>Описание</span>
     </a>
     <a href="#listings" @click.prevent="goToTab('#listings')"
-       class="stepper-pill" data-tab="#listings"
-       :style="activeTab === '#listings' ? 'background: var(--c-accent, #0a3d7a); color: #ffffff; border: 1px solid var(--c-accent, #0a3d7a); box-shadow: 0 2px 6px rgba(10,61,122,0.25); font-weight: 700;' : 'background: #ffffff; color: #334155; border: 1px solid #cbd5e1; font-weight: 600;'"
-       style="min-height: 42px; min-width: 90px; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 0.92rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center; flex-shrink: 0; scroll-snap-align: center; transition: all 0.15s ease;"
+       class="stepper-pill" :class="{ 'active': activeTab === '#listings' }"
+       data-tab="#listings"
+       style="min-height: 44px; min-width: 96px; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 0.92rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center; flex-shrink: 0; scroll-snap-align: center;"
        data-testid="tab-listings">
       <span>Объявления</span>
     </a>
     <a href="#sale" @click.prevent="goToTab('#sale')"
-       class="stepper-pill" data-tab="#sale"
-       :style="activeTab === '#sale' ? 'background: var(--c-accent, #0a3d7a); color: #ffffff; border: 1px solid var(--c-accent, #0a3d7a); box-shadow: 0 2px 6px rgba(10,61,122,0.25); font-weight: 700;' : 'background: #ffffff; color: #334155; border: 1px solid #cbd5e1; font-weight: 600;'"
-       style="min-height: 42px; min-width: 90px; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 0.92rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center; flex-shrink: 0; scroll-snap-align: center; transition: all 0.15s ease;"
+       class="stepper-pill" :class="{ 'active': activeTab === '#sale' }"
+       data-tab="#sale"
+       style="min-height: 44px; min-width: 96px; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 0.92rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center; flex-shrink: 0; scroll-snap-align: center;"
        data-testid="tab-sale">
       <span>Продажа</span>
     </a>
     <a href="#warranty" @click.prevent="goToTab('#warranty')"
-       class="stepper-pill" data-tab="#warranty"
-       :style="activeTab === '#warranty' ? 'background: var(--c-accent, #0a3d7a); color: #ffffff; border: 1px solid var(--c-accent, #0a3d7a); box-shadow: 0 2px 6px rgba(10,61,122,0.25); font-weight: 700;' : 'background: #ffffff; color: #334155; border: 1px solid #cbd5e1; font-weight: 600;'"
-       style="min-height: 42px; min-width: 90px; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 0.92rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center; flex-shrink: 0; scroll-snap-align: center; transition: all 0.15s ease;"
+       class="stepper-pill" :class="{ 'active': activeTab === '#warranty' }"
+       data-tab="#warranty"
+       style="min-height: 44px; min-width: 96px; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 0.92rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center; flex-shrink: 0; scroll-snap-align: center;"
        data-testid="tab-warranty">
       <span>Гарантия</span>
     </a>
@@ -222,7 +283,35 @@
       <!-- Live Search & Comparables Panel (§5.2) -->
       <div style="margin-top: 20px; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;"
            data-testid="research-panel"
-           x-data="{ selectedCategory: 'Показать все' }">
+           x-data="{
+             selectedCategory: 'Показать все',
+             sortBy: 'default',
+             sortResearchRows() {
+               const list = this.$refs.researchLinksList;
+               if (!list) return;
+               const rows = Array.from(list.querySelectorAll('.research-row'));
+               rows.sort((a, b) => {
+                 if (this.sortBy === 'price_asc') {
+                   const pa = (a.dataset.price && a.dataset.isAuction !== 'true') ? parseFloat(a.dataset.price) : Infinity;
+                   const pb = (b.dataset.price && b.dataset.isAuction !== 'true') ? parseFloat(b.dataset.price) : Infinity;
+                   if (pa !== pb) return pa - pb;
+                   return (a.dataset.title || '').localeCompare(b.dataset.title || '');
+                 } else if (this.sortBy === 'price_desc') {
+                   const pa = (a.dataset.price && a.dataset.isAuction !== 'true') ? parseFloat(a.dataset.price) : -1;
+                   const pb = (b.dataset.price && b.dataset.isAuction !== 'true') ? parseFloat(b.dataset.price) : -1;
+                   if (pa !== pb) return pb - pa;
+                   return (a.dataset.title || '').localeCompare(b.dataset.title || '');
+                 } else if (this.sortBy === 'name_asc') {
+                   return (a.dataset.title || '').localeCompare(b.dataset.title || '', undefined, { sensitivity: 'base' });
+                 } else if (this.sortBy === 'name_desc') {
+                   return (b.dataset.title || '').localeCompare(a.dataset.title || '', undefined, { sensitivity: 'base' });
+                 } else {
+                   return parseInt(a.dataset.origIndex || '0') - parseInt(b.dataset.origIndex || '0');
+                 }
+               });
+               rows.forEach(row => list.appendChild(row));
+             }
+           }">
         <div style="font-weight: 700; font-size: 1rem; color: #1e293b; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
           <span>🔍 Поиск аналогов на площадках (Bazoš, Sbazar, Aukro)</span>
           {% if research and research.badge_text %}
@@ -256,26 +345,51 @@
               {% endif %}
             </div>
 
-            {% if research.categories and research.categories|length > 1 %}
-              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 8px 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; flex-wrap: wrap;" data-testid="research-filter-container">
-                <label for="research-category-select" style="font-size: 0.85rem; font-weight: 600; color: #475569;">
-                  Категория:
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; padding: 10px 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; flex-wrap: wrap;" data-testid="research-filter-container">
+              <!-- Left: Category filter (if available) -->
+              {% if research.categories and research.categories|length > 1 %}
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <label for="research-category-select" style="font-size: 0.85rem; font-weight: 600; color: #475569;">
+                    Категория:
+                  </label>
+                  <select id="research-category-select" x-model="selectedCategory"
+                          class="input-field" style="padding: 6px 12px; font-size: 0.85rem; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; font-weight: 500;"
+                          data-testid="select-research-category">
+                    {% for cat in research.categories %}
+                      <option value="{{ cat }}">{{ cat }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              {% else %}
+                <div></div>
+              {% endif %}
+
+              <!-- Right: Sort control -->
+              <div style="display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap;">
+                <label for="research-sort-select" style="font-size: 0.85rem; font-weight: 600; color: #475569;">
+                  Сортировка:
                 </label>
-                <select id="research-category-select" x-model="selectedCategory"
+                <select id="research-sort-select" x-model="sortBy" @change="sortResearchRows()"
                         class="input-field" style="padding: 6px 12px; font-size: 0.85rem; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; font-weight: 500;"
-                        data-testid="select-research-category">
-                  {% for cat in research.categories %}
-                    <option value="{{ cat }}">{{ cat }}</option>
-                  {% endfor %}
+                        data-testid="select-research-sort">
+                  <option value="default">По умолчанию</option>
+                  <option value="price_asc">По цене (сначала дешевле)</option>
+                  <option value="price_desc">По цене (сначала дороже)</option>
+                  <option value="name_asc">По наименованию (А – Я)</option>
+                  <option value="name_desc">По наименованию (Я – А)</option>
                 </select>
               </div>
-            {% endif %}
+            </div>
 
-            <div style="display: flex; flex-direction: column; gap: 8px;" data-testid="research-links-list">
+            <div x-ref="researchLinksList" style="display: flex; flex-direction: column; gap: 8px;" data-testid="research-links-list">
               {% for l in research.links %}
                 <div class="research-row"
-                     x-show="!selectedCategory || selectedCategory === 'Показать все' || selectedCategory === '{{ l.category|escape }}'"
+                     data-orig-index="{{ loop.index0 }}"
                      data-category="{{ l.category }}"
+                     data-price="{{ l.price or '' }}"
+                     data-is-auction="{{ 'true' if l.is_auction else 'false' }}"
+                     data-title="{{ l.title|escape }}"
+                     x-show="!selectedCategory || selectedCategory === 'Показать все' || selectedCategory === '{{ l.category|escape }}'"
                      style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; gap: 12px;">
                   
                   <div style="display: flex; align-items: center; gap: 12px; overflow: hidden; flex: 1;">

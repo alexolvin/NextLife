@@ -381,4 +381,11 @@ def test_stepper_centered_buttons_and_manual_price_only() -> None:
     assert 'data-testid="input-custom-price"' in body
     assert 'data-testid="btn-save-price"' in body
 
+    # Sorting control in the right part of research-filter-container
+    assert 'data-testid="select-research-sort"' in body
+    assert 'value="price_asc"' in body
+    assert 'value="price_desc"' in body
+    assert 'value="name_asc"' in body
+    assert 'value="name_desc"' in body
+
 
