@@ -221,6 +221,7 @@
         <select name="image_ai_provider" id="image_ai_provider" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; background-color: #fff;" data-testid="select-image-ai-provider" onchange="updateImageAiFields(this.value)">
           <option value="openai" {% if (image_ai_config.provider or 'openai') == 'openai' %}selected{% endif %}>OpenAI совместимый (POST /v1/images/edits)</option>
           <option value="gemini" {% if image_ai_config.provider == 'gemini' %}selected{% endif %}>Google Gemini (gemini-2.5-flash-image / Imagen 3)</option>
+          <option value="cloudflare" {% if image_ai_config.provider == 'cloudflare' %}selected{% endif %}>Cloudflare Workers AI (/ai/run/ или Workers)</option>
         </select>
       </div>
 
@@ -229,22 +230,40 @@
         <input type="text" name="image_ai_endpoint" id="image_ai_endpoint" value="{{ image_ai_config.endpoint or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="https://api.openai.com/v1/images/edits" data-testid="input-image-ai-endpoint">
         <div id="image_ai_endpoint_help" style="font-size: 0.75rem; color: #94a3b8; margin-top: 3px;">
           {% if image_ai_config.provider == 'gemini' %}
-          Базовый адрес API (по умолчанию https://generativelanguage.googleapis.com). Можно оставить пустым — модель указывается в поле ниже.
+          Базовый адрес API (по умолчанию https://generativelanguage.googleapis.com). Можно оставить пустым — модель указывается в полях ниже.
+          {% elif image_ai_config.provider == 'cloudflare' %}
+          URL Cloudflare API (https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/) или URL вашего Worker.
           {% else %}
           URL OpenAI-совместимого эндпоинта (например, https://api.openai.com/v1/images/edits).
           {% endif %}
         </div>
       </div>
       <div style="margin-bottom: 1rem;">
-        <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">API Key</label>
+        <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">API Key / Token</label>
         <input type="password" name="image_ai_api_key" id="image_ai_api_key" value="{{ image_ai_config.api_key or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="sk-..." data-testid="input-image-ai-key">
       </div>
-      <div style="margin-bottom: 1.5rem;">
-        <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Модель</label>
-        <input type="text" name="image_ai_model" id="image_ai_model" value="{{ image_ai_config.model or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="gemini-2.5-flash-image" data-testid="input-image-ai-model">
-        <div id="image_ai_model_help" style="font-size: 0.75rem; color: #94a3b8; margin-top: 3px;">
-          {% if image_ai_config.provider == 'gemini' %}Рекомендуется для Google AI Studio: <code>gemini-2.5-flash-image</code> или <code>gemini-3.1-flash-image</code>. (Для <code>imagen-3.0-generate-002</code> требуется привязка платёжного аккаунта GCP).{% else %}Например: <code>dall-e-2</code>, <code>dall-e-3</code>{% endif %}
+
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 1.5rem;">
+        <div style="font-size: 0.875rem; font-weight: 600; color: #334155; margin-bottom: 10px;">Модели для операций над изображениями</div>
+        
+        <div style="margin-bottom: 0.85rem;">
+          <label style="display: block; font-weight: 500; font-size: 0.8rem; margin-bottom: 0.25rem; color: #475569;">1. Убрать пыль и дефекты (Inpainting)</label>
+          <input type="text" name="image_ai_model_dust" id="image_ai_model_dust" value="{{ image_ai_config.model_dust or image_ai_config.model or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="gemini-2.5-flash-image" data-testid="input-image-ai-model-dust">
+          <div id="image_ai_model_dust_help" style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Для Cloudflare: <code>@cf/runwayml/stable-diffusion-v1-5-inpainting</code></div>
         </div>
+
+        <div style="margin-bottom: 0.85rem;">
+          <label style="display: block; font-weight: 500; font-size: 0.8rem; margin-bottom: 0.25rem; color: #475569;">2. Продающее фото (Студия / Свет)</label>
+          <input type="text" name="image_ai_model_selling" id="image_ai_model_selling" value="{{ image_ai_config.model_selling or image_ai_config.model or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="gemini-2.5-flash-image" data-testid="input-image-ai-model-selling">
+          <div id="image_ai_model_selling_help" style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Для Cloudflare: <code>@cf/black-forest-labs/flux-1-schnell</code></div>
+        </div>
+
+        <div>
+          <label style="display: block; font-weight: 500; font-size: 0.8rem; margin-bottom: 0.25rem; color: #475569;">3. Замена фона</label>
+          <input type="text" name="image_ai_model_bg" id="image_ai_model_bg" value="{{ image_ai_config.model_bg or image_ai_config.model or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="gemini-2.5-flash-image" data-testid="input-image-ai-model-bg">
+          <div id="image_ai_model_bg_help" style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Для Cloudflare: <code>@cf/runwayml/stable-diffusion-v1-5-inpainting</code></div>
+        </div>
+        <input type="hidden" name="image_ai_model" id="image_ai_model" value="{{ image_ai_config.model or '' }}">
       </div>
 
       <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.65rem;" data-testid="ai-save-btn">Сохранить настройки ИИ</button>
@@ -280,22 +299,33 @@
         var endpoint = document.getElementById('image_ai_endpoint');
         var help = document.getElementById('image_ai_endpoint_help');
         var key = document.getElementById('image_ai_api_key');
-        var model = document.getElementById('image_ai_model');
-        var modelHelp = document.getElementById('image_ai_model_help');
+        var mDust = document.getElementById('image_ai_model_dust');
+        var mSelling = document.getElementById('image_ai_model_selling');
+        var mBg = document.getElementById('image_ai_model_bg');
         if (provider === 'gemini') {
           if (hint) hint.innerHTML = 'Официальный REST API Google Gemini (поддержка моделей <code>gemini-2.5-flash-image</code> и Imagen 3).';
           if (endpoint) endpoint.placeholder = 'https://generativelanguage.googleapis.com (или оставьте пустым)';
-          if (help) help.innerText = 'Базовый адрес API (по умолчанию https://generativelanguage.googleapis.com). Можно оставить пустым — модель указывается в поле ниже.';
+          if (help) help.innerText = 'Базовый адрес API (по умолчанию https://generativelanguage.googleapis.com). Можно оставить пустым — модель указывается в полях ниже.';
           if (key) key.placeholder = 'AIzaSy...';
-          if (model) model.placeholder = 'gemini-2.5-flash-image';
-          if (modelHelp) modelHelp.innerHTML = 'Рекомендуется для Google AI Studio: <code>gemini-2.5-flash-image</code> или <code>gemini-3.1-flash-image</code>. (Для <code>imagen-3.0-generate-002</code> требуется биллинг GCP).';
+          if (mDust) mDust.placeholder = 'gemini-2.5-flash-image';
+          if (mSelling) mSelling.placeholder = 'gemini-2.5-flash-image';
+          if (mBg) mBg.placeholder = 'gemini-2.5-flash-image';
+        } else if (provider === 'cloudflare') {
+          if (hint) hint.innerHTML = 'Cloudflare Workers AI (прямой REST API <code>/ai/run/{model}</code> или ваш прокси-воркер).';
+          if (endpoint) endpoint.placeholder = 'https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/';
+          if (help) help.innerText = 'URL Cloudflare API accounts/{id}/ai/run/ или URL вашего Cloudflare Worker.';
+          if (key) key.placeholder = 'Cloudflare API Token';
+          if (mDust) mDust.placeholder = '@cf/runwayml/stable-diffusion-v1-5-inpainting';
+          if (mSelling) mSelling.placeholder = '@cf/black-forest-labs/flux-1-schnell';
+          if (mBg) mBg.placeholder = '@cf/runwayml/stable-diffusion-v1-5-inpainting';
         } else {
           if (hint) hint.innerHTML = 'OpenAI-совместимый эндпоинт <code>POST /v1/images/edits</code>.';
           if (endpoint) endpoint.placeholder = 'https://api.openai.com/v1/images/edits';
           if (help) help.innerText = 'URL OpenAI-совместимого эндпоинта (например, https://api.openai.com/v1/images/edits).';
           if (key) key.placeholder = 'sk-...';
-          if (model) model.placeholder = 'dall-e-2';
-          if (modelHelp) modelHelp.innerHTML = 'Например: <code>dall-e-2</code>, <code>dall-e-3</code>';
+          if (mDust) mDust.placeholder = 'dall-e-2';
+          if (mSelling) mSelling.placeholder = 'dall-e-2';
+          if (mBg) mBg.placeholder = 'dall-e-2';
         }
       }
 

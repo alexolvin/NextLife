@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import Any
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
 
 from nextlife.api.routes import check_auth, resolve_photo_url
@@ -16,6 +16,7 @@ from nextlife.media.ai_edit import (
     ImageAIError,
     ImageAINotConfiguredError,
     ai_remove_dust,
+    ai_replace_bg,
     ai_selling_image,
     is_image_ai_configured,
     undo_photo,
@@ -54,9 +55,11 @@ def api_get_ai_status(auth: bool = Depends(check_auth)) -> dict[str, Any]:
 def api_ai_dust(
     code: str,
     photo_id: str,
+    payload: dict[str, Any] | None = Body(default=None),
     auth: bool = Depends(check_auth),
 ) -> dict[str, Any]:
     """Generative AI dust removal endpoint."""
+    custom_prompt = payload.get("prompt") if payload and isinstance(payload, dict) else None
     with get_db_session() as session:
         item = session.get(Item, code)
         if not item:
@@ -67,7 +70,7 @@ def api_ai_dust(
             raise HTTPException(status_code=404, detail=f"Фото {photo_id} не найдено")
 
         try:
-            new_photo = ai_remove_dust(photo_id=photo_id, session=session)
+            new_photo = ai_remove_dust(photo_id=photo_id, session=session, prompt=custom_prompt)
         except ImageAINotConfiguredError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         except ImageAIError as exc:
@@ -81,7 +84,7 @@ def api_ai_dust(
             action="PHOTO_AI_DUST_REMOVED",
             entity="ITEM",
             entity_id=code,
-            data={"parent_id": photo_id, "new_id": new_photo.id},
+            data={"parent_id": photo_id, "new_id": new_photo.id, "prompt": custom_prompt},
         )
         session.commit()
 
@@ -101,9 +104,11 @@ def api_ai_dust(
 def api_ai_selling(
     code: str,
     photo_id: str,
+    payload: dict[str, Any] | None = Body(default=None),
     auth: bool = Depends(check_auth),
 ) -> dict[str, Any]:
     """Generative AI clean background and soft shadow endpoint."""
+    custom_prompt = payload.get("prompt") if payload and isinstance(payload, dict) else None
     with get_db_session() as session:
         item = session.get(Item, code)
         if not item:
@@ -114,7 +119,7 @@ def api_ai_selling(
             raise HTTPException(status_code=404, detail=f"Фото {photo_id} не найдено")
 
         try:
-            new_photo = ai_selling_image(photo_id=photo_id, session=session)
+            new_photo = ai_selling_image(photo_id=photo_id, session=session, prompt=custom_prompt)
         except ImageAINotConfiguredError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         except ImageAIError as exc:
@@ -128,7 +133,56 @@ def api_ai_selling(
             action="PHOTO_AI_SELLING_IMAGE",
             entity="ITEM",
             entity_id=code,
-            data={"parent_id": photo_id, "new_id": new_photo.id},
+            data={"parent_id": photo_id, "new_id": new_photo.id, "prompt": custom_prompt},
+        )
+        session.commit()
+
+        return {
+            "status": "ok",
+            "item_code": code,
+            "original_photo_id": photo_id,
+            "photo_id": new_photo.id,
+            "url": resolve_photo_url(new_photo.path),
+            "width": new_photo.width,
+            "height": new_photo.height,
+            "ai_generated": True,
+        }
+
+
+@photos_ai_router.post("/api/items/{code}/photos/{photo_id}/ai-bg")
+def api_ai_bg(
+    code: str,
+    photo_id: str,
+    payload: dict[str, Any] | None = Body(default=None),
+    auth: bool = Depends(check_auth),
+) -> dict[str, Any]:
+    """Generative AI background replacement endpoint."""
+    custom_prompt = payload.get("prompt") if payload and isinstance(payload, dict) else None
+    with get_db_session() as session:
+        item = session.get(Item, code)
+        if not item:
+            raise HTTPException(status_code=404, detail=f"Предмет {code} не найден")
+
+        photo = session.get(ItemPhoto, photo_id)
+        if not photo or photo.item_code != code:
+            raise HTTPException(status_code=404, detail=f"Фото {photo_id} не найдено")
+
+        try:
+            new_photo = ai_replace_bg(photo_id=photo_id, session=session, prompt=custom_prompt)
+        except ImageAINotConfiguredError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except ImageAIError as exc:
+            raise HTTPException(status_code=502, detail=str(exc)) from exc
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+        record_audit_event(
+            session=session,
+            actor="USER",
+            action="PHOTO_AI_BG_REPLACED",
+            entity="ITEM",
+            entity_id=code,
+            data={"parent_id": photo_id, "new_id": new_photo.id, "prompt": custom_prompt},
         )
         session.commit()
 
@@ -205,6 +259,19 @@ def ui_ai_selling(
     try:
         api_ai_selling(code=code, photo_id=photo_id, auth=auth)
         return _redirect_stock_photos(code, notice="photo_ai_selling_applied")
+    except HTTPException as exc:
+        return _redirect_stock_photos(code, notice="photo_op_failed", reason=exc.detail)
+
+
+@photos_ai_router.post("/ui/items/{code}/photos/{photo_id}/ai-bg")
+def ui_ai_bg(
+    code: str,
+    photo_id: str,
+    auth: bool = Depends(check_auth),
+) -> RedirectResponse:
+    try:
+        api_ai_bg(code=code, photo_id=photo_id, auth=auth)
+        return _redirect_stock_photos(code, notice="photo_ai_bg_applied")
     except HTTPException as exc:
         return _redirect_stock_photos(code, notice="photo_op_failed", reason=exc.detail)
 

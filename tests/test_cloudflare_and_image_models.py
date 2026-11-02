@@ -1,0 +1,154 @@
+"""Tests for Cloudflare Workers AI integration, per-operation models, and background replacement.
+
+Rule K-1: Module must strictly be <= 400 lines.
+"""
+
+from __future__ import annotations
+
+import base64
+import io
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
+from fastapi.testclient import TestClient
+from PIL import Image
+
+from nextlife.api.main import create_app
+from nextlife.media.ai_edit import (
+    ImageAIError,
+    ai_remove_dust,
+    ai_replace_bg,
+    ai_selling_image,
+    call_image_ai_edits,
+    get_image_ai_config,
+    load_settings,
+)
+from nextlife.media.ai_providers import call_cloudflare_image
+
+
+def _make_dummy_jpeg() -> bytes:
+    img = Image.new("RGB", (64, 64), color=(30, 60, 90))
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG")
+    return buf.getvalue()
+
+
+def test_cloudflare_workers_ai_direct_binary():
+    dummy_jpeg = _make_dummy_jpeg()
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.headers = {"content-type": "image/jpeg"}
+    mock_resp.content = dummy_jpeg
+
+    with patch("httpx.post", return_value=mock_resp) as mock_post:
+        res = call_cloudflare_image(
+            prompt="Isolate product on white background",
+            image_bytes=b"raw_bytes",
+            cfg={
+                "endpoint": "https://api.cloudflare.com/client/v4/accounts/acc123/ai/run/",
+                "api_key": "cf_token_abc",
+                "model": "@cf/runwayml/stable-diffusion-v1-5-inpainting",
+            },
+        )
+        assert res == dummy_jpeg
+        mock_post.assert_called_once()
+        args, kwargs = mock_post.call_args
+        assert args[0] == "https://api.cloudflare.com/client/v4/accounts/acc123/ai/run/@cf/runwayml/stable-diffusion-v1-5-inpainting"
+        assert kwargs["headers"]["Authorization"] == "Bearer cf_token_abc"
+        assert "image_b64" in kwargs["json"]
+        assert kwargs["json"]["prompt"] == "Isolate product on white background"
+
+
+def test_cloudflare_workers_ai_json_b64():
+    dummy_jpeg = _make_dummy_jpeg()
+    b64_str = base64.b64encode(dummy_jpeg).decode("ascii")
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.headers = {"content-type": "application/json"}
+    mock_resp.content = b'{"result": {"image": "..."}}'
+    mock_resp.json.return_value = {"result": {"image": b64_str}}
+
+    with patch("httpx.post", return_value=mock_resp):
+        res = call_cloudflare_image(
+            prompt="Remove dust",
+            image_bytes=b"raw_bytes",
+            cfg={
+                "endpoint": "https://api.cloudflare.com/client/v4/accounts/acc123/ai/run/",
+                "api_key": "cf_token_abc",
+            },
+            model="@cf/runwayml/stable-diffusion-v1-5-inpainting",
+        )
+        assert res == dummy_jpeg
+
+
+def test_per_operation_model_selection():
+    dummy_jpeg = _make_dummy_jpeg()
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.headers = {"content-type": "image/jpeg"}
+    mock_resp.content = dummy_jpeg
+
+    cfg = {
+        "provider": "cloudflare",
+        "endpoint": "https://api.cloudflare.com/client/v4/accounts/acc123/ai/run/",
+        "api_key": "token123",
+        "model": "fallback_model",
+        "model_dust": "@cf/runwayml/stable-diffusion-v1-5-inpainting",
+        "model_selling": "@cf/black-forest-labs/flux-1-schnell",
+        "model_bg": "@cf/briaai/rmbg-1.4",
+    }
+
+    # 1. Calling with model_override for Dust
+    with patch("httpx.post", return_value=mock_resp) as mock_post:
+        call_image_ai_edits(b"img", "dust", config=cfg, model_override=cfg["model_dust"])
+        assert "@cf/runwayml/stable-diffusion-v1-5-inpainting" in mock_post.call_args[0][0]
+
+    # 2. Calling with model_override for Selling
+    with patch("httpx.post", return_value=mock_resp) as mock_post:
+        call_image_ai_edits(b"img", "selling", config=cfg, model_override=cfg["model_selling"])
+        assert "@cf/black-forest-labs/flux-1-schnell" in mock_post.call_args[0][0]
+
+    # 3. Calling with model_override for Background Replacement
+    with patch("httpx.post", return_value=mock_resp) as mock_post:
+        call_image_ai_edits(b"img", "bg replace", config=cfg, model_override=cfg["model_bg"])
+        assert "@cf/briaai/rmbg-1.4" in mock_post.call_args[0][0]
+
+
+def test_settings_save_and_load_cloudflare(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr("nextlife.services.llm_filter.get_data_dir", lambda: tmp_path)
+    monkeypatch.setattr("nextlife.media.ai_edit.get_data_dir", lambda: tmp_path)
+
+    from nextlife.api.routes import check_auth
+
+    app = create_app()
+    app.dependency_overrides[check_auth] = lambda: True
+    client = TestClient(app)
+
+    # Save Cloudflare settings with 3 separate models
+    resp = client.post(
+        "/ui/settings/ai",
+        data={
+            "llm_provider": "gemini",
+            "llm_endpoint": "",
+            "llm_api_key": "AIzaSySecret",
+            "llm_model": "gemini-1.5-flash",
+            "image_ai_provider": "cloudflare",
+            "image_ai_endpoint": "https://api.cloudflare.com/client/v4/accounts/acc999/ai/run/",
+            "image_ai_api_key": "cf_secret_token",
+            "image_ai_model": "",
+            "image_ai_model_dust": "@cf/runwayml/stable-diffusion-v1-5-inpainting",
+            "image_ai_model_selling": "@cf/black-forest-labs/flux-1-schnell",
+            "image_ai_model_bg": "@cf/runwayml/stable-diffusion-v1-5-inpainting",
+        },
+        follow_redirects=True,
+    )
+    assert resp.status_code == 200
+
+    cfg = get_image_ai_config()
+    assert cfg["provider"] == "cloudflare"
+    assert cfg["endpoint"] == "https://api.cloudflare.com/client/v4/accounts/acc999/ai/run/"
+    assert cfg["api_key"] == "cf_secret_token"
+    assert cfg["model_dust"] == "@cf/runwayml/stable-diffusion-v1-5-inpainting"
+    assert cfg["model_selling"] == "@cf/black-forest-labs/flux-1-schnell"
+    assert cfg["model_bg"] == "@cf/runwayml/stable-diffusion-v1-5-inpainting"

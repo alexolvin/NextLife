@@ -126,8 +126,61 @@
 </div>
 
 <!-- ================= PHOTO EDITOR MODAL (§5.4) ================= -->
+<style>
+  .photo-editor-modal-container {
+    width: 96vw;
+    max-width: 1400px;
+    margin: 12px auto;
+    background: #1e293b;
+    color: #f8fafc;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 24px);
+    box-sizing: border-box;
+  }
+  .photo-editor-viewport {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: #090d16;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 12px;
+    min-height: 55vh;
+  }
+  .photo-editor-viewport img#editor-main-img {
+    max-height: calc(85vh - 240px);
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 6px;
+    display: block;
+    margin: 0 auto;
+  }
+  @media (max-width: 768px) {
+    .photo-editor-modal-container {
+      width: 98vw;
+      margin: 6px auto;
+      padding: 10px;
+      min-height: auto;
+    }
+    .photo-editor-viewport {
+      min-height: 40vh;
+    }
+    .photo-editor-viewport img#editor-main-img {
+      max-height: 50vh;
+    }
+  }
+</style>
+
 <div id="photo-editor-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; overflow-y: auto;" data-testid="photo-editor-modal">
-  <div style="max-width: 680px; margin: 20px auto; background: #1e293b; color: #f8fafc; border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+  <div class="photo-editor-modal-container">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 16px;">
       <div style="display: flex; align-items: center; gap: 10px;">
         <h3 style="margin: 0; font-size: 1.2rem; color: #38bdf8;">Редактор фото</h3>
@@ -138,7 +191,7 @@
     </div>
 
     <!-- Before / After or Main Preview -->
-    <div id="editor-preview-container" style="position: relative; text-align: center; margin-bottom: 16px;">
+    <div id="editor-preview-container" class="photo-editor-viewport">
       <!-- Photo flipping navigation buttons inside editor -->
       <button type="button" onclick="editorChangePhoto(-1)"
               style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); background: rgba(15, 23, 42, 0.75); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; z-index: 10; transition: background 0.2s;"
@@ -154,19 +207,19 @@
         ›
       </button>
 
-      <div id="editor-single-view">
-        <img id="editor-main-img" src="" style="max-height: 380px; max-width: 100%; border-radius: 8px; object-fit: contain; background: #0f172a;" data-testid="editor-preview-image">
+      <div id="editor-single-view" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+        <img id="editor-main-img" src="" style="background: #0f172a;" data-testid="editor-preview-image">
       </div>
       <!-- AI Diff View (Shown after AI edit) -->
-      <div id="editor-diff-view" style="display: none;" data-testid="ai-diff-container">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <div>
+      <div id="editor-diff-view" style="display: none; width: 100%;" data-testid="ai-diff-container">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; align-items: center;">
+          <div style="text-align: center;">
             <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">До</div>
-            <img id="diff-img-before" src="" style="width: 100%; height: 220px; object-fit: contain; border-radius: 6px; background: #0f172a;">
+            <img id="diff-img-before" src="" style="width: auto; max-width: 100%; max-height: calc(85vh - 280px); object-fit: contain; border-radius: 6px; background: #0f172a;">
           </div>
-          <div>
+          <div style="text-align: center;">
             <div style="font-size: 0.8rem; color: #38bdf8; margin-bottom: 4px;">После (ИИ)</div>
-            <img id="diff-img-after" src="" style="width: 100%; height: 220px; object-fit: contain; border-radius: 6px; background: #0f172a;">
+            <img id="diff-img-after" src="" style="width: auto; max-width: 100%; max-height: calc(85vh - 280px); object-fit: contain; border-radius: 6px; background: #0f172a;">
           </div>
         </div>
         <div style="display: flex; justify-content: center; gap: 12px; margin-top: 14px;">
@@ -177,8 +230,17 @@
     </div>
 
     <!-- AI Endpoint Missing Warning -->
-    <div id="editor-ai-warning" style="display: none; background: #7c2d12; border: 1px solid #ea580c; color: #ffedd5; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 0.85rem;" data-testid="ai-not-configured-notice">
+    <div id="editor-ai-warning" style="display: none; background: #7c2d12; border: 1px solid #ea580c; color: #ffedd5; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; font-size: 0.85rem;" data-testid="ai-not-configured-notice">
       Для инструментов ИИ настройте Image AI в <a href="/ui/settings" style="color: #fdba74; text-decoration: underline;">Настройках</a>.
+    </div>
+
+    <!-- AI Prompt Customization Input -->
+    <div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <label for="editor-ai-prompt" style="font-size: 0.8rem; font-weight: 600; color: #94a3b8;">Промпт для ИИ (необязательно, можно настроить под себя):</label>
+        <button type="button" onclick="document.getElementById('editor-ai-prompt').value=''" style="background: transparent; border: none; color: #64748b; font-size: 0.75rem; cursor: pointer;" title="Очистить поле">Очистить</button>
+      </div>
+      <input type="text" id="editor-ai-prompt" style="width: 100%; box-sizing: border-box; background: #1e293b; border: 1px solid #475569; color: #f8fafc; border-radius: 6px; padding: 7px 12px; font-size: 0.85rem;" placeholder="Оставьте пустым для авто-промпта или введите свои инструкции..." data-testid="input-editor-ai-prompt">
     </div>
 
     <!-- Toolbar (§5.4) -->
@@ -209,6 +271,9 @@
         </button>
         <button type="button" class="btn btn-primary" onclick="editorRunAI('selling')" id="btn-ai-selling" data-testid="btn-editor-ai-selling">
           🪄 Продающее фото (ИИ)
+        </button>
+        <button type="button" class="btn btn-primary" onclick="editorRunAI('bg')" id="btn-ai-bg" data-testid="btn-editor-ai-bg">
+          🖼 Замена фона (ИИ)
         </button>
         <button type="button" class="btn btn-secondary" onclick="editorUndo()" data-testid="btn-editor-undo">
           ↩ Отменить изменения
@@ -425,16 +490,22 @@
   window.editorRunAI = async function(mode) {
     const cur = photos[currentIndex];
     if (!cur) return;
-    const ep = mode === 'dust' ? 'ai-dust' : 'ai-selling';
-    const btn = document.getElementById(mode === 'dust' ? 'btn-ai-dust' : 'btn-ai-selling');
-    const orig = btn.innerHTML;
-    btn.innerHTML = '⏳ Обработка ИИ...';
+    const ep = mode === 'dust' ? 'ai-dust' : (mode === 'bg' ? 'ai-bg' : 'ai-selling');
+    const btnId = mode === 'dust' ? 'btn-ai-dust' : (mode === 'bg' ? 'btn-ai-bg' : 'btn-ai-selling');
+    const btn = document.getElementById(btnId);
+    const orig = btn ? btn.innerHTML : '';
+    if (btn) btn.innerHTML = '⏳ Обработка ИИ...';
+
+    const promptInput = document.getElementById('editor-ai-prompt');
+    const userPrompt = promptInput ? promptInput.value.trim() : '';
 
     try {
       const res = await fetch(`/api/items/${itemCode}/photos/${cur.display_id}/${ep}`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: userPrompt || null }),
       });
-      btn.innerHTML = orig;
+      if (btn) btn.innerHTML = orig;
       if (res.ok) {
         const data = await res.json();
         lastAIResult = data;
@@ -448,7 +519,7 @@
         alert(err.detail || 'Ошибка генерации ИИ');
       }
     } catch (e) {
-      btn.innerHTML = orig;
+      if (btn) btn.innerHTML = orig;
       alert('Ошибка соединения с ИИ');
     }
   };

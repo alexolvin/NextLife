@@ -225,6 +225,9 @@ def save_settings_ai(
     image_ai_endpoint: str = Form(""),
     image_ai_api_key: str = Form(""),
     image_ai_model: str = Form(""),
+    image_ai_model_dust: str = Form(""),
+    image_ai_model_selling: str = Form(""),
+    image_ai_model_bg: str = Form(""),
     auth: bool = Depends(check_auth),
 ) -> RedirectResponse:
     """Save Text LLM and Image AI settings (TZ §11 item 3)."""
@@ -240,6 +243,9 @@ def save_settings_ai(
         "endpoint": image_ai_endpoint.strip(),
         "api_key": image_ai_api_key.strip(),
         "model": image_ai_model.strip(),
+        "model_dust": image_ai_model_dust.strip(),
+        "model_selling": image_ai_model_selling.strip(),
+        "model_bg": image_ai_model_bg.strip(),
     }
     save_settings(settings)
     return RedirectResponse(url="/ui/settings?tab=ai&notice=ai_saved", status_code=status.HTTP_303_SEE_OTHER)
@@ -320,6 +326,12 @@ def test_image_ai_endpoint(auth: bool = Depends(check_auth)) -> RedirectResponse
                 url="/ui/settings?tab=ai&err=" + quote("API Key или URL эндпоинта Gemini Image AI не задан"),
                 status_code=status.HTTP_303_SEE_OTHER,
             )
+    elif provider == "cloudflare":
+        if not api_key:
+            return RedirectResponse(
+                url="/ui/settings?tab=ai&err=" + quote("API Token для Cloudflare Workers AI не задан"),
+                status_code=status.HTTP_303_SEE_OTHER,
+            )
     else:
         if not endpoint:
             return RedirectResponse(
@@ -354,7 +366,7 @@ def test_notion_endpoint(auth: bool = Depends(check_auth)) -> RedirectResponse:
 # Backward-compatible endpoints
 @settings_router.post("/ui/settings")
 def legacy_save_settings_llm(request: Request, llm_endpoint: str = Form(""), llm_api_key: str = Form(""), llm_model: str = Form(""), auth: bool = Depends(check_auth)) -> Any:
-    return save_settings_ai(request=request, llm_provider="openai", llm_endpoint=llm_endpoint, llm_api_key=llm_api_key, llm_model=llm_model, image_ai_provider="openai", image_ai_endpoint="", image_ai_api_key="", image_ai_model="", auth=auth)
+    return save_settings_ai(request=request, llm_provider="openai", llm_endpoint=llm_endpoint, llm_api_key=llm_api_key, llm_model=llm_model, image_ai_provider="openai", image_ai_endpoint="", image_ai_api_key="", image_ai_model="", image_ai_model_dust="", image_ai_model_selling="", image_ai_model_bg="", auth=auth)
 
 
 @settings_router.post("/ui/settings/secrets")
