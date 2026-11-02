@@ -179,7 +179,9 @@ def _save_derived_ai_photo(
         width, height = rgb_img.size
 
     sha = _compute_sha256(dest_path)
-    transform = [{"step": step_name, "prompt": prompt, "parent_id": parent_photo.id, "resulting_size": [width, height]}]
+    transform = list(parent_photo.transform_log or []) + [
+        {"step": step_name, "prompt": prompt, "parent_id": parent_photo.id, "resulting_size": [width, height]}
+    ]
     new_photo = ItemPhoto(
         id=str(uuid.uuid4()),
         item_code=parent_photo.item_code,
@@ -188,11 +190,10 @@ def _save_derived_ai_photo(
         sha256=sha,
         width=width,
         height=height,
-        bytes_size=dest_path.stat().st_size,
-        ai_generated=True,
         derived_from_id=parent_photo.id,
-        transform_history=transform,
-        is_cover=parent_photo.is_cover,
+        transform_log=transform,
+        ai_generated=True,
+        vlm_verdict=dict(parent_photo.vlm_verdict or {}),
     )
     session.add(new_photo)
     session.flush()

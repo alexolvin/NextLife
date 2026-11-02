@@ -189,3 +189,44 @@ def test_cloudflare_short_account_id_expansion():
         call_url = mock_post.call_args[0][0]
         assert call_url == "https://api.cloudflare.com/client/v4/accounts/a1b2c3d4e5f6789012345678abcdef01/ai/run/@cf/black-forest-labs/flux-1-schnell"
 
+
+def test_ai_remove_dust_save_derived_photo_db(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr("nextlife.media.ai_edit.get_media_dir", lambda: tmp_path)
+    from nextlife.storage.models import Item, ItemPhoto
+
+    dummy_jpeg = _make_dummy_jpeg()
+    input_path = tmp_path / "orig.jpg"
+    input_path.write_bytes(dummy_jpeg)
+
+    item = Item(code="777", title="Test Item", attrs={"cover_photo_id": "p1", "photo_order": ["p1"]})
+    photo = ItemPhoto(
+        id="p1",
+        item_code="777",
+        role="ORIGINAL",
+        path=str(input_path),
+        sha256="abc",
+        width=64,
+        height=64,
+        transform_log=[],
+        vlm_verdict={},
+    )
+    mock_session = MagicMock()
+
+    def mock_get(entity, pk):
+        if entity == ItemPhoto and pk == "p1":
+            return photo
+        if entity == Item and pk == "777":
+            return item
+        return None
+
+    mock_session.get.side_effect = mock_get
+
+    with patch("nextlife.media.ai_edit.call_image_ai_edits", return_value=dummy_jpeg):
+        new_photo = ai_remove_dust(photo_id="p1", session=mock_session)
+
+    assert new_photo.ai_generated is True
+    assert new_photo.derived_from_id == "p1"
+    assert item.attrs["cover_photo_id"] == new_photo.id
+    assert new_photo.id in item.attrs["photo_order"]
+
+
