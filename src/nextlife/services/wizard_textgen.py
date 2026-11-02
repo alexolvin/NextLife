@@ -77,12 +77,12 @@ def generate_description(
             if not notes:
                 notes = item.notes or ""
 
-    from nextlife.services.llm_filter import call_llm, get_llm_config
+    from nextlife.services.llm_filter import call_llm, get_llm_config, is_llm_configured
 
     llm = get_llm_config()
     endpoint = llm.get("endpoint", "").strip()
 
-    if not endpoint:
+    if not is_llm_configured(llm):
         return {
             "item_code": item_code,
             "title": "",

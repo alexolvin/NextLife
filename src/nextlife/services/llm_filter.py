@@ -86,10 +86,56 @@ def get_secrets() -> dict[str, str]:
     return {str(k): str(v) for k, v in secrets.items()}
 
 
-def call_llm(endpoint: str, api_key: str, model: str, prompt: str) -> str:
-    """POST a chat-completion request and return the raw message content."""
-    # Accept either the full chat-completions URL or the base URL (e.g.
-    # https://api.openai.com/v1); append the path if it's missing.
+def is_llm_configured(llm: dict[str, str] | None = None) -> bool:
+    cfg = llm if llm is not None else get_llm_config()
+    endpoint = (cfg.get("endpoint") or "").strip()
+    provider = (cfg.get("provider") or "").strip().lower()
+    api_key = (cfg.get("api_key") or "").strip()
+    if provider == "gemini":
+        return bool(endpoint or api_key)
+    return bool(endpoint)
+
+
+def _call_gemini_text(base_url: str, api_key: str, model: str, prompt: str) -> str:
+    m = model or "gemini-1.5-flash"
+    url = (base_url or "").strip()
+    if not url:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent"
+    elif ":generateContent" in url:
+        pass
+    else:
+        base = url.rstrip("/")
+        url = f"{base}:generateContent" if "/models/" in base else f"{base}/v1beta/models/{m}:generateContent"
+
+    if api_key and "key=" not in url:
+        url = f"{url}{'&' if '?' in url else '?'}key={api_key}"
+
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["x-goog-api-key"] = api_key
+
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.0, "maxOutputTokens": 1000},
+    }
+    body = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(url, data=body, headers=headers, method="POST")
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+
+    candidates = data.get("candidates", [])
+    if not candidates:
+        raise RuntimeError("No candidates returned by Gemini Text API")
+    parts = candidates[0].get("content", {}).get("parts", [])
+    return "".join(p.get("text", "") for p in parts).strip()
+
+
+def call_llm(endpoint: str, api_key: str, model: str, prompt: str, provider: str | None = None) -> str:
+    """POST a chat-completion request (OpenAI or Gemini) and return raw content."""
+    prov = (provider or get_llm_config().get("provider") or "").strip().lower()
+    if prov == "gemini" or "generativelanguage.googleapis.com" in (endpoint or ""):
+        return _call_gemini_text(endpoint, api_key, model, prompt)
+
     url = endpoint.rstrip("/")
     if not url.endswith("/chat/completions"):
         url = url + "/chat/completions"
@@ -300,7 +346,7 @@ def get_filter_options(query: str, results: list[dict[str, Any]]) -> dict[str, A
     api_key = llm.get("api_key", "").strip()
     model = llm.get("model", "").strip()
 
-    if endpoint:
+    if is_llm_configured(llm):
         titles = [r.get("title", "") for r in results]
         numbered = "\n".join(f"{i}: {t}" for i, t in enumerate(titles))
         prompt = (

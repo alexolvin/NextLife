@@ -90,10 +90,10 @@ def translate_query(query: str, source_lang: str, target_lang: str, llm: dict[st
     """
     if not query or not query.strip() or source_lang == target_lang:
         return query
-    endpoint = (llm.get("endpoint") or "").strip()
-    if not endpoint:
+    from nextlife.services.llm_filter import call_llm, is_llm_configured
+    if not is_llm_configured(llm):
         return query
-    from nextlife.services.llm_filter import call_llm
+    endpoint = (llm.get("endpoint") or "").strip()
 
     lang_name = _LANGUAGE_NAMES.get(target_lang, target_lang)
     prompt = (
@@ -215,9 +215,10 @@ def localize_listing_text(
     category (no fabricated translation).
     """
     fallback = {"title": title, "description": description, "category": category}
-    endpoint = (llm.get("endpoint") or "").strip()
-    if not endpoint:
+    from nextlife.services.llm_filter import is_llm_configured
+    if not is_llm_configured(llm):
         return fallback
+    endpoint = (llm.get("endpoint") or "").strip()
     lang = _target_language(mp_cfg)
     ref_lines = "\n".join(f"- {t}" for t in (reference_titles or []) if t) or "(нет)"
 

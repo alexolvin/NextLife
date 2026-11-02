@@ -150,18 +150,44 @@
   {% if tab == 'ai' %}
   <div style="display: flex; flex-direction: column; gap: 1.5rem;">
     <form method="POST" action="/ui/settings/ai" class="card" style="padding: 1.25rem; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px;" data-testid="form-ai">
-      <h2 style="font-size: 1.15rem; font-weight: 600; margin-top: 0; margin-bottom: 1rem;">Текстовый ИИ (Text LLM)</h2>
+      <h2 style="font-size: 1.15rem; font-weight: 600; margin-top: 0; margin-bottom: 0.5rem;">Текстовый ИИ (Text LLM)</h2>
+      <p id="llm_hint" style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
+        {% if llm_config.provider == 'gemini' %}
+        Официальный REST API Google Gemini (<code>models/{model}:generateContent</code>).
+        {% else %}
+        OpenAI-совместимый эндпоинт <code>POST /v1/chat/completions</code>.
+        {% endif %}
+      </p>
+
+      <div style="margin-bottom: 1rem;">
+        <label for="llm_provider" style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Тип эндпоинта (Provider)</label>
+        <select name="llm_provider" id="llm_provider" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; background-color: #fff;" data-testid="select-llm-provider" onchange="updateLlmFields(this.value)">
+          <option value="openai" {% if (llm_config.provider or 'openai') == 'openai' %}selected{% endif %}>OpenAI совместимый (POST /v1/chat/completions)</option>
+          <option value="gemini" {% if llm_config.provider == 'gemini' %}selected{% endif %}>Google Gemini (generateContent REST API)</option>
+        </select>
+      </div>
+
       <div style="margin-bottom: 1rem;">
         <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">URL эндпоинта</label>
-        <input type="text" name="llm_endpoint" value="{{ llm_config.endpoint or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="https://api.openai.com/v1/chat/completions" data-testid="input-llm-endpoint">
+        <input type="text" name="llm_endpoint" id="llm_endpoint" value="{{ llm_config.endpoint or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="https://api.openai.com/v1/chat/completions" data-testid="input-llm-endpoint">
+        <div id="llm_endpoint_help" style="font-size: 0.75rem; color: #94a3b8; margin-top: 3px;">
+          {% if llm_config.provider == 'gemini' %}
+          Базовый адрес API (по умолчанию https://generativelanguage.googleapis.com). Можно оставить пустым — модель указывается в поле ниже.
+          {% else %}
+          URL OpenAI-совместимого эндпоинта (например, https://api.openai.com/v1/chat/completions).
+          {% endif %}
+        </div>
       </div>
       <div style="margin-bottom: 1rem;">
         <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">API Key</label>
-        <input type="password" name="llm_api_key" value="{{ llm_config.api_key or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="sk-..." data-testid="input-llm-key">
+        <input type="password" name="llm_api_key" id="llm_api_key" value="{{ llm_config.api_key or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="sk-..." data-testid="input-llm-key">
       </div>
       <div style="margin-bottom: 1.5rem;">
         <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Модель</label>
-        <input type="text" name="llm_model" value="{{ llm_config.model or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="gpt-4o-mini" data-testid="input-llm-model">
+        <input type="text" name="llm_model" id="llm_model" value="{{ llm_config.model or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="gpt-4o-mini" data-testid="input-llm-model">
+        <div id="llm_model_help" style="font-size: 0.75rem; color: #94a3b8; margin-top: 3px;">
+          {% if llm_config.provider == 'gemini' %}Например: <code>gemini-1.5-flash</code>, <code>gemini-2.0-flash</code> или <code>gemini-1.5-pro</code>{% else %}Например: <code>gpt-4o-mini</code>, <code>gpt-4o</code>{% endif %}
+        </div>
       </div>
 
       <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 1.5rem 0;">
@@ -186,6 +212,13 @@
       <div style="margin-bottom: 1rem;">
         <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">URL эндпоинта</label>
         <input type="text" name="image_ai_endpoint" id="image_ai_endpoint" value="{{ image_ai_config.endpoint or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="https://api.openai.com/v1/images/edits" data-testid="input-image-ai-endpoint">
+        <div id="image_ai_endpoint_help" style="font-size: 0.75rem; color: #94a3b8; margin-top: 3px;">
+          {% if image_ai_config.provider == 'gemini' %}
+          Базовый адрес API (по умолчанию https://generativelanguage.googleapis.com). Можно оставить пустым — модель указывается в поле ниже.
+          {% else %}
+          URL OpenAI-совместимого эндпоинта (например, https://api.openai.com/v1/images/edits).
+          {% endif %}
+        </div>
       </div>
       <div style="margin-bottom: 1rem;">
         <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">API Key</label>
@@ -194,31 +227,67 @@
       <div style="margin-bottom: 1.5rem;">
         <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Модель</label>
         <input type="text" name="image_ai_model" id="image_ai_model" value="{{ image_ai_config.model or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="dall-e-2" data-testid="input-image-ai-model">
+        <div id="image_ai_model_help" style="font-size: 0.75rem; color: #94a3b8; margin-top: 3px;">
+          {% if image_ai_config.provider == 'gemini' %}Например: <code>imagen-3.0-generate-002</code>{% else %}Например: <code>dall-e-2</code>, <code>dall-e-3</code>{% endif %}
+        </div>
       </div>
 
       <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.65rem;" data-testid="ai-save-btn">Сохранить настройки ИИ</button>
     </form>
 
     <script>
+      function updateLlmFields(provider) {
+        var hint = document.getElementById('llm_hint');
+        var endpoint = document.getElementById('llm_endpoint');
+        var help = document.getElementById('llm_endpoint_help');
+        var key = document.getElementById('llm_api_key');
+        var model = document.getElementById('llm_model');
+        var modelHelp = document.getElementById('llm_model_help');
+        if (provider === 'gemini') {
+          if (hint) hint.innerHTML = 'Официальный REST API Google Gemini (<code>models/{model}:generateContent</code>).';
+          if (endpoint) endpoint.placeholder = 'https://generativelanguage.googleapis.com (или оставьте пустым)';
+          if (help) help.innerText = 'Базовый адрес API (по умолчанию https://generativelanguage.googleapis.com). Можно оставить пустым — модель указывается в поле ниже.';
+          if (key) key.placeholder = 'AIzaSy...';
+          if (model) model.placeholder = 'gemini-1.5-flash';
+          if (modelHelp) modelHelp.innerHTML = 'Например: <code>gemini-1.5-flash</code>, <code>gemini-2.0-flash</code> или <code>gemini-1.5-pro</code>';
+        } else {
+          if (hint) hint.innerHTML = 'OpenAI-совместимый эндпоинт <code>POST /v1/chat/completions</code>.';
+          if (endpoint) endpoint.placeholder = 'https://api.openai.com/v1/chat/completions';
+          if (help) help.innerText = 'URL OpenAI-совместимого эндпоинта (например, https://api.openai.com/v1/chat/completions).';
+          if (key) key.placeholder = 'sk-...';
+          if (model) model.placeholder = 'gpt-4o-mini';
+          if (modelHelp) modelHelp.innerHTML = 'Например: <code>gpt-4o-mini</code>, <code>gpt-4o</code>';
+        }
+      }
+
       function updateImageAiFields(provider) {
         var hint = document.getElementById('image_ai_hint');
         var endpoint = document.getElementById('image_ai_endpoint');
+        var help = document.getElementById('image_ai_endpoint_help');
         var key = document.getElementById('image_ai_api_key');
         var model = document.getElementById('image_ai_model');
+        var modelHelp = document.getElementById('image_ai_model_help');
         if (provider === 'gemini') {
-          if (hint) hint.innerHTML = 'Официальный REST-эндпоинт Google Gemini API (Imagen 3). URL: <code>POST https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=API_KEY</code>';
-          if (endpoint) endpoint.placeholder = 'https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict';
+          if (hint) hint.innerHTML = 'Официальный REST-эндпоинт Google Gemini API (Imagen 3).';
+          if (endpoint) endpoint.placeholder = 'https://generativelanguage.googleapis.com (или оставьте пустым)';
+          if (help) help.innerText = 'Базовый адрес API (по умолчанию https://generativelanguage.googleapis.com). Можно оставить пустым — модель указывается в поле ниже.';
           if (key) key.placeholder = 'AIzaSy...';
           if (model) model.placeholder = 'imagen-3.0-generate-002';
+          if (modelHelp) modelHelp.innerHTML = 'Например: <code>imagen-3.0-generate-002</code>';
         } else {
           if (hint) hint.innerHTML = 'OpenAI-совместимый эндпоинт <code>POST /v1/images/edits</code>.';
           if (endpoint) endpoint.placeholder = 'https://api.openai.com/v1/images/edits';
+          if (help) help.innerText = 'URL OpenAI-совместимого эндпоинта (например, https://api.openai.com/v1/images/edits).';
           if (key) key.placeholder = 'sk-...';
           if (model) model.placeholder = 'dall-e-2';
+          if (modelHelp) modelHelp.innerHTML = 'Например: <code>dall-e-2</code>, <code>dall-e-3</code>';
         }
       }
-      var provElem = document.getElementById('image_ai_provider');
-      if (provElem) updateImageAiFields(provElem.value);
+
+      var llmProv = document.getElementById('llm_provider');
+      if (llmProv) updateLlmFields(llmProv.value);
+      var imgProv = document.getElementById('image_ai_provider');
+      if (imgProv) updateImageAiFields(imgProv.value);
     </script>
 
     <div style="display: flex; gap: 1rem;">

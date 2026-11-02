@@ -209,6 +209,7 @@ async def save_settings_marketplaces(
 @settings_router.post("/ui/settings/ai")
 def save_settings_ai(
     request: Request,
+    llm_provider: str = Form("openai"),
     llm_endpoint: str = Form(""),
     llm_api_key: str = Form(""),
     llm_model: str = Form(""),
@@ -221,6 +222,7 @@ def save_settings_ai(
     """Save Text LLM and Image AI settings (TZ §11 item 3)."""
     settings = load_settings()
     settings["llm"] = {
+        "provider": llm_provider.strip().lower() or "openai",
         "endpoint": llm_endpoint.strip(),
         "api_key": llm_api_key.strip(),
         "model": llm_model.strip(),
@@ -278,14 +280,22 @@ def test_llm_endpoint(auth: bool = Depends(check_auth)) -> RedirectResponse:
     """Test Text LLM connection."""
     settings = load_settings()
     cfg = settings.get("llm", {})
-    endpoint = cfg.get("endpoint")
-    if not endpoint:
-        return RedirectResponse(url="/ui/settings?tab=ai&err=" + quote("URL эндпоинта LLM не задан"), status_code=status.HTTP_303_SEE_OTHER)
-    try:
-        # Simple probe or mock probe
-        return RedirectResponse(url="/ui/settings?tab=ai&notice=llm_test_ok", status_code=status.HTTP_303_SEE_OTHER)
-    except Exception as exc:
-        return RedirectResponse(url="/ui/settings?tab=ai&err=" + quote(str(exc)), status_code=status.HTTP_303_SEE_OTHER)
+    provider = (cfg.get("provider") or "openai").strip().lower()
+    endpoint = (cfg.get("endpoint") or "").strip()
+    api_key = (cfg.get("api_key") or "").strip()
+    if provider == "gemini":
+        if not endpoint and not api_key:
+            return RedirectResponse(
+                url="/ui/settings?tab=ai&err=" + quote("API Key или URL эндпоинта Gemini Text LLM не задан"),
+                status_code=status.HTTP_303_SEE_OTHER,
+            )
+    else:
+        if not endpoint:
+            return RedirectResponse(
+                url="/ui/settings?tab=ai&err=" + quote("URL эндпоинта LLM не задан"),
+                status_code=status.HTTP_303_SEE_OTHER,
+            )
+    return RedirectResponse(url="/ui/settings?tab=ai&notice=llm_test_ok", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @settings_router.post("/ui/settings/test-image-ai")
@@ -344,9 +354,11 @@ def legacy_save_settings_llm(
 ) -> Any:
     return save_settings_ai(
         request=request,
+        llm_provider="openai",
         llm_endpoint=llm_endpoint,
         llm_api_key=llm_api_key,
         llm_model=llm_model,
+        image_ai_provider="openai",
         image_ai_endpoint="",
         image_ai_api_key="",
         image_ai_model="",

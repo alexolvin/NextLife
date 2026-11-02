@@ -149,21 +149,23 @@ def test_settings_gemini_save_and_ui(tmp_path: Path, monkeypatch: pytest.MonkeyP
     monkeypatch.setattr("nextlife.services.llm_filter.get_data_dir", lambda: tmp_path)
 
     from nextlife.api.routes import check_auth
+    from nextlife.services.llm_filter import call_llm, is_llm_configured
 
     app = create_app()
     app.dependency_overrides[check_auth] = lambda: True
     client = TestClient(app)
 
-    # Save settings with Gemini provider
+    # Save settings with Gemini provider for both Text LLM and Image AI
     resp = client.post(
         "/ui/settings/ai",
         data={
-            "llm_endpoint": "https://api.openai.com/v1",
-            "llm_api_key": "sk-test",
-            "llm_model": "gpt-4o-mini",
+            "llm_provider": "gemini",
+            "llm_endpoint": "",
+            "llm_api_key": "AIzaSyLlmKey",
+            "llm_model": "gemini-1.5-flash",
             "image_ai_provider": "gemini",
-            "image_ai_endpoint": "https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict",
-            "image_ai_api_key": "AIzaSyRealKey",
+            "image_ai_endpoint": "",
+            "image_ai_api_key": "AIzaSyImageKey",
             "image_ai_model": "imagen-3.0-generate-002",
         },
         follow_redirects=False,
@@ -174,18 +176,64 @@ def test_settings_gemini_save_and_ui(tmp_path: Path, monkeypatch: pytest.MonkeyP
     # Verify settings persisted
     settings_file = tmp_path / "settings.json"
     saved = json.loads(settings_file.read_text(encoding="utf-8"))
+    assert saved["llm"]["provider"] == "gemini"
+    assert saved["llm"]["api_key"] == "AIzaSyLlmKey"
+    assert saved["llm"]["model"] == "gemini-1.5-flash"
     assert saved["image_ai"]["provider"] == "gemini"
-    assert saved["image_ai"]["api_key"] == "AIzaSyRealKey"
+    assert saved["image_ai"]["api_key"] == "AIzaSyImageKey"
     assert saved["image_ai"]["model"] == "imagen-3.0-generate-002"
 
-    # Test connection button
-    test_resp = client.post("/ui/settings/test-image-ai", follow_redirects=False)
-    assert test_resp.status_code == 303
-    assert "notice=image_ai_test_ok" in test_resp.headers["location"]
+    assert is_llm_configured(saved["llm"])
 
-    # Verify UI page renders with Gemini selected and controls present
+    # Test connection buttons for both
+    test_llm_resp = client.post("/ui/settings/test-llm", follow_redirects=False)
+    assert test_llm_resp.status_code == 303
+    assert "notice=llm_test_ok" in test_llm_resp.headers["location"]
+
+    test_img_resp = client.post("/ui/settings/test-image-ai", follow_redirects=False)
+    assert test_img_resp.status_code == 303
+    assert "notice=image_ai_test_ok" in test_img_resp.headers["location"]
+
+    # Verify UI page renders with both Gemini selected and controls present
     get_resp = client.get("/ui/settings?tab=ai")
     assert get_resp.status_code == 200
-    assert 'value="gemini" selected' in get_resp.text
+    assert 'data-testid="select-llm-provider"' in get_resp.text
     assert 'data-testid="select-image-ai-provider"' in get_resp.text
-    assert 'AIzaSyRealKey' in get_resp.text
+    assert 'AIzaSyLlmKey' in get_resp.text
+    assert 'AIzaSyImageKey' in get_resp.text
+
+
+def test_gemini_text_llm_call_mocked():
+    from nextlife.services.llm_filter import call_llm
+
+    fake_resp_data = {
+        "candidates": [
+            {
+                "content": {
+                    "parts": [{"text": '{"categories": ["GPU"], "assignments": ["GPU"]}'}]
+                }
+            }
+        ]
+    }
+    fake_body = json.dumps(fake_resp_data).encode("utf-8")
+
+    mock_resp = MagicMock()
+    mock_resp.read.return_value = fake_body
+    mock_resp.__enter__.return_value = mock_resp
+
+    with patch("urllib.request.urlopen", return_value=mock_resp) as mock_urlopen:
+        res = call_llm(
+            endpoint="",
+            api_key="AIzaSySecretLlm",
+            model="gemini-1.5-flash",
+            prompt="Classify this",
+            provider="gemini",
+        )
+        assert res == '{"categories": ["GPU"], "assignments": ["GPU"]}'
+        mock_urlopen.assert_called_once()
+        req = mock_urlopen.call_args[0][0]
+        assert "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSySecretLlm" == req.full_url
+        assert req.get_header("Content-type") == "application/json"
+        assert req.get_header("X-goog-api-key") == "AIzaSySecretLlm"
+        body_obj = json.loads(req.data.decode("utf-8"))
+        assert body_obj["contents"][0]["parts"][0]["text"] == "Classify this"
