@@ -22,14 +22,14 @@
   --c-text-faint:    #9ca3af;
 
   /* Палитра — акцент */
-  --c-accent:        #6e4114;
-  --c-accent-hov:    #52300e;
-  --c-accent-light:  #fefce8;
-  --c-accent-ring:   #fef08a;
+  --c-accent:        #0a3d7a;
+  --c-accent-hov:    #072c5a;
+  --c-accent-light:  #eff6ff;
+  --c-accent-ring:   #bfdbfe;
 
   /* Палитра — header */
-  --c-header:        #6e4114;
-  --c-header-2:      #52300e;
+  --c-header:        #0a3d7a;
+  --c-header-2:      #072c5a;
 
   /* Палитра — успех */
   --c-success:       #10b981;
@@ -71,7 +71,7 @@
   /* Тени */
   --shadow-sm:       0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow:          0 2px 8px -2px rgba(0, 0, 0, 0.08);
-  --shadow-md:       0 4px 12px rgba(110, 65, 20, 0.1);
+  --shadow-md:       0 4px 12px rgba(10, 61, 122, 0.1);
   --shadow-lg:       0 4px 24px rgba(0, 0, 0, 0.12);
 
   /* Отступы */
@@ -470,7 +470,7 @@ code {
 .wz-select:focus {
   outline: none;
   border-color: var(--c-accent);
-  box-shadow: 0 0 0 3px rgba(110, 65, 20, 0.1);
+  box-shadow: 0 0 0 3px rgba(10, 61, 122, 0.1);
 }
 
 textarea.input-text,
@@ -1926,7 +1926,7 @@ select.input-text {
   max-width: 380px;
   height: 100%;
   background: #fff;
-  box-shadow: -4px 0 16px rgba(110, 65, 20, 0.1);
+  box-shadow: -4px 0 16px rgba(10, 61, 122, 0.1);
   display: flex;
   flex-direction: column;
 }
@@ -1954,6 +1954,14 @@ select.input-text {
 /* ------------------------------------------------------------------
    Stepper Bar & Mobile Navigation (§5.1)
    ------------------------------------------------------------------ */
+.stepper-bar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+}
 .stepper-bar::-webkit-scrollbar {
   display: none;
 }
@@ -1963,20 +1971,18 @@ select.input-text {
   justify-content: center;
   text-align: center;
   white-space: nowrap;
-  min-height: 44px;
-  min-width: 96px;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 6px 12px;
+  border-radius: 16px;
   text-decoration: none;
-  font-size: 0.92rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 500;
   flex-shrink: 0;
   scroll-snap-align: center;
   transition: all 0.15s ease;
-  background: #ffffff;
+  background: #f1f5f9;
   color: #334155;
-  border: 1px solid #cbd5e1;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: none;
+  box-shadow: none;
   cursor: pointer;
   box-sizing: border-box;
   touch-action: manipulation;
@@ -1984,20 +1990,18 @@ select.input-text {
   user-select: none;
 }
 .stepper-pill:hover {
-  background: #f8fafc;
+  background: #e2e8f0;
   color: #0f172a;
-  border-color: #94a3b8;
 }
 .stepper-pill:active {
   transform: scale(0.97);
 }
 .stepper-pill.active,
 .stepper-pill.is-active {
-  background: var(--c-accent, #801432) !important;
+  background: #2563eb !important;
   color: #ffffff !important;
-  border-color: var(--c-accent, #801432) !important;
-  box-shadow: 0 2px 6px rgba(128, 20, 50, 0.3) !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
 }
 .stepper-nav-bar button {
   font-size: 0.92rem;
@@ -2017,11 +2021,9 @@ select.input-text {
     font-size: 0.88rem !important;
   }
   .stepper-pill {
-    min-height: 42px;
-    min-width: 88px;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 0.88rem;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.85rem;
   }
 }
 
