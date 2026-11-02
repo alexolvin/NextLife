@@ -70,6 +70,12 @@ def get_image_ai_config() -> dict[str, str]:
     if not isinstance(img_cfg, dict):
         img_cfg = {}
 
+    provider = (
+        img_cfg.get("provider")
+        or os.environ.get("NEXTLIFE_IMAGE_AI_PROVIDER")
+        or "openai"
+    ).strip().lower()
+
     endpoint = (
         img_cfg.get("endpoint")
         or img_cfg.get("url")
@@ -84,13 +90,15 @@ def get_image_ai_config() -> dict[str, str]:
         or ""
     ).strip()
 
+    default_model = "imagen-3.0-generate-002" if provider == "gemini" else "dall-e-2"
     model = (
         img_cfg.get("model")
         or os.environ.get("NEXTLIFE_IMAGE_AI_MODEL")
-        or "dall-e-2"
+        or default_model
     ).strip()
 
     return {
+        "provider": provider,
         "endpoint": endpoint,
         "api_key": api_key,
         "model": model,
@@ -99,6 +107,9 @@ def get_image_ai_config() -> dict[str, str]:
 
 def is_image_ai_configured() -> bool:
     cfg = get_image_ai_config()
+    provider = cfg.get("provider", "openai")
+    if provider == "gemini":
+        return bool(cfg.get("endpoint") or cfg.get("api_key"))
     return bool(cfg.get("endpoint"))
 
 
@@ -110,13 +121,76 @@ def _compute_sha256(file_path: Path) -> str:
     return h.hexdigest()
 
 
+def _call_gemini_imagen(prompt: str, cfg: dict[str, str]) -> bytes:
+    """Call Google Gemini Imagen 3 REST API endpoint."""
+    endpoint = (cfg.get("endpoint") or "").strip()
+    api_key = (cfg.get("api_key") or "").strip()
+    model = (cfg.get("model") or "imagen-3.0-generate-002").strip()
+
+    if not endpoint and not api_key:
+        raise ImageAINotConfiguredError("Image AI EndPoint или API Key не настроен. Настройте Image AI в Настройках.")
+
+    if endpoint:
+        base = endpoint.rstrip("/")
+        url = endpoint if ":predict" in endpoint else (f"{base}/v1beta/models/{model}:predict" if "/models/" not in base else f"{base}:predict")
+    else:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:predict"
+
+    if api_key and "key=" not in url:
+        url = f"{url}{'&' if '?' in url else '?'}key={api_key}"
+
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["x-goog-api-key"] = api_key
+
+    payload = {
+        "instances": [{"prompt": prompt}],
+        "parameters": {
+            "sampleCount": 1,
+            "aspectRatio": "1:1",
+            "outputOptions": {"mimeType": "image/jpeg"},
+            "personGeneration": "ALLOW_ADULT",
+            "safetySetting": "BLOCK_MEDIUM_AND_ABOVE",
+        },
+    }
+
+    try:
+        response = httpx.post(url, headers=headers, json=payload, timeout=60.0)
+    except Exception as exc:
+        log.error("Image AI Gemini request failed: %s", exc)
+        raise ImageAIError(f"Ошибка соединения с Image AI (Gemini): {exc}") from exc
+
+    if response.status_code != 200:
+        err_msg = response.text[:300]
+        log.error("Image AI Gemini returned status %s: %s", response.status_code, err_msg)
+        raise ImageAIError(f"Image AI (Gemini) вернул ошибку {response.status_code}: {err_msg}")
+
+    try:
+        res_json = response.json()
+        predictions = res_json.get("predictions", [])
+        if not predictions or not isinstance(predictions, list):
+            raise ValueError("Поле 'predictions' отсутствует в ответе Image AI (Gemini)")
+        b64_str = predictions[0].get("bytesBase64Encoded") or predictions[0].get("b64_json")
+        if not b64_str:
+            raise ValueError("bytesBase64Encoded не найден в ответе Image AI (Gemini)")
+        return base64.b64decode(b64_str)
+    except Exception as exc:
+        log.error("Failed to parse Gemini Image AI response: %s", exc)
+        raise ImageAIError(f"Не удалось обработать ответ Image AI (Gemini): {exc}") from exc
+
+
 def call_image_ai_edits(
     image_bytes: bytes,
     prompt: str,
     config: dict[str, str] | None = None,
 ) -> bytes:
-    """Call OpenAI-compatible POST /v1/images/edits endpoint."""
+    """Call generative Image AI endpoint (OpenAI or Google Gemini)."""
     cfg = config or get_image_ai_config()
+    provider = (cfg.get("provider") or "openai").strip().lower()
+
+    if provider == "gemini":
+        return _call_gemini_imagen(prompt=prompt, cfg=cfg)
+
     endpoint = cfg.get("endpoint", "")
     api_key = cfg.get("api_key", "")
     model = cfg.get("model", "dall-e-2")
@@ -131,20 +205,9 @@ def call_image_ai_edits(
             url = f"{url}/v1"
         url = f"{url}/images/edits"
 
-    headers = {}
-    if api_key:
-        headers["Authorization"] = f"Bearer {api_key}"
-
-    # Prepare multipart form
-    files = {
-        "image": ("image.png", image_bytes, "image/png"),
-    }
-    data = {
-        "prompt": prompt,
-        "model": model,
-        "response_format": "b64_json",
-        "n": 1,
-    }
+    headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+    files = {"image": ("image.png", image_bytes, "image/png")}
+    data = {"prompt": prompt, "model": model, "response_format": "b64_json", "n": 1}
 
     try:
         response = httpx.post(url, headers=headers, data=data, files=files, timeout=60.0)
@@ -192,6 +255,7 @@ def _save_derived_ai_photo(
         width, height = rgb_img.size
 
     sha = _compute_sha256(dest_path)
+    transform = [{"step": step_name, "prompt": prompt, "parent_id": parent_photo.id, "resulting_size": [width, height]}]
     new_photo = ItemPhoto(
         id=str(uuid.uuid4()),
         item_code=parent_photo.item_code,
@@ -202,14 +266,7 @@ def _save_derived_ai_photo(
         height=height,
         derived_from_id=parent_photo.id,
         ai_generated=True,
-        transform_log=[
-            {
-                "step": step_name,
-                "prompt": prompt,
-                "parent_id": parent_photo.id,
-                "resulting_size": [width, height],
-            }
-        ],
+        transform_log=transform,
     )
     session.add(new_photo)
 
@@ -233,11 +290,12 @@ def _save_derived_ai_photo(
     return new_photo
 
 
-def ai_remove_dust(
+def _run_ai_filter(
     photo_id: str,
+    prompt: str,
+    step_name: str,
     session: Session | None = None,
 ) -> ItemPhoto:
-    """Apply generative AI dust removal to photo, saving as new version."""
     def _run(s: Session) -> ItemPhoto:
         photo = s.get(ItemPhoto, photo_id)
         if not photo:
@@ -247,7 +305,6 @@ def ai_remove_dust(
         if not src_path.exists():
             raise FileNotFoundError(f"Файл фото {photo.path} не существует")
 
-        # Prepare PNG bytes for OpenAI API
         with Image.open(src_path) as img:
             buf = io.BytesIO()
             img.convert("RGBA").save(buf, format="PNG")
@@ -255,15 +312,15 @@ def ai_remove_dust(
 
         edited_bytes = call_image_ai_edits(
             image_bytes=png_bytes,
-            prompt=PROMPT_REMOVE_DUST,
+            prompt=prompt,
         )
 
         return _save_derived_ai_photo(
             session=s,
             parent_photo=photo,
             generated_png_bytes=edited_bytes,
-            step_name="ai_remove_dust",
-            prompt=PROMPT_REMOVE_DUST,
+            step_name=step_name,
+            prompt=prompt,
         )
 
     if session is not None:
@@ -273,6 +330,14 @@ def ai_remove_dust(
         s.commit()
         s.refresh(res)
         return res
+
+
+def ai_remove_dust(
+    photo_id: str,
+    session: Session | None = None,
+) -> ItemPhoto:
+    """Apply generative AI dust removal to photo, saving as new version."""
+    return _run_ai_filter(photo_id, PROMPT_REMOVE_DUST, "ai_remove_dust", session)
 
 
 def ai_selling_image(
@@ -280,40 +345,7 @@ def ai_selling_image(
     session: Session | None = None,
 ) -> ItemPhoto:
     """Apply generative AI clean background with soft shadow, saving as new version."""
-    def _run(s: Session) -> ItemPhoto:
-        photo = s.get(ItemPhoto, photo_id)
-        if not photo:
-            raise ValueError(f"Фото {photo_id} не найдено")
-
-        src_path = Path(photo.path)
-        if not src_path.exists():
-            raise FileNotFoundError(f"Файл фото {photo.path} не существует")
-
-        with Image.open(src_path) as img:
-            buf = io.BytesIO()
-            img.convert("RGBA").save(buf, format="PNG")
-            png_bytes = buf.getvalue()
-
-        edited_bytes = call_image_ai_edits(
-            image_bytes=png_bytes,
-            prompt=PROMPT_SELLING_IMAGE,
-        )
-
-        return _save_derived_ai_photo(
-            session=s,
-            parent_photo=photo,
-            generated_png_bytes=edited_bytes,
-            step_name="ai_selling_image",
-            prompt=PROMPT_SELLING_IMAGE,
-        )
-
-    if session is not None:
-        return _run(session)
-    with get_db_session() as s:
-        res = _run(s)
-        s.commit()
-        s.refresh(res)
-        return res
+    return _run_ai_filter(photo_id, PROMPT_SELLING_IMAGE, "ai_selling_image", session)
 
 
 def undo_photo(session: Session, photo_id: str) -> ItemPhoto | None:

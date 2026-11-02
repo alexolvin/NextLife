@@ -212,6 +212,7 @@ def save_settings_ai(
     llm_endpoint: str = Form(""),
     llm_api_key: str = Form(""),
     llm_model: str = Form(""),
+    image_ai_provider: str = Form("openai"),
     image_ai_endpoint: str = Form(""),
     image_ai_api_key: str = Form(""),
     image_ai_model: str = Form(""),
@@ -225,6 +226,7 @@ def save_settings_ai(
         "model": llm_model.strip(),
     }
     settings["image_ai"] = {
+        "provider": image_ai_provider.strip().lower() or "openai",
         "endpoint": image_ai_endpoint.strip(),
         "api_key": image_ai_api_key.strip(),
         "model": image_ai_model.strip(),
@@ -291,9 +293,21 @@ def test_image_ai_endpoint(auth: bool = Depends(check_auth)) -> RedirectResponse
     """Test Image AI connection."""
     settings = load_settings()
     cfg = settings.get("image_ai", {})
+    provider = (cfg.get("provider") or "openai").strip().lower()
     endpoint = cfg.get("endpoint")
-    if not endpoint:
-        return RedirectResponse(url="/ui/settings?tab=ai&err=" + quote("URL эндпоинта Image AI не задан"), status_code=status.HTTP_303_SEE_OTHER)
+    api_key = cfg.get("api_key")
+    if provider == "gemini":
+        if not endpoint and not api_key:
+            return RedirectResponse(
+                url="/ui/settings?tab=ai&err=" + quote("API Key или URL эндпоинта Gemini Image AI не задан"),
+                status_code=status.HTTP_303_SEE_OTHER,
+            )
+    else:
+        if not endpoint:
+            return RedirectResponse(
+                url="/ui/settings?tab=ai&err=" + quote("URL эндпоинта Image AI не задан"),
+                status_code=status.HTTP_303_SEE_OTHER,
+            )
     return RedirectResponse(url="/ui/settings?tab=ai&notice=image_ai_test_ok", status_code=status.HTTP_303_SEE_OTHER)
 
 

@@ -22,14 +22,14 @@
   --c-text-faint:    #9ca3af;
 
   /* Палитра — акцент */
-  --c-accent:        #0c5a6e;
-  --c-accent-hov:    #084252;
-  --c-accent-light:  #f0fdfa;
-  --c-accent-ring:   #99f6e4;
+  --c-accent:        #6e4114;
+  --c-accent-hov:    #52300e;
+  --c-accent-light:  #fefce8;
+  --c-accent-ring:   #fef08a;
 
   /* Палитра — header */
-  --c-header:        #0c5a6e;
-  --c-header-2:      #084252;
+  --c-header:        #6e4114;
+  --c-header-2:      #52300e;
 
   /* Палитра — успех */
   --c-success:       #10b981;
@@ -71,7 +71,7 @@
   /* Тени */
   --shadow-sm:       0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow:          0 2px 8px -2px rgba(0, 0, 0, 0.08);
-  --shadow-md:       0 4px 12px rgba(12, 90, 110, 0.1);
+  --shadow-md:       0 4px 12px rgba(110, 65, 20, 0.1);
   --shadow-lg:       0 4px 24px rgba(0, 0, 0, 0.12);
 
   /* Отступы */
@@ -470,7 +470,7 @@ code {
 .wz-select:focus {
   outline: none;
   border-color: var(--c-accent);
-  box-shadow: 0 0 0 3px rgba(12, 90, 110, 0.1);
+  box-shadow: 0 0 0 3px rgba(110, 65, 20, 0.1);
 }
 
 textarea.input-text,
@@ -1926,7 +1926,7 @@ select.input-text {
   max-width: 380px;
   height: 100%;
   background: #fff;
-  box-shadow: -4px 0 16px rgba(12, 90, 110, 0.1);
+  box-shadow: -4px 0 16px rgba(110, 65, 20, 0.1);
   display: flex;
   flex-direction: column;
 }

@@ -166,23 +166,60 @@
 
       <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 1.5rem 0;">
 
-      <h2 style="font-size: 1.15rem; font-weight: 600; margin-top: 0; margin-bottom: 1rem;">Графический ИИ (Image AI)</h2>
-      <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">OpenAI-совместимый эндпоинт <code>POST /v1/images/edits</code>.</p>
+      <h2 style="font-size: 1.15rem; font-weight: 600; margin-top: 0; margin-bottom: 0.5rem;">Графический ИИ (Image AI)</h2>
+      <p id="image_ai_hint" style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
+        {% if image_ai_config.provider == 'gemini' %}
+        Официальный REST-эндпоинт Google Gemini API (Imagen 3).
+        {% else %}
+        OpenAI-совместимый эндпоинт <code>POST /v1/images/edits</code>.
+        {% endif %}
+      </p>
+
+      <div style="margin-bottom: 1rem;">
+        <label for="image_ai_provider" style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Тип эндпоинта (Provider)</label>
+        <select name="image_ai_provider" id="image_ai_provider" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; background-color: #fff;" data-testid="select-image-ai-provider" onchange="updateImageAiFields(this.value)">
+          <option value="openai" {% if (image_ai_config.provider or 'openai') == 'openai' %}selected{% endif %}>OpenAI совместимый (POST /v1/images/edits)</option>
+          <option value="gemini" {% if image_ai_config.provider == 'gemini' %}selected{% endif %}>Google Gemini (Imagen 3 REST API)</option>
+        </select>
+      </div>
+
       <div style="margin-bottom: 1rem;">
         <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">URL эндпоинта</label>
-        <input type="text" name="image_ai_endpoint" value="{{ image_ai_config.endpoint or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="https://api.openai.com/v1/images/edits" data-testid="input-image-ai-endpoint">
+        <input type="text" name="image_ai_endpoint" id="image_ai_endpoint" value="{{ image_ai_config.endpoint or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="https://api.openai.com/v1/images/edits" data-testid="input-image-ai-endpoint">
       </div>
       <div style="margin-bottom: 1rem;">
         <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">API Key</label>
-        <input type="password" name="image_ai_api_key" value="{{ image_ai_config.api_key or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="sk-..." data-testid="input-image-ai-key">
+        <input type="password" name="image_ai_api_key" id="image_ai_api_key" value="{{ image_ai_config.api_key or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="sk-..." data-testid="input-image-ai-key">
       </div>
       <div style="margin-bottom: 1.5rem;">
         <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Модель</label>
-        <input type="text" name="image_ai_model" value="{{ image_ai_config.model or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="dall-e-2" data-testid="input-image-ai-model">
+        <input type="text" name="image_ai_model" id="image_ai_model" value="{{ image_ai_config.model or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="dall-e-2" data-testid="input-image-ai-model">
       </div>
 
       <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.65rem;" data-testid="ai-save-btn">Сохранить настройки ИИ</button>
     </form>
+
+    <script>
+      function updateImageAiFields(provider) {
+        var hint = document.getElementById('image_ai_hint');
+        var endpoint = document.getElementById('image_ai_endpoint');
+        var key = document.getElementById('image_ai_api_key');
+        var model = document.getElementById('image_ai_model');
+        if (provider === 'gemini') {
+          if (hint) hint.innerHTML = 'Официальный REST-эндпоинт Google Gemini API (Imagen 3). URL: <code>POST https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=API_KEY</code>';
+          if (endpoint) endpoint.placeholder = 'https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict';
+          if (key) key.placeholder = 'AIzaSy...';
+          if (model) model.placeholder = 'imagen-3.0-generate-002';
+        } else {
+          if (hint) hint.innerHTML = 'OpenAI-совместимый эндпоинт <code>POST /v1/images/edits</code>.';
+          if (endpoint) endpoint.placeholder = 'https://api.openai.com/v1/images/edits';
+          if (key) key.placeholder = 'sk-...';
+          if (model) model.placeholder = 'dall-e-2';
+        }
+      }
+      var provElem = document.getElementById('image_ai_provider');
+      if (provElem) updateImageAiFields(provElem.value);
+    </script>
 
     <div style="display: flex; gap: 1rem;">
       <form method="POST" action="/ui/settings/test-llm" style="flex: 1;">
