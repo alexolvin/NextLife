@@ -195,7 +195,7 @@
       <h2 style="font-size: 1.15rem; font-weight: 600; margin-top: 0; margin-bottom: 0.5rem;">Графический ИИ (Image AI)</h2>
       <p id="image_ai_hint" style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
         {% if image_ai_config.provider == 'gemini' %}
-        Официальный REST-эндпоинт Google Gemini API (Imagen 3).
+        Официальный REST API Google Gemini (поддержка моделей gemini-2.5-flash-image и Imagen 3).
         {% else %}
         OpenAI-совместимый эндпоинт <code>POST /v1/images/edits</code>.
         {% endif %}
@@ -205,7 +205,7 @@
         <label for="image_ai_provider" style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Тип эндпоинта (Provider)</label>
         <select name="image_ai_provider" id="image_ai_provider" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; background-color: #fff;" data-testid="select-image-ai-provider" onchange="updateImageAiFields(this.value)">
           <option value="openai" {% if (image_ai_config.provider or 'openai') == 'openai' %}selected{% endif %}>OpenAI совместимый (POST /v1/images/edits)</option>
-          <option value="gemini" {% if image_ai_config.provider == 'gemini' %}selected{% endif %}>Google Gemini (Imagen 3 REST API)</option>
+          <option value="gemini" {% if image_ai_config.provider == 'gemini' %}selected{% endif %}>Google Gemini (gemini-2.5-flash-image / Imagen 3)</option>
         </select>
       </div>
 
@@ -226,9 +226,9 @@
       </div>
       <div style="margin-bottom: 1.5rem;">
         <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Модель</label>
-        <input type="text" name="image_ai_model" id="image_ai_model" value="{{ image_ai_config.model or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="dall-e-2" data-testid="input-image-ai-model">
+        <input type="text" name="image_ai_model" id="image_ai_model" value="{{ image_ai_config.model or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="gemini-2.5-flash-image" data-testid="input-image-ai-model">
         <div id="image_ai_model_help" style="font-size: 0.75rem; color: #94a3b8; margin-top: 3px;">
-          {% if image_ai_config.provider == 'gemini' %}Например: <code>imagen-3.0-generate-002</code>{% else %}Например: <code>dall-e-2</code>, <code>dall-e-3</code>{% endif %}
+          {% if image_ai_config.provider == 'gemini' %}Рекомендуется для Google AI Studio: <code>gemini-2.5-flash-image</code> или <code>gemini-3.1-flash-image</code>. (Для <code>imagen-3.0-generate-002</code> требуется привязка платёжного аккаунта GCP).{% else %}Например: <code>dall-e-2</code>, <code>dall-e-3</code>{% endif %}
         </div>
       </div>
 
@@ -268,12 +268,12 @@
         var model = document.getElementById('image_ai_model');
         var modelHelp = document.getElementById('image_ai_model_help');
         if (provider === 'gemini') {
-          if (hint) hint.innerHTML = 'Официальный REST-эндпоинт Google Gemini API (Imagen 3).';
+          if (hint) hint.innerHTML = 'Официальный REST API Google Gemini (поддержка моделей <code>gemini-2.5-flash-image</code> и Imagen 3).';
           if (endpoint) endpoint.placeholder = 'https://generativelanguage.googleapis.com (или оставьте пустым)';
           if (help) help.innerText = 'Базовый адрес API (по умолчанию https://generativelanguage.googleapis.com). Можно оставить пустым — модель указывается в поле ниже.';
           if (key) key.placeholder = 'AIzaSy...';
-          if (model) model.placeholder = 'imagen-3.0-generate-002';
-          if (modelHelp) modelHelp.innerHTML = 'Например: <code>imagen-3.0-generate-002</code>';
+          if (model) model.placeholder = 'gemini-2.5-flash-image';
+          if (modelHelp) modelHelp.innerHTML = 'Рекомендуется для Google AI Studio: <code>gemini-2.5-flash-image</code> или <code>gemini-3.1-flash-image</code>. (Для <code>imagen-3.0-generate-002</code> требуется биллинг GCP).';
         } else {
           if (hint) hint.innerHTML = 'OpenAI-совместимый эндпоинт <code>POST /v1/images/edits</code>.';
           if (endpoint) endpoint.placeholder = 'https://api.openai.com/v1/images/edits';

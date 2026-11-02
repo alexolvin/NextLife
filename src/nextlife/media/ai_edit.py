@@ -65,44 +65,15 @@ def load_settings() -> dict[str, Any]:
 
 def get_image_ai_config() -> dict[str, str]:
     """Return Image AI configuration from settings or environment variables."""
-    settings = load_settings()
-    img_cfg = settings.get("image_ai", {})
-    if not isinstance(img_cfg, dict):
-        img_cfg = {}
-
-    provider = (
-        img_cfg.get("provider")
-        or os.environ.get("NEXTLIFE_IMAGE_AI_PROVIDER")
-        or "openai"
-    ).strip().lower()
-
-    endpoint = (
-        img_cfg.get("endpoint")
-        or img_cfg.get("url")
-        or os.environ.get("NEXTLIFE_IMAGE_AI_ENDPOINT")
-        or ""
-    ).strip()
-
-    api_key = (
-        img_cfg.get("api_key")
-        or img_cfg.get("key")
-        or os.environ.get("NEXTLIFE_IMAGE_AI_KEY")
-        or ""
-    ).strip()
-
-    default_model = "imagen-3.0-generate-002" if provider == "gemini" else "dall-e-2"
-    model = (
-        img_cfg.get("model")
-        or os.environ.get("NEXTLIFE_IMAGE_AI_MODEL")
-        or default_model
-    ).strip()
-
-    return {
-        "provider": provider,
-        "endpoint": endpoint,
-        "api_key": api_key,
-        "model": model,
-    }
+    cfg = load_settings().get("image_ai", {})
+    if not isinstance(cfg, dict):
+        cfg = {}
+    provider = (cfg.get("provider") or os.environ.get("NEXTLIFE_IMAGE_AI_PROVIDER") or "openai").strip().lower()
+    endpoint = (cfg.get("endpoint") or cfg.get("url") or os.environ.get("NEXTLIFE_IMAGE_AI_ENDPOINT") or "").strip()
+    api_key = (cfg.get("api_key") or cfg.get("key") or os.environ.get("NEXTLIFE_IMAGE_AI_KEY") or "").strip()
+    default_model = "gemini-2.5-flash-image" if provider == "gemini" else "dall-e-2"
+    model = (cfg.get("model") or os.environ.get("NEXTLIFE_IMAGE_AI_MODEL") or default_model).strip()
+    return {"provider": provider, "endpoint": endpoint, "api_key": api_key, "model": model}
 
 
 def is_image_ai_configured() -> bool:
@@ -121,62 +92,90 @@ def _compute_sha256(file_path: Path) -> str:
     return h.hexdigest()
 
 
-def _call_gemini_imagen(prompt: str, cfg: dict[str, str]) -> bytes:
-    """Call Google Gemini Imagen 3 REST API endpoint."""
+def _call_gemini_predict(target_model: str, prompt: str, base_url: str, api_key: str, endpoint: str) -> bytes:
+    """Call Google Gemini Imagen predict endpoint."""
+    u = endpoint if (endpoint and ":predict" in endpoint) else f"{base_url}/v1beta/models/{target_model}:predict"
+    if api_key and "key=" not in u:
+        u = f"{u}{'&' if '?' in u else '?'}key={api_key}"
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["x-goog-api-key"] = api_key
+    payload = {
+        "instances": [{"prompt": prompt}],
+        "parameters": {"sampleCount": 1, "aspectRatio": "1:1", "outputOptions": {"mimeType": "image/jpeg"}, "personGeneration": "ALLOW_ADULT", "safetySetting": "BLOCK_MEDIUM_AND_ABOVE"},
+    }
+    resp = httpx.post(u, headers=headers, json=payload, timeout=60.0)
+    if resp.status_code != 200:
+        raise ImageAIError(f"Image AI (Gemini) вернул ошибку {resp.status_code}: {resp.text[:300]}")
+    preds = resp.json().get("predictions", [])
+    b64_str = (preds[0].get("bytesBase64Encoded") or preds[0].get("b64_json")) if preds and isinstance(preds, list) else None
+    if b64_str:
+        return base64.b64decode(b64_str)
+    raise ValueError("bytesBase64Encoded не найден в ответе Image AI (Gemini)")
+
+
+def _call_gemini_content(target_model: str, prompt: str, image_bytes: bytes, base_url: str, api_key: str, endpoint: str) -> bytes:
+    """Call Google Gemini native generateContent multimodal image endpoint."""
+    u = endpoint if (endpoint and ":generateContent" in endpoint) else f"{base_url}/v1beta/models/{target_model}:generateContent"
+    if api_key and "key=" not in u:
+        u = f"{u}{'&' if '?' in u else '?'}key={api_key}"
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["x-goog-api-key"] = api_key
+    parts: list[dict[str, Any]] = []
+    if image_bytes:
+        parts.append({"inlineData": {"mimeType": "image/png", "data": base64.b64encode(image_bytes).decode("ascii")}})
+    parts.append({"text": prompt})
+    payload = {"contents": [{"parts": parts}], "generationConfig": {"responseModalities": ["IMAGE", "TEXT"]}}
+    resp = httpx.post(u, headers=headers, json=payload, timeout=60.0)
+    if resp.status_code != 200:
+        raise ImageAIError(f"Image AI (Gemini) вернул ошибку {resp.status_code}: {resp.text[:300]}")
+    for cand in resp.json().get("candidates", []):
+        for part in cand.get("content", {}).get("parts", []):
+            inline = part.get("inlineData") or part.get("inline_data")
+            if inline and inline.get("data"):
+                return base64.b64decode(inline["data"])
+    raise ValueError("Изображение не найдено в ответе Image AI (Gemini)")
+
+
+def _call_gemini_image(prompt: str, image_bytes: bytes, cfg: dict[str, str]) -> bytes:
+    """Route Gemini Image AI request (predict for Imagen or generateContent for Gemini)."""
     endpoint = (cfg.get("endpoint") or "").strip()
     api_key = (cfg.get("api_key") or "").strip()
-    model = (cfg.get("model") or "imagen-3.0-generate-002").strip()
+    model = (cfg.get("model") or "gemini-2.5-flash-image").strip()
 
     if not endpoint and not api_key:
         raise ImageAINotConfiguredError("Image AI EndPoint или API Key не настроен. Настройте Image AI в Настройках.")
 
-    if endpoint:
-        base = endpoint.rstrip("/")
-        url = endpoint if ":predict" in endpoint else (f"{base}/v1beta/models/{model}:predict" if "/models/" not in base else f"{base}:predict")
-    else:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:predict"
+    base_url = endpoint.rstrip("/") if endpoint else "https://generativelanguage.googleapis.com"
+    if "/v1beta/models" in base_url:
+        base_url = base_url.split("/v1beta/models")[0]
 
-    if api_key and "key=" not in url:
-        url = f"{url}{'&' if '?' in url else '?'}key={api_key}"
+    # If specifically Imagen or :predict in endpoint
+    if ":predict" in endpoint or model.startswith("imagen-"):
+        try:
+            return _call_gemini_predict(model, prompt, base_url, api_key, endpoint)
+        except Exception as exc:
+            err_msg = str(exc)
+            if "404" in err_msg or "not supported" in err_msg:
+                log.warning("Imagen predict 404 for %s, falling back to Gemini generateContent", model)
+                try:
+                    return _call_gemini_content("gemini-2.5-flash-image", prompt, image_bytes, base_url, api_key, "")
+                except Exception:
+                    pass
+                raise ImageAIError(
+                    f"Image AI (Gemini) вернул ошибку 404: модель '{model}' не найдена или не поддерживает метод predict. "
+                    "В Google AI Studio для генерации и редактирования изображений укажите 'gemini-2.5-flash-image' "
+                    "в Настройках Image AI (или подключите платёжный аккаунт GCP для Imagen 3)."
+                ) from exc
+            raise
 
-    headers = {"Content-Type": "application/json"}
-    if api_key:
-        headers["x-goog-api-key"] = api_key
+    return _call_gemini_content(model, prompt, image_bytes, base_url, api_key, endpoint)
 
-    payload = {
-        "instances": [{"prompt": prompt}],
-        "parameters": {
-            "sampleCount": 1,
-            "aspectRatio": "1:1",
-            "outputOptions": {"mimeType": "image/jpeg"},
-            "personGeneration": "ALLOW_ADULT",
-            "safetySetting": "BLOCK_MEDIUM_AND_ABOVE",
-        },
-    }
 
-    try:
-        response = httpx.post(url, headers=headers, json=payload, timeout=60.0)
-    except Exception as exc:
-        log.error("Image AI Gemini request failed: %s", exc)
-        raise ImageAIError(f"Ошибка соединения с Image AI (Gemini): {exc}") from exc
-
-    if response.status_code != 200:
-        err_msg = response.text[:300]
-        log.error("Image AI Gemini returned status %s: %s", response.status_code, err_msg)
-        raise ImageAIError(f"Image AI (Gemini) вернул ошибку {response.status_code}: {err_msg}")
-
-    try:
-        res_json = response.json()
-        predictions = res_json.get("predictions", [])
-        if not predictions or not isinstance(predictions, list):
-            raise ValueError("Поле 'predictions' отсутствует в ответе Image AI (Gemini)")
-        b64_str = predictions[0].get("bytesBase64Encoded") or predictions[0].get("b64_json")
-        if not b64_str:
-            raise ValueError("bytesBase64Encoded не найден в ответе Image AI (Gemini)")
-        return base64.b64decode(b64_str)
-    except Exception as exc:
-        log.error("Failed to parse Gemini Image AI response: %s", exc)
-        raise ImageAIError(f"Не удалось обработать ответ Image AI (Gemini): {exc}") from exc
+def _call_gemini_imagen(prompt: str, cfg: dict[str, str], image_bytes: bytes = b"") -> bytes:
+    """Backward-compatible alias for Gemini Image AI."""
+    return _call_gemini_image(prompt=prompt, image_bytes=image_bytes, cfg=cfg)
 
 
 def call_image_ai_edits(
@@ -189,7 +188,7 @@ def call_image_ai_edits(
     provider = (cfg.get("provider") or "openai").strip().lower()
 
     if provider == "gemini":
-        return _call_gemini_imagen(prompt=prompt, cfg=cfg)
+        return _call_gemini_image(prompt=prompt, image_bytes=image_bytes, cfg=cfg)
 
     endpoint = cfg.get("endpoint", "")
     api_key = cfg.get("api_key", "")
@@ -276,12 +275,10 @@ def _save_derived_ai_photo(
         attrs = dict(item.attrs or {})
         order = list(attrs.get("photo_order") or [])
         if parent_photo.id in order:
-            idx = order.index(parent_photo.id)
-            order[idx] = new_photo.id
+            order[order.index(parent_photo.id)] = new_photo.id
         else:
             order.append(new_photo.id)
         attrs["photo_order"] = order
-
         if attrs.get("cover_photo_id") == parent_photo.id:
             attrs["cover_photo_id"] = new_photo.id
         item.attrs = attrs
@@ -353,33 +350,27 @@ def undo_photo(session: Session, photo_id: str) -> ItemPhoto | None:
     photo = session.get(ItemPhoto, photo_id)
     if not photo or not photo.derived_from_id:
         return None
-
     parent = session.get(ItemPhoto, photo.derived_from_id)
     if not parent:
         return None
 
-    # Update item references back to parent
     item = session.get(Item, photo.item_code)
     if item:
         attrs = dict(item.attrs or {})
         order = list(attrs.get("photo_order") or [])
         if photo.id in order:
-            idx = order.index(photo.id)
-            order[idx] = parent.id
+            order[order.index(photo.id)] = parent.id
             attrs["photo_order"] = order
         if attrs.get("cover_photo_id") == photo.id:
             attrs["cover_photo_id"] = parent.id
         item.attrs = attrs
 
-    # Delete the derived photo file and DB row
     p_path = Path(photo.path)
     session.delete(photo)
     session.flush()
-
     if p_path.exists():
         try:
             p_path.unlink()
         except OSError:
             pass
-
     return parent

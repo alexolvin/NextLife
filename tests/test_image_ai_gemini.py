@@ -237,3 +237,113 @@ def test_gemini_text_llm_call_mocked():
         assert req.get_header("X-goog-api-key") == "AIzaSySecretLlm"
         body_obj = json.loads(req.data.decode("utf-8"))
         assert body_obj["contents"][0]["parts"][0]["text"] == "Classify this"
+
+
+def test_gemini_generate_content_image_mocked():
+    dummy_jpeg = _make_dummy_jpeg_bytes()
+    b64_str = base64.b64encode(dummy_jpeg).decode("ascii")
+
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = {
+        "candidates": [
+            {
+                "content": {
+                    "parts": [
+                        {"inlineData": {"mimeType": "image/jpeg", "data": b64_str}}
+                    ]
+                }
+            }
+        ]
+    }
+
+    with patch("httpx.post", return_value=mock_resp) as mock_post:
+        res = call_image_ai_edits(
+            image_bytes=b"raw_input_image",
+            prompt="Remove dust and scratches",
+            config={
+                "provider": "gemini",
+                "endpoint": "",
+                "api_key": "AIzaSySecret",
+                "model": "gemini-2.5-flash-image",
+            },
+        )
+        assert res == dummy_jpeg
+        mock_post.assert_called_once()
+        args, kwargs = mock_post.call_args
+        assert "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=AIzaSySecret" == args[0]
+        payload = kwargs["json"]
+        parts = payload["contents"][0]["parts"]
+        assert len(parts) == 2
+        assert parts[0]["inlineData"]["mimeType"] == "image/png"
+        assert parts[1]["text"] == "Remove dust and scratches"
+        assert payload["generationConfig"]["responseModalities"] == ["IMAGE", "TEXT"]
+
+
+def test_gemini_imagen_404_fallback_to_generate_content():
+    dummy_jpeg = _make_dummy_jpeg_bytes()
+    b64_str = base64.b64encode(dummy_jpeg).decode("ascii")
+
+    err_404_resp = MagicMock()
+    err_404_resp.status_code = 404
+    err_404_resp.text = '{"error": {"code": 404, "message": "models/imagen-3.0-generate-002 is not found for API version v1beta, or is not supported for predict."}}'
+
+    success_resp = MagicMock()
+    success_resp.status_code = 200
+    success_resp.json.return_value = {
+        "candidates": [
+            {
+                "content": {
+                    "parts": [
+                        {"inlineData": {"mimeType": "image/jpeg", "data": b64_str}}
+                    ]
+                }
+            }
+        ]
+    }
+
+    with patch("httpx.post", side_effect=[err_404_resp, success_resp]) as mock_post:
+        res = call_image_ai_edits(
+            image_bytes=b"raw_input_image",
+            prompt="Clean dust",
+            config={
+                "provider": "gemini",
+                "endpoint": "",
+                "api_key": "AIzaSySecret",
+                "model": "imagen-3.0-generate-002",
+            },
+        )
+        assert res == dummy_jpeg
+        assert mock_post.call_count == 2
+        # First call was predict on imagen
+        first_url = mock_post.call_args_list[0][0][0]
+        assert "imagen-3.0-generate-002:predict" in first_url
+        # Second call was fallback to gemini-2.5-flash-image:generateContent
+        second_url = mock_post.call_args_list[1][0][0]
+        assert "gemini-2.5-flash-image:generateContent" in second_url
+
+
+def test_gemini_imagen_404_clear_error_when_no_fallback():
+    err_404_resp = MagicMock()
+    err_404_resp.status_code = 404
+    err_404_resp.text = '{"error": {"code": 404, "message": "models/imagen-3.0-generate-002 is not found for API version v1beta, or is not supported for predict."}}'
+
+    fallback_err_resp = MagicMock()
+    fallback_err_resp.status_code = 404
+    fallback_err_resp.text = "NOT_FOUND"
+
+    with patch("httpx.post", side_effect=[err_404_resp, fallback_err_resp]):
+        with pytest.raises(ImageAIError) as exc_info:
+            call_image_ai_edits(
+                image_bytes=b"raw_input_image",
+                prompt="Clean dust",
+                config={
+                    "provider": "gemini",
+                    "endpoint": "",
+                    "api_key": "AIzaSySecret",
+                    "model": "imagen-3.0-generate-002",
+                },
+            )
+        err = str(exc_info.value)
+        assert "404" in err
+        assert "gemini-2.5-flash-image" in err
