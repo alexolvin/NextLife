@@ -20,6 +20,7 @@ from nextlife.api.routes import (
     logical_photo_entries,
     templates,
 )
+from nextlife.core.categories import load_category_options
 from nextlife.core.shipping_policy import shipping_policy_options
 from nextlife.services.lot_delete import LotDeletionBlockedError
 from nextlife.services.shipping_options import get_lot_delivery_summary
@@ -85,6 +86,7 @@ def _item_screen_context(request: Request, code: str | None, notice: str | None,
         "notice": notice,
         "listing_row_status": _listing_row_status,
         "shipping_policy_options": shipping_policy_options(),
+        "category_options": load_category_options(),
     }
     if code:
         with get_db_session() as session:
@@ -174,6 +176,8 @@ def screen_stock_new(
             "location": location or "",
             "notice": notice,
             "created_code": created_code,
+            "category_options": load_category_options(),
+            "shipping_policy_options": shipping_policy_options(),
             "active_tab": "stock",
         },
     )
@@ -264,6 +268,7 @@ def api_stock_create(
     request: Request,
     title: str = Form(""),
     action: str = Form("create"),
+    category_key: str | None = Form(None),
     storage_location: str | None = Form(None),
     description_lang: str | None = Form(None),
     target_price: str | None = Form(None),
@@ -282,10 +287,18 @@ def api_stock_create(
 ) -> RedirectResponse:
     from urllib.parse import quote
 
+    from nextlife.services.listing_categories import infer_item_category
     from nextlife.services.stock import StockValidationError as _SVE
+
+    cat = _clean(category_key)
+    if not cat or cat == "general":
+        inferred = infer_item_category(title, description or "")
+        if inferred != "general":
+            cat = inferred
 
     fields: dict[str, Any] = {
         "title": _clean(title) or "",
+        "category_key": cat or "general",
         "description_lang": _clean(description_lang),
         "price": _clean(target_price),
         "currency": _clean(target_currency),
@@ -359,6 +372,7 @@ def api_stock_update(
     request: Request,
     code: str,
     title: str | None = Form(None),
+    category_key: str | None = Form(None),
     description_lang: str | None = Form(None),
     target_price: str | None = Form(None),
     target_currency: str | None = Form(None),
@@ -380,6 +394,7 @@ def api_stock_update(
 ) -> RedirectResponse:
     fields: dict[str, Any] = {
         "title": _clean(title),
+        "category_key": _clean(category_key),
         "description_lang": _clean(description_lang),
         "target_price": _clean(target_price),
         "target_currency": _clean(target_currency),

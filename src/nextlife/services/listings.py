@@ -32,9 +32,7 @@ def _get_marketplace_cfg(key: str) -> Any | None:
 
 def get_marketplace_capabilities(key: str) -> dict[str, bool]:
     mp = _get_marketplace_cfg(key)
-    if not mp:
-        return {}
-    caps = getattr(mp, "capabilities", {})
+    caps = getattr(mp, "capabilities", {}) if mp else {}
     if not isinstance(caps, dict):
         caps = dict(caps) if hasattr(caps, "__iter__") else {}
     return {
@@ -65,27 +63,31 @@ def prepare_item_listings(session: Session, item_code: str) -> list[Listing]:
 
     # Preferred order: bazos_cz, sbazar_cz, aukro_cz first if present
     priority_order = ["bazos_cz", "sbazar_cz", "aukro_cz"]
-    recommended_keys.sort(
-        key=lambda x: priority_order.index(x) if x in priority_order else 99
+    recommended_keys.sort(key=lambda x: priority_order.index(x) if x in priority_order else 99)
+
+    from nextlife.services.listing_categories import (
+        get_marketplace_category_choice,
+        infer_item_category,
     )
+
+    if not item.category_key or item.category_key == "general":
+        inferred = infer_item_category(item.title, item.description or "", item.category_key)
+        if inferred != "general":
+            item.category_key = inferred
 
     created_or_existing = []
     price_val = item.target_price or item.price_estimate_median or Decimal("0")
 
     # Collect item photo ids (non-defect first)
-    photos = (
-        session.execute(
-            select(ItemPhoto)
-            .where(ItemPhoto.item_code == item_code)
-            .order_by(ItemPhoto.created_at.asc())
-        )
-        .scalars()
-        .all()
-    )
+    photos = session.scalars(
+        select(ItemPhoto).where(ItemPhoto.item_code == item_code).order_by(ItemPhoto.created_at.asc())
+    ).all()
     photo_ids = [p.id for p in photos]
 
     for mp_key in recommended_keys:
-        # Check if active or draft listing already exists
+        cat_key, cat_path = get_marketplace_category_choice(
+            item.category_key, mp_key, text=f"{item.title or ''} {item.description or ''}", config=config
+        )
         existing = session.scalar(
             select(Listing).where(
                 Listing.item_code == item_code,
@@ -94,6 +96,8 @@ def prepare_item_listings(session: Session, item_code: str) -> list[Listing]:
             )
         )
         if existing:
+            if not (existing.category_key or existing.category_path):
+                existing.category_key, existing.category_path = cat_key, cat_path
             created_or_existing.append(existing)
             continue
 
@@ -108,8 +112,8 @@ def prepare_item_listings(session: Session, item_code: str) -> list[Listing]:
             status=ListingStatus.DRAFT.value,
             title=item.title[:60] if item.title else item_code,
             description=item.description or "",
-            category_key="",
-            category_path="",
+            category_key=cat_key,
+            category_path=cat_path,
             category_auto=True,
             price=price_val,
             currency=currency,
@@ -322,14 +326,9 @@ def publish_approved_listings(session: Session, item_code: str | None = None) ->
         raise ListingValidationError("Нет утверждённых объявлений для размещения")
 
     batch_id = create_publish_batch(session=session, listing_ids=[item.id for item in approved])
-
     record_audit_event(
-        session=session,
-        actor="USER",
-        action="BATCH_PUBLISH_STARTED",
-        entity="BATCH",
-        entity_id=batch_id,
-        data={"count": len(approved), "item_code": item_code},
+        session=session, actor="USER", action="BATCH_PUBLISH_STARTED", entity="BATCH",
+        entity_id=batch_id, data={"count": len(approved), "item_code": item_code},
     )
     session.flush()
     return batch_id

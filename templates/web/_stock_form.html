@@ -19,6 +19,14 @@
       </div>
       <div class="grid-2">
         <div class="field">
+          <label for="stock-category">Категория товара</label>
+          <select id="stock-category" name="category_key" class="wz-select" data-testid="stock-category">
+            {% for cat_k, cat_lbl in category_options %}
+            <option value="{{ cat_k }}" {% if (it.get('category_key') or 'general') == cat_k %}selected{% endif %}>{{ cat_lbl }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
           <label for="stock-desc-lang">Язык описания</label>
           <select id="stock-desc-lang" name="description_lang" class="wz-select" data-testid="stock-desc-lang">
             {% for code, label in [('ru', 'Русский'), ('cs', 'Чешский'), ('en', 'Английский'), ('de', 'Немецкий'), ('pl', 'Польский')] %}
@@ -26,11 +34,11 @@
             {% endfor %}
           </select>
         </div>
-        <div class="field">
-          <label for="stock-storage">Место на складе</label>
-          <input type="text" id="stock-storage" name="storage_location" class="wz-input"
-                 value="{{ it.get('storage_location', '') if it else '' }}" placeholder="Например: Стеллаж 3" data-testid="stock-storage">
-        </div>
+      </div>
+      <div class="field">
+        <label for="stock-storage">Место на складе</label>
+        <input type="text" id="stock-storage" name="storage_location" class="wz-input"
+               value="{{ it.get('storage_location', '') if it else '' }}" placeholder="Например: Стеллаж 3" data-testid="stock-storage">
       </div>
       <div class="grid-2">
         <div class="field">

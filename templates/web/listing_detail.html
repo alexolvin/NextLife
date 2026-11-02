@@ -3,8 +3,15 @@
 {% block content %}
 <div class="listing-detail-container" style="padding: 16px; max-width: 800px; margin: 0 auto;" data-testid="listing-detail-screen">
   <!-- Top Navigation & Status -->
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-    <a href="/ui/listings" class="btn btn-secondary btn-sm" data-testid="btn-back-listings">← Все объявления</a>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+      <a href="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}" class="btn btn-secondary btn-sm" style="min-height: 38px; display: inline-flex; align-items: center; font-weight: 600;" data-testid="btn-back-to-item">
+        ← Назад к предмету #{{ listing.item_code }}
+      </a>
+      <a href="/ui/listings" class="btn btn-secondary btn-sm" style="min-height: 38px; display: inline-flex; align-items: center; color: #64748b;" data-testid="btn-back-listings">
+        Все объявления системы
+      </a>
+    </div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <span class="badge" style="font-size: 0.85rem; padding: 4px 10px; border-radius: 6px;">{{ listing.status }}</span>
       {% if listing.external_url %}
@@ -23,7 +30,7 @@
           {{ listing.marketplace_key }}
         </h1>
         <div style="font-size: 0.9rem; color: #64748b;">
-          Предмет: <a href="/ui/stock/{{ listing.item_code }}" style="color: #2563eb; font-weight: 600;" data-testid="link-item-code">#{{ listing.item_code }} {{ item.title if item else '' }}</a>
+          Предмет: <a href="/ui/stock/{{ listing.item_code }}#listings" style="color: #2563eb; font-weight: 600;" data-testid="link-item-code">#{{ listing.item_code }} {{ item.title if item else '' }}</a>
         </div>
       </div>
       <div style="font-size: 0.85rem; color: #64748b; text-align: right;">
@@ -39,6 +46,7 @@
 
   <!-- Main Edit Form -->
   <form method="post" action="/ui/listings/{{ listing.id }}/save" class="card" style="padding: 20px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 16px;">
+    <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
     <h2 style="font-size: 1.1rem; font-weight: 700; margin-top: 0; margin-bottom: 16px;">Содержимое объявления</h2>
 
     <!-- Title -->
@@ -69,13 +77,32 @@
     <!-- Category -->
     <div style="margin-bottom: 14px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-        <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Категория:</label>
+        <label for="select-listing-category" style="font-size: 0.85rem; font-weight: 600; color: #475569;">Категория:</label>
         <span class="badge" style="font-size: 0.75rem; background: #f1f5f9; padding: 2px 6px;">
           {{ 'авто' if listing.category_auto else 'вручную' }}
         </span>
       </div>
-      <input type="text" name="category_key" value="{{ listing.category_key or listing.category_path or '' }}"
-             class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;" data-testid="input-listing-category">
+      {% if category_groups %}
+        <select id="select-listing-category" name="category_key" class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff;" data-testid="select-listing-category">
+          {% for grp in category_groups %}
+            <optgroup label="{{ grp.group }}">
+              {% for opt in grp.options %}
+                <option value="{{ opt.key }}" {% if listing.category_key == opt.key or listing.category_path == opt.label or (listing.category_key and opt.key.endswith('/' + listing.category_key)) %}selected{% endif %}>
+                  {{ opt.label }}
+                </option>
+              {% endfor %}
+            </optgroup>
+          {% endfor %}
+        </select>
+        {% if listing.category_path and listing.category_path != listing.category_key %}
+          <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">
+            Путь: <span style="font-weight: 600;">{{ listing.category_path }}</span>
+          </div>
+        {% endif %}
+      {% else %}
+        <input type="text" id="select-listing-category" name="category_key" value="{{ listing.category_key or listing.category_path or '' }}"
+               class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;" data-testid="input-listing-category">
+      {% endif %}
     </div>
 
     <!-- Description -->
@@ -86,13 +113,18 @@
       <textarea name="description" rows="6" class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit;" data-testid="textarea-listing-desc">{{ listing.description or '' }}</textarea>
     </div>
 
-    <button type="submit" class="btn btn-primary" style="padding: 10px 20px; font-weight: 600;" data-testid="btn-save-listing">
-      {% if listing.status in ('PUBLISHED', 'ACTIVE') %}
-        Сохранить на площадке
-      {% else %}
-        Сохранить изменения
-      {% endif %}
-    </button>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button type="submit" name="submit_action" value="save" class="btn btn-primary" style="padding: 10px 20px; font-weight: 600;" data-testid="btn-save-listing">
+        {% if listing.status in ('PUBLISHED', 'ACTIVE') %}
+          Сохранить на площадке
+        {% else %}
+          Сохранить изменения
+        {% endif %}
+      </button>
+      <button type="submit" name="submit_action" value="save_and_back" class="btn btn-secondary" style="padding: 10px 20px; font-weight: 600;" data-testid="btn-save-and-back">
+        Сохранить и вернуться к предмету
+      </button>
+    </div>
   </form>
 
   <!-- Approval and Platform Actions -->
@@ -103,12 +135,14 @@
       <!-- Approval Toggle (§2.3) -->
       {% if listing.status == 'APPROVED' %}
         <form method="post" action="/ui/listings/{{ listing.id }}/unapprove" style="margin: 0;">
+          <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
           <button type="submit" class="btn btn-secondary" data-testid="btn-unapprove">
             Отозвать утверждение (в черновики)
           </button>
         </form>
       {% elif listing.status == 'DRAFT' %}
         <form method="post" action="/ui/listings/{{ listing.id }}/approve" style="margin: 0;">
+          <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
           <button type="submit" class="btn btn-primary" data-testid="btn-approve">
             ✓ Утвердить для размещения
           </button>
@@ -118,6 +152,7 @@
       <!-- Unpublish action (§6.2, §2.4) -->
       {% if caps.unpublish %}
         <form method="post" action="/ui/listings/{{ listing.id }}/unpublish" onsubmit="return confirm('Снять объявление с площадки?');" style="margin: 0;">
+          <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
           <button type="submit" class="btn btn-secondary" style="color: #b91c1c;" data-testid="btn-unpublish">
             Снять с площадки
           </button>
@@ -131,6 +166,7 @@
       <!-- Relist action (§6.2, §2.4) -->
       {% if caps.relist %}
         <form method="post" action="/ui/listings/{{ listing.id }}/relist" style="margin: 0;">
+          <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
           <button type="submit" class="btn btn-secondary" data-testid="btn-relist">
             Перевыставить сейчас
           </button>
@@ -143,6 +179,7 @@
 
       <!-- Delete action -->
       <form method="post" action="/ui/listings/{{ listing.id }}/delete" onsubmit="return confirm('Удалить эту запись объявления из системы?');" style="margin: 0;">
+        <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
         <button type="submit" class="btn btn-secondary" style="color: #64748b;" data-testid="btn-delete-listing">
           Удалить из системы
         </button>

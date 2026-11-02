@@ -504,12 +504,17 @@
                   <span class="badge" style="font-size: 0.75rem;">{{ l.status }}</span>
                 </div>
                 <div style="margin-top: 4px;">
-                  <a href="/ui/listings/{{ l.id }}" style="font-weight: 600; color: #2563eb; text-decoration: none;">
+                  <a href="/ui/listings/{{ l.id }}?return_to=/ui/stock/{{ item.code }}%23listings" style="font-weight: 600; color: #2563eb; text-decoration: none;" data-testid="listing-item-title">
                     {{ l.title or 'Черновик объявления' }}
                   </a>
                 </div>
-                <div style="font-size: 0.85rem; color: #15803d; font-weight: 700; margin-top: 4px;">
-                  {{ l.price }} {{ l.currency }}
+                <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px; flex-wrap: wrap;">
+                  <span style="font-size: 0.85rem; color: #15803d; font-weight: 700;">{{ l.price }} {{ l.currency }}</span>
+                  {% if l.category_path or l.category_key %}
+                    <span class="badge" style="font-size: 0.72rem; background: #e0f2fe; color: #0369a1; border-radius: 4px; padding: 2px 6px;" data-testid="listing-category-badge">
+                      📁 {{ l.category_path or l.category_key }}
+                    </span>
+                  {% endif %}
                 </div>
                 {% if l.external_url %}
                   <div style="margin-top: 4px;">
@@ -521,18 +526,20 @@
               <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
                 {% if l.is_approved %}
                   <form method="post" action="/ui/listings/{{ l.id }}/unapprove" style="margin: 0;">
+                    <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
                     <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 0.8rem;" data-testid="btn-toggle-unapprove">
                       ✓ Утверждено
                     </button>
                   </form>
                 {% elif l.status == 'DRAFT' %}
                   <form method="post" action="/ui/listings/{{ l.id }}/approve" style="margin: 0;">
+                    <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
                     <button type="submit" class="btn btn-primary btn-sm" style="font-size: 0.8rem;" data-testid="btn-toggle-approve">
                       Утвердить
                     </button>
                   </form>
                 {% endif %}
-                <a href="/ui/listings/{{ l.id }}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;">Правка ✎</a>
+                <a href="/ui/listings/{{ l.id }}?return_to=/ui/stock/{{ item.code }}%23listings" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;" data-testid="btn-edit-listing">Правка ✎</a>
               </div>
             </div>
           {% endfor %}

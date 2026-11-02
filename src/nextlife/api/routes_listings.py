@@ -147,6 +147,7 @@ def screen_listing_detail(
     request: Request,
     listing_id: str,
     notice: str | None = Query(default=None),
+    return_to: str | None = Query(default=None),
     auth: bool = Depends(check_auth),
 ) -> HTMLResponse:
     """Render single listing detail/edit screen (§6.2)."""
@@ -158,53 +159,47 @@ def screen_listing_detail(
         item = session.get(Item, listing.item_code)
         caps = get_marketplace_capabilities(listing.marketplace_key)
 
-        # Photos of item
-        photos = session.scalars(
-            select(ItemPhoto).where(ItemPhoto.item_code == listing.item_code)
-        ).all()
-        photos_data = [
-            {
-                "id": p.id,
-                "url": resolve_photo_url(p.path),
-                "selected": p.id in (listing.photo_ids or []),
-            }
-            for p in photos
-        ]
+        from nextlife.services.listing_categories import (
+            get_listing_category_options,
+            get_marketplace_category_choice,
+        )
+
+        category_key = listing.category_key or ""
+        category_path = listing.category_path or ""
+        if not category_key and not category_path:
+            category_key, category_path = get_marketplace_category_choice(
+                item.category_key if item else "general",
+                listing.marketplace_key,
+                text=f"{listing.title or ''} {listing.description or ''}",
+            )
+            listing.category_key = category_key
+            listing.category_path = category_path
+            session.commit()
+
+        category_groups = get_listing_category_options(listing.marketplace_key)
+
+        photos = session.scalars(select(ItemPhoto).where(ItemPhoto.item_code == listing.item_code)).all()
+        photos_data = [{"id": p.id, "url": resolve_photo_url(p.path), "selected": p.id in (listing.photo_ids or [])} for p in photos]
 
         listing_data = SimpleNamespace(
-            id=str(listing.id),
-            item_code=str(listing.item_code),
-            marketplace_key=str(listing.marketplace_key),
-            external_id=listing.external_id,
-            external_url=listing.external_url,
+            id=str(listing.id), item_code=str(listing.item_code), marketplace_key=str(listing.marketplace_key),
+            external_id=listing.external_id, external_url=listing.external_url,
             price=str(listing.price) if listing.price is not None else "0",
-            currency=str(listing.currency or "CZK"),
-            status=str(listing.status or "DRAFT"),
-            title=listing.title or "",
-            description=listing.description or "",
-            category_path=listing.category_path or "",
-            category_key=listing.category_key or "",
-            category_auto=bool(listing.category_auto),
-            lang=listing.lang or "cs",
-            photo_ids=list(listing.photo_ids or []),
-            first_published_at=listing.first_published_at,
-            expires_at=listing.expires_at,
+            currency=str(listing.currency or "CZK"), status=str(listing.status or "DRAFT"),
+            title=listing.title or "", description=listing.description or "",
+            category_path=category_path, category_key=category_key, category_auto=bool(listing.category_auto),
+            lang=listing.lang or "cs", photo_ids=list(listing.photo_ids or []),
+            first_published_at=listing.first_published_at, expires_at=listing.expires_at,
         )
-        item_data = SimpleNamespace(
-            code=item.code,
-            title=item.title or "",
-        ) if item else None
+        item_data = SimpleNamespace(code=item.code, title=item.title or "") if item else None
 
     return templates.TemplateResponse(
-        request=request,
-        name="listing_detail.html",
+        request=request, name="listing_detail.html",
         context={
-            "listing": listing_data,
-            "item": item_data,
-            "caps": caps,
-            "photos": photos_data,
-            "notice": notice,
-            "active_tab": "listings",
+            "listing": listing_data, "item": item_data, "caps": caps, "photos": photos_data,
+            "category_groups": category_groups,
+            "return_to": return_to or (f"/ui/stock/{listing.item_code}#listings" if listing else "/ui/listings"),
+            "notice": notice, "active_tab": "listings",
         },
     )
 
@@ -216,18 +211,25 @@ def ui_save_listing(
     description: str = Form(""),
     category_key: str = Form(""),
     price: str = Form("0"),
+    return_to: str | None = Form(default=None),
+    submit_action: str | None = Form(default=None),
     auth: bool = Depends(check_auth),
 ) -> RedirectResponse:
     with get_db_session() as session:
-        update_listing(session, listing_id, {
+        listing = update_listing(session, listing_id, {
             "title": title,
             "description": description,
             "category_key": category_key,
             "price": price,
         })
+        item_code = listing.item_code
         session.commit()
+    if submit_action == "save_and_back":
+        back_url = return_to or f"/ui/stock/{item_code}#listings?notice=saved"
+        return RedirectResponse(url=back_url, status_code=status.HTTP_303_SEE_OTHER)
+    ret_param = f"&return_to={quote(return_to)}" if return_to else ""
     return RedirectResponse(
-        url=f"/ui/listings/{listing_id}?notice=saved",
+        url=f"/ui/listings/{listing_id}?notice=saved{ret_param}",
         status_code=status.HTTP_303_SEE_OTHER,
     )
 
@@ -235,6 +237,7 @@ def ui_save_listing(
 @router.post("/ui/listings/{listing_id}/approve")
 def ui_approve_listing(
     listing_id: str,
+    return_to: str | None = Form(default=None),
     auth: bool = Depends(check_auth),
 ) -> RedirectResponse:
     with get_db_session() as session:
@@ -242,28 +245,26 @@ def ui_approve_listing(
             approve_listing(session, listing_id)
             session.commit()
         except ListingValidationError as exc:
+            ret = f"&return_to={quote(return_to)}" if return_to else ""
             return RedirectResponse(
-                url=f"/ui/listings/{listing_id}?notice=err&reason={quote(str(exc))}",
+                url=f"/ui/listings/{listing_id}?notice=err&reason={quote(str(exc))}{ret}",
                 status_code=status.HTTP_303_SEE_OTHER,
             )
-    return RedirectResponse(
-        url=f"/ui/listings/{listing_id}?notice=approved",
-        status_code=status.HTTP_303_SEE_OTHER,
-    )
+    dest = return_to or f"/ui/listings/{listing_id}?notice=approved"
+    return RedirectResponse(url=dest, status_code=status.HTTP_303_SEE_OTHER)
 
 
 @router.post("/ui/listings/{listing_id}/unapprove")
 def ui_unapprove_listing(
     listing_id: str,
+    return_to: str | None = Form(default=None),
     auth: bool = Depends(check_auth),
 ) -> RedirectResponse:
     with get_db_session() as session:
         unapprove_listing(session, listing_id)
         session.commit()
-    return RedirectResponse(
-        url=f"/ui/listings/{listing_id}?notice=unapproved",
-        status_code=status.HTTP_303_SEE_OTHER,
-    )
+    dest = return_to or f"/ui/listings/{listing_id}?notice=unapproved"
+    return RedirectResponse(url=dest, status_code=status.HTTP_303_SEE_OTHER)
 
 
 @router.post("/ui/listings/{listing_id}/free")
@@ -321,13 +322,17 @@ def ui_relist_listing(
 @router.post("/ui/listings/{listing_id}/delete")
 def ui_delete_listing(
     listing_id: str,
+    return_to: str | None = Form(default=None),
     auth: bool = Depends(check_auth),
 ) -> RedirectResponse:
     with get_db_session() as session:
+        listing = session.get(Listing, listing_id)
+        item_code = listing.item_code if listing else None
         delete_listing(session, listing_id)
         session.commit()
+    target_url = return_to or (f"/ui/stock/{item_code}#listings?notice=listing_deleted" if item_code else "/ui/listings?notice=deleted")
     return RedirectResponse(
-        url="/ui/listings?notice=deleted",
+        url=target_url,
         status_code=status.HTTP_303_SEE_OTHER,
     )
 

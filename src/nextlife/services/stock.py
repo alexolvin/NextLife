@@ -42,6 +42,7 @@ _APPROVAL_FIELDS = (
     "specs",
     "target_price",
     "target_currency",
+    "category_key",
 )
 # Правило 2: изменение этих полей статус не меняет.
 _NEUTRAL_FIELDS = ("notes", "storage_location", "warranty_months", "warranty_terms")
@@ -189,6 +190,9 @@ def get_stock_item(session: Session, code: str) -> dict[str, Any]:
                 "marketplace_key": listing_row.marketplace_key,
                 "status": listing_row.status,
                 "title": listing_row.title,
+                "category_key": listing_row.category_key,
+                "category_path": listing_row.category_path,
+                "category_auto": listing_row.category_auto,
                 "price": str(listing_row.price),
                 "currency": listing_row.currency,
                 "is_approved": listing_row.status == ListingStatus.APPROVED.value,
