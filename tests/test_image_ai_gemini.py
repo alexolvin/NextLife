@@ -347,3 +347,58 @@ def test_gemini_imagen_404_clear_error_when_no_fallback():
         err = str(exc_info.value)
         assert "404" in err
         assert "gemini-2.5-flash-image" in err
+
+
+def test_gemini_429_rate_limit_retry_and_recovery():
+    dummy_jpeg = _make_dummy_jpeg_bytes()
+    b64_str = base64.b64encode(dummy_jpeg).decode("ascii")
+
+    resp_429 = MagicMock()
+    resp_429.status_code = 429
+    resp_429.text = '{"error": {"code": 429, "message": "RESOURCE_EXHAUSTED"}}'
+
+    resp_200 = MagicMock()
+    resp_200.status_code = 200
+    resp_200.json.return_value = {
+        "candidates": [
+            {"content": {"parts": [{"inlineData": {"data": b64_str}}]}}
+        ]
+    }
+
+    with patch("httpx.post", side_effect=[resp_429, resp_200]) as mock_post, patch("time.sleep") as mock_sleep:
+        res = call_image_ai_edits(
+            image_bytes=b"input_image",
+            prompt="Clean dust",
+            config={
+                "provider": "gemini",
+                "endpoint": "",
+                "api_key": "AIzaSySecret",
+                "model": "gemini-2.5-flash-image",
+            },
+        )
+        assert res == dummy_jpeg
+        assert mock_post.call_count == 2
+        mock_sleep.assert_called_once()
+
+
+def test_gemini_429_rate_limit_exhausted_message():
+    resp_429 = MagicMock()
+    resp_429.status_code = 429
+    resp_429.text = '{"error": {"code": 429, "message": "RESOURCE_EXHAUSTED"}}'
+
+    with patch("httpx.post", return_value=resp_429), patch("time.sleep"):
+        with pytest.raises(ImageAIError) as exc_info:
+            call_image_ai_edits(
+                image_bytes=b"input_image",
+                prompt="Clean dust",
+                config={
+                    "provider": "gemini",
+                    "endpoint": "",
+                    "api_key": "AIzaSySecret",
+                    "model": "gemini-2.5-flash-image",
+                },
+            )
+        err = str(exc_info.value)
+        assert "429" in err
+        assert "RESOURCE_EXHAUSTED" in err or "Resource Exhausted" in err
+

@@ -15,6 +15,7 @@ import io
 import json
 import logging
 import os
+import time
 import uuid
 from pathlib import Path
 from typing import Any
@@ -48,12 +49,8 @@ class ImageAIError(RuntimeError):
     """Raised when Image AI request or parsing fails."""
 
 
-def _settings_path() -> Path:
-    return get_data_dir() / "settings.json"
-
-
 def load_settings() -> dict[str, Any]:
-    path = _settings_path()
+    path = get_data_dir() / "settings.json"
     if not path.exists():
         return {}
     try:
@@ -92,6 +89,17 @@ def _compute_sha256(file_path: Path) -> str:
     return h.hexdigest()
 
 
+def _check_gemini_status(resp: httpx.Response) -> None:
+    if resp.status_code == 429:
+        raise ImageAIError(
+            "Превышен лимит запросов Image AI (Google Gemini 429 Resource Exhausted / Rate Limit). "
+            "На бесплатном тарифе Google AI Studio действует ограничение (обычно 2-5 запросов/мин). "
+            "Подождите 1-2 минуты или подключите биллинг в Google Cloud (с $300 бонусом) для расширения квоты."
+        )
+    if resp.status_code != 200:
+        raise ImageAIError(f"Image AI (Gemini) вернул ошибку {resp.status_code}: {resp.text[:300]}")
+
+
 def _call_gemini_predict(target_model: str, prompt: str, base_url: str, api_key: str, endpoint: str) -> bytes:
     """Call Google Gemini Imagen predict endpoint."""
     u = endpoint if (endpoint and ":predict" in endpoint) else f"{base_url}/v1beta/models/{target_model}:predict"
@@ -104,9 +112,15 @@ def _call_gemini_predict(target_model: str, prompt: str, base_url: str, api_key:
         "instances": [{"prompt": prompt}],
         "parameters": {"sampleCount": 1, "aspectRatio": "1:1", "outputOptions": {"mimeType": "image/jpeg"}, "personGeneration": "ALLOW_ADULT", "safetySetting": "BLOCK_MEDIUM_AND_ABOVE"},
     }
-    resp = httpx.post(u, headers=headers, json=payload, timeout=60.0)
-    if resp.status_code != 200:
-        raise ImageAIError(f"Image AI (Gemini) вернул ошибку {resp.status_code}: {resp.text[:300]}")
+    resp: httpx.Response | None = None
+    for attempt in range(3):
+        resp = httpx.post(u, headers=headers, json=payload, timeout=60.0)
+        if resp.status_code == 429 and attempt < 2:
+            time.sleep(2.5 * (attempt + 1))
+            continue
+        _check_gemini_status(resp)
+        break
+    assert resp is not None
     preds = resp.json().get("predictions", [])
     b64_str = (preds[0].get("bytesBase64Encoded") or preds[0].get("b64_json")) if preds and isinstance(preds, list) else None
     if b64_str:
@@ -127,9 +141,15 @@ def _call_gemini_content(target_model: str, prompt: str, image_bytes: bytes, bas
         parts.append({"inlineData": {"mimeType": "image/png", "data": base64.b64encode(image_bytes).decode("ascii")}})
     parts.append({"text": prompt})
     payload = {"contents": [{"parts": parts}], "generationConfig": {"responseModalities": ["IMAGE", "TEXT"]}}
-    resp = httpx.post(u, headers=headers, json=payload, timeout=60.0)
-    if resp.status_code != 200:
-        raise ImageAIError(f"Image AI (Gemini) вернул ошибку {resp.status_code}: {resp.text[:300]}")
+    resp: httpx.Response | None = None
+    for attempt in range(3):
+        resp = httpx.post(u, headers=headers, json=payload, timeout=60.0)
+        if resp.status_code == 429 and attempt < 2:
+            time.sleep(2.5 * (attempt + 1))
+            continue
+        _check_gemini_status(resp)
+        break
+    assert resp is not None
     for cand in resp.json().get("candidates", []):
         for part in cand.get("content", {}).get("parts", []):
             inline = part.get("inlineData") or part.get("inline_data")
@@ -214,6 +234,8 @@ def call_image_ai_edits(
         log.error("Image AI request failed: %s", exc)
         raise ImageAIError(f"Ошибка соединения с Image AI: {exc}") from exc
 
+    if response.status_code == 429:
+        raise ImageAIError("Image AI: Превышен лимит запросов к эндпоинту (HTTP 429 Rate Limit / Quota Exceeded).")
     if response.status_code != 200:
         err_msg = response.text[:300]
         log.error("Image AI returned status %s: %s", response.status_code, err_msg)
