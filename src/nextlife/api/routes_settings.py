@@ -72,34 +72,33 @@ def screen_settings(
     default_meeting_place = profile.get("default_meeting_place", "")
 
     from nextlife.connectors.registry import _registry_capabilities
+    from nextlife.services.marketplace_shipping import (
+        ALL_CARRIERS,
+        get_marketplace_allowed_carriers,
+        get_marketplace_listing_ttl,
+    )
 
     marketplaces = []
     for key, mp in cfg.marketplaces.items():
         ov = overrides.get(key, {})
         reg_caps = _registry_capabilities(mp)
         base_caps = CAPABILITIES_MATRIX.get(key, _DEFAULT_CAPS)
-        caps = {
-            **_DEFAULT_CAPS,
-            **{k: bool(v) for k, v in reg_caps.items() if k in _DEFAULT_CAPS},
-            **base_caps,
-        }
+        caps = {**_DEFAULT_CAPS, **{k: bool(v) for k, v in reg_caps.items() if k in _DEFAULT_CAPS}, **base_caps}
         active_search = ov.get("search", caps.get("search", False))
         active_publish = ov.get("publish", caps.get("publish", False))
-        caps["search"] = active_search
-        caps["publish"] = active_publish
+        caps["search"], caps["publish"] = active_search, active_publish
 
         mp_secrets = [
             {"key": sk, "label": label, "type": itype, "placeholder": ph, "set": bool(secrets.get(sk))}
             for sk, label, itype, ph in MP_SECRETS.get(key, [])
         ]
+        mp_ttl = get_marketplace_listing_ttl(key, settings)
+        allowed_c = set(get_marketplace_allowed_carriers(key, settings))
+        carriers = [{**c, "checked": c["key"] in allowed_c} for c in ALL_CARRIERS]
         marketplaces.append({
-            "key": key,
-            "title": mp.title,
-            "search": active_search,
-            "publish": active_publish,
-            "access_mode": mp.access_mode,
-            "secrets": mp_secrets,
-            "caps": caps,
+            "key": key, "title": mp.title, "search": active_search, "publish": active_publish,
+            "access_mode": mp.access_mode, "secrets": mp_secrets, "caps": caps,
+            "listing_ttl_days": mp_ttl, "carriers": carriers,
         })
 
     llm_config = settings.get("llm", {})
@@ -178,12 +177,21 @@ async def save_settings_marketplaces(
         secrets = {}
 
     cfg = load_config()
+    from nextlife.services.marketplace_shipping import ALL_CARRIERS
     for key in cfg.marketplaces:
         search_val = form.get(f"mp_{key}_search", "off")
         publish_val = form.get(f"mp_{key}_publish", "off")
+        ttl_val = form.get(f"mp_{key}_ttl")
+        allowed_c = [c["key"] for c in ALL_CARRIERS if form.get(f"mp_{key}_carrier_{c['key']}") == "on"]
+        try:
+            mp_ttl = max(1, min(365, int(ttl_val))) if ttl_val else 30
+        except (ValueError, TypeError):
+            mp_ttl = 30
         overrides[key] = {
             "search": search_val == "on",
             "publish": publish_val == "on",
+            "listing_ttl_days": mp_ttl,
+            "allowed_carriers": allowed_c,
         }
         for secret_key, _, _, _ in MP_SECRETS.get(key, []):
             if form.get(f"clear_{secret_key}") == "on":
@@ -345,38 +353,11 @@ def test_notion_endpoint(auth: bool = Depends(check_auth)) -> RedirectResponse:
 
 # Backward-compatible endpoints
 @settings_router.post("/ui/settings")
-def legacy_save_settings_llm(
-    request: Request,
-    llm_endpoint: str = Form(""),
-    llm_api_key: str = Form(""),
-    llm_model: str = Form(""),
-    auth: bool = Depends(check_auth),
-) -> Any:
-    return save_settings_ai(
-        request=request,
-        llm_provider="openai",
-        llm_endpoint=llm_endpoint,
-        llm_api_key=llm_api_key,
-        llm_model=llm_model,
-        image_ai_provider="openai",
-        image_ai_endpoint="",
-        image_ai_api_key="",
-        image_ai_model="",
-        auth=auth,
-    )
+def legacy_save_settings_llm(request: Request, llm_endpoint: str = Form(""), llm_api_key: str = Form(""), llm_model: str = Form(""), auth: bool = Depends(check_auth)) -> Any:
+    return save_settings_ai(request=request, llm_provider="openai", llm_endpoint=llm_endpoint, llm_api_key=llm_api_key, llm_model=llm_model, image_ai_provider="openai", image_ai_endpoint="", image_ai_api_key="", image_ai_model="", auth=auth)
 
 
 @settings_router.post("/ui/settings/secrets")
-async def legacy_save_settings_secrets(
-    request: Request,
-    auth: bool = Depends(check_auth),
-) -> Any:
+async def legacy_save_settings_secrets(request: Request, auth: bool = Depends(check_auth)) -> Any:
     form = await request.form()
-    return save_settings_profile(
-        request=request,
-        seller_name=str(form.get("SELLER_NAME", "")),
-        seller_psc=str(form.get("SELLER_PSC", "")),
-        seller_phone=str(form.get("BAZOS_PHONE", "")),
-        default_meeting_place="",
-        auth=auth,
-    )
+    return save_settings_profile(request=request, seller_name=str(form.get("SELLER_NAME", "")), seller_psc=str(form.get("SELLER_PSC", "")), seller_phone=str(form.get("BAZOS_PHONE", "")), default_meeting_place="", auth=auth)

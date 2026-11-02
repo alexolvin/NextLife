@@ -129,12 +129,31 @@
 <div id="photo-editor-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; overflow-y: auto;" data-testid="photo-editor-modal">
   <div style="max-width: 680px; margin: 20px auto; background: #1e293b; color: #f8fafc; border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 16px;">
-      <h3 style="margin: 0; font-size: 1.2rem; color: #38bdf8;">Редактор фото</h3>
-      <button type="button" onclick="closePhotoEditor()" style="background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">✕</button>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <h3 style="margin: 0; font-size: 1.2rem; color: #38bdf8;">Редактор фото</h3>
+        <span class="badge" id="editor-counter" style="background: #334155; color: #94a3b8; font-size: 0.8rem; padding: 2px 8px; border-radius: 12px;" data-testid="editor-photo-counter">1 / 1</span>
+        <span class="badge" id="editor-role-tag" style="background: #0284c7; color: #fff; font-size: 0.75rem; padding: 2px 8px; border-radius: 12px;">Фото</span>
+      </div>
+      <button type="button" onclick="closePhotoEditor()" style="background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;" aria-label="Закрыть">✕</button>
     </div>
 
     <!-- Before / After or Main Preview -->
-    <div id="editor-preview-container" style="text-align: center; margin-bottom: 16px;">
+    <div id="editor-preview-container" style="position: relative; text-align: center; margin-bottom: 16px;">
+      <!-- Photo flipping navigation buttons inside editor -->
+      <button type="button" onclick="editorChangePhoto(-1)"
+              style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); background: rgba(15, 23, 42, 0.75); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; z-index: 10; transition: background 0.2s;"
+              onmouseover="this.style.background='rgba(15, 23, 42, 0.95)'" onmouseout="this.style.background='rgba(15, 23, 42, 0.75)'"
+              title="Предыдущее фото (Стрелка влево)" data-testid="btn-editor-prev-photo">
+        ‹
+      </button>
+
+      <button type="button" onclick="editorChangePhoto(1)"
+              style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: rgba(15, 23, 42, 0.75); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; z-index: 10; transition: background 0.2s;"
+              onmouseover="this.style.background='rgba(15, 23, 42, 0.95)'" onmouseout="this.style.background='rgba(15, 23, 42, 0.75)'"
+              title="Следующее фото (Стрелка вправо)" data-testid="btn-editor-next-photo">
+        ›
+      </button>
+
       <div id="editor-single-view">
         <img id="editor-main-img" src="" style="max-height: 380px; max-width: 100%; border-radius: 8px; object-fit: contain; background: #0f172a;" data-testid="editor-preview-image">
       </div>
@@ -301,12 +320,35 @@
   };
 
   // Photo Editor Modal Controls
-  window.openPhotoEditor = async function() {
+  window.updateEditorUI = function() {
     if (photos.length === 0) return;
     const cur = photos[currentIndex];
-    const modal = document.getElementById('photo-editor-modal');
     const img = document.getElementById('editor-main-img');
-    img.src = cur.url || MISSING_SRC;
+    if (img) img.src = cur.url || MISSING_SRC;
+    const counter = document.getElementById('editor-counter');
+    if (counter) counter.textContent = (currentIndex + 1) + ' / ' + photos.length;
+    const roleTag = document.getElementById('editor-role-tag');
+    if (roleTag) {
+      roleTag.textContent = cur.label;
+      roleTag.style.background = cur.role === 'DEFECT' ? '#dc2626' : (cur.role === 'PUBLISH' ? '#16a34a' : '#0284c7');
+    }
+    const diff = document.getElementById('editor-diff-view');
+    const single = document.getElementById('editor-single-view');
+    if (diff) diff.style.display = 'none';
+    if (single) single.style.display = 'block';
+  };
+
+  window.editorChangePhoto = function(delta) {
+    if (photos.length === 0) return;
+    currentIndex = (currentIndex + delta + photos.length) % photos.length;
+    updateSliderUI();
+    updateEditorUI();
+  };
+
+  window.openPhotoEditor = async function() {
+    if (photos.length === 0) return;
+    updateEditorUI();
+    const modal = document.getElementById('photo-editor-modal');
     modal.style.display = 'block';
 
     // Check AI status
@@ -315,7 +357,7 @@
       if (res.ok) {
         const data = await res.json();
         const warn = document.getElementById('editor-ai-warning');
-        warn.style.display = data.configured ? 'none' : 'block';
+        if (warn) warn.style.display = data.configured ? 'none' : 'block';
       }
     } catch (e) {}
   };
@@ -325,6 +367,32 @@
     document.getElementById('editor-single-view').style.display = 'block';
     document.getElementById('editor-diff-view').style.display = 'none';
   };
+
+  // Keyboard navigation inside modal
+  document.addEventListener('keydown', function(e) {
+    const modal = document.getElementById('photo-editor-modal');
+    if (modal && modal.style.display !== 'none') {
+      if (e.key === 'ArrowLeft') {
+        editorChangePhoto(-1);
+      } else if (e.key === 'ArrowRight') {
+        editorChangePhoto(1);
+      } else if (e.key === 'Escape') {
+        closePhotoEditor();
+      }
+    }
+  });
+
+  // Touch swipe support inside editor
+  let edTouchX = 0;
+  const edContainer = document.getElementById('editor-preview-container');
+  if (edContainer) {
+    edContainer.addEventListener('touchstart', (e) => { edTouchX = e.touches[0].clientX; }, {passive: true});
+    edContainer.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - edTouchX;
+      if (dx > 45) editorChangePhoto(-1);
+      else if (dx < -45) editorChangePhoto(1);
+    }, {passive: true});
+  }
 
   window.editorRotate = async function(degrees = 90) {
     const cur = photos[currentIndex];

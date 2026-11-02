@@ -440,18 +440,25 @@
       </div>
 
       <!-- Stage 1 Footer Navigation -->
-      <div class="stage-footer-nav" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
-        <button type="button" @click="goToPrev()" :disabled="!prevTab" class="btn btn-secondary"
-                :style="!prevTab ? 'visibility: hidden;' : ''"
-                style="min-height: 44px; padding: 10px 18px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px;"
+      <div class="stepper-nav-bar stage-footer-nav" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 24px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <button type="button" @click="goToPrev()" :disabled="!prevTab"
+                class="btn btn-secondary"
+                :style="!prevTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
+                style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
                 data-testid="btn-stage-footer-prev">
-          ← Назад: <span x-text="prevName"></span>
+          <span style="font-size: 1.15rem; line-height: 1;">‹</span> Вернуться
         </button>
-        <button type="button" @click="goToNext()" :disabled="!nextTab" class="btn btn-primary"
-                :style="!nextTab ? 'visibility: hidden;' : ''"
-                style="min-height: 44px; padding: 10px 22px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; margin-left: auto;"
+
+        <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/6:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+        </div>
+
+        <button type="button" @click="goToNext()" :disabled="!nextTab"
+                class="btn btn-primary"
+                :style="!nextTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
+                style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
                 data-testid="btn-stage-footer-next">
-          Вперёд: <span x-text="nextName"></span> →
+          Вперёд <span style="font-size: 1.15rem; line-height: 1;">›</span>
         </button>
       </div>
     </div>
@@ -469,18 +476,25 @@
       {% include "_photo_gallery.html" %}
 
       <!-- Stage 2 Footer Navigation -->
-      <div class="stage-footer-nav" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
-        <button type="button" @click="goToPrev()" :disabled="!prevTab" class="btn btn-secondary"
-                :style="!prevTab ? 'visibility: hidden;' : ''"
-                style="min-height: 44px; padding: 10px 18px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px;"
+      <div class="stepper-nav-bar stage-footer-nav" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 24px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <button type="button" @click="goToPrev()" :disabled="!prevTab"
+                class="btn btn-secondary"
+                :style="!prevTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
+                style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
                 data-testid="btn-stage-footer-prev">
-          ← Назад: <span x-text="prevName"></span>
+          <span style="font-size: 1.15rem; line-height: 1;">‹</span> Вернуться
         </button>
-        <button type="button" @click="goToNext()" :disabled="!nextTab" class="btn btn-primary"
-                :style="!nextTab ? 'visibility: hidden;' : ''"
-                style="min-height: 44px; padding: 10px 22px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; margin-left: auto;"
+
+        <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/6:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+        </div>
+
+        <button type="button" @click="goToNext()" :disabled="!nextTab"
+                class="btn btn-primary"
+                :style="!nextTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
+                style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
                 data-testid="btn-stage-footer-next">
-          Вперёд: <span x-text="nextName"></span> →
+          Вперёд <span style="font-size: 1.15rem; line-height: 1;">›</span>
         </button>
       </div>
     </div>
@@ -508,25 +522,27 @@
     <!-- Main Stock Item Form -->
     {% include "_stock_form.html" %}
 
-    <!-- Shipping Tariffs Constructor -->
-    {% include "_shipping_constructor.html" %}
-
     <!-- Stage 3 Footer Navigation -->
-    <div class="card" style="padding: 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-top: 14px;">
-      <div class="stage-footer-nav" style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
-        <button type="button" @click="goToPrev()" :disabled="!prevTab" class="btn btn-secondary"
-                :style="!prevTab ? 'visibility: hidden;' : ''"
-                style="min-height: 44px; padding: 10px 18px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px;"
-                data-testid="btn-stage-footer-prev">
-          ← Назад: <span x-text="prevName"></span>
-        </button>
-        <button type="button" @click="goToNext()" :disabled="!nextTab" class="btn btn-primary"
-                :style="!nextTab ? 'visibility: hidden;' : ''"
-                style="min-height: 44px; padding: 10px 22px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; margin-left: auto;"
-                data-testid="btn-stage-footer-next">
-          Вперёд: <span x-text="nextName"></span> →
-        </button>
+    <div class="stepper-nav-bar stage-footer-nav" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 24px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+      <button type="button" @click="goToPrev()" :disabled="!prevTab"
+              class="btn btn-secondary"
+              :style="!prevTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
+              style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+              data-testid="btn-stage-footer-prev">
+        <span style="font-size: 1.15rem; line-height: 1;">‹</span> Вернуться
+      </button>
+
+      <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+        <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/6:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
       </div>
+
+      <button type="button" @click="goToNext()" :disabled="!nextTab"
+              class="btn btn-primary"
+              :style="!nextTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
+              style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+              data-testid="btn-stage-footer-next">
+        Вперёд <span style="font-size: 1.15rem; line-height: 1;">›</span>
+      </button>
     </div>
   </div>
 
@@ -614,18 +630,25 @@
       {% endif %}
 
       <!-- Stage 4 Footer Navigation -->
-      <div class="stage-footer-nav" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
-        <button type="button" @click="goToPrev()" :disabled="!prevTab" class="btn btn-secondary"
-                :style="!prevTab ? 'visibility: hidden;' : ''"
-                style="min-height: 44px; padding: 10px 18px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px;"
+      <div class="stepper-nav-bar stage-footer-nav" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 24px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <button type="button" @click="goToPrev()" :disabled="!prevTab"
+                class="btn btn-secondary"
+                :style="!prevTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
+                style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
                 data-testid="btn-stage-footer-prev">
-          ← Назад: <span x-text="prevName"></span>
+          <span style="font-size: 1.15rem; line-height: 1;">‹</span> Вернуться
         </button>
-        <button type="button" @click="goToNext()" :disabled="!nextTab" class="btn btn-primary"
-                :style="!nextTab ? 'visibility: hidden;' : ''"
-                style="min-height: 44px; padding: 10px 22px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; margin-left: auto;"
+
+        <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/6:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+        </div>
+
+        <button type="button" @click="goToNext()" :disabled="!nextTab"
+                class="btn btn-primary"
+                :style="!nextTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
+                style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
                 data-testid="btn-stage-footer-next">
-          Вперёд: <span x-text="nextName"></span> →
+          Вперёд <span style="font-size: 1.15rem; line-height: 1;">›</span>
         </button>
       </div>
     </div>
@@ -670,18 +693,25 @@
       {% endif %}
 
       <!-- Stage 5 Footer Navigation -->
-      <div class="stage-footer-nav" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
-        <button type="button" @click="goToPrev()" :disabled="!prevTab" class="btn btn-secondary"
-                :style="!prevTab ? 'visibility: hidden;' : ''"
-                style="min-height: 44px; padding: 10px 18px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px;"
+      <div class="stepper-nav-bar stage-footer-nav" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 24px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <button type="button" @click="goToPrev()" :disabled="!prevTab"
+                class="btn btn-secondary"
+                :style="!prevTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
+                style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
                 data-testid="btn-stage-footer-prev">
-          ← Назад: <span x-text="prevName"></span>
+          <span style="font-size: 1.15rem; line-height: 1;">‹</span> Вернуться
         </button>
-        <button type="button" @click="goToNext()" :disabled="!nextTab" class="btn btn-primary"
-                :style="!nextTab ? 'visibility: hidden;' : ''"
-                style="min-height: 44px; padding: 10px 22px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; margin-left: auto;"
+
+        <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/6:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+        </div>
+
+        <button type="button" @click="goToNext()" :disabled="!nextTab"
+                class="btn btn-primary"
+                :style="!nextTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
+                style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
                 data-testid="btn-stage-footer-next">
-          Вперёд: <span x-text="nextName"></span> →
+          Вперёд <span style="font-size: 1.15rem; line-height: 1;">›</span>
         </button>
       </div>
     </div>
@@ -715,17 +745,23 @@
       {% endif %}
 
       <!-- Stage 6 Footer Navigation -->
-      <div class="stage-footer-nav" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
-        <button type="button" @click="goToPrev()" :disabled="!prevTab" class="btn btn-secondary"
-                :style="!prevTab ? 'visibility: hidden;' : ''"
-                style="min-height: 44px; padding: 10px 18px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px;"
+      <div class="stepper-nav-bar stage-footer-nav" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 24px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <button type="button" @click="goToPrev()" :disabled="!prevTab"
+                class="btn btn-secondary"
+                :style="!prevTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
+                style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
                 data-testid="btn-stage-footer-prev">
-          ← Назад: <span x-text="prevName"></span>
+          <span style="font-size: 1.15rem; line-height: 1;">‹</span> Вернуться
         </button>
+
+        <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап 6/6:</span> <span style="font-weight: 600;">Гарантия</span>
+        </div>
+
         <a href="/ui/stock" class="btn btn-primary"
-           style="min-height: 44px; padding: 10px 22px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; margin-left: auto; text-decoration: none;"
+           style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none;"
            data-testid="btn-stage-footer-finish">
-          ✓ Вернуться на склад
+          ✓ На склад
         </a>
       </div>
     </div>

@@ -73,7 +73,8 @@ def _handle_publish_listing(payload: dict[str, Any], session: Session) -> None:
                 listing.published_at = datetime.now(UTC)
                 if not listing.first_published_at:
                     listing.first_published_at = listing.published_at
-                ttl = getattr(mp_cfg, "listing_ttl_days", 30)
+                from nextlife.services.marketplace_shipping import get_marketplace_listing_ttl
+                ttl = get_marketplace_listing_ttl(listing.marketplace_key)
                 listing.expires_at = listing.published_at + timedelta(days=ttl)
             else:
                 raise RuntimeError(str(res.get("errors") or "Bazoš publication failed"))
@@ -85,7 +86,8 @@ def _handle_publish_listing(payload: dict[str, Any], session: Session) -> None:
         listing.published_at = datetime.now(UTC)
         if not listing.first_published_at:
             listing.first_published_at = listing.published_at
-        ttl = getattr(mp_cfg, "listing_ttl_days", 30)
+        from nextlife.services.marketplace_shipping import get_marketplace_listing_ttl
+        ttl = get_marketplace_listing_ttl(listing.marketplace_key)
         listing.expires_at = listing.published_at + timedelta(days=ttl)
 
     # Recalculate item status: if has published listing, item -> PUBLISHED

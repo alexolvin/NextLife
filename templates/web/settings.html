@@ -129,6 +129,21 @@
                 Размещение
               </label>
             </div>
+            <div style="margin-bottom: 0.75rem;">
+              <label style="font-size: 0.8rem; font-weight: 500; display: block; margin-bottom: 0.2rem;">Срок публикации на этой площадке (дней):</label>
+              <input type="number" name="mp_{{ mp.key }}_ttl" value="{{ mp.listing_ttl_days }}" style="width: 100px; padding: 0.4rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" min="1" max="365" data-testid="input-mp-ttl-{{ mp.key }}">
+            </div>
+            <div style="margin-bottom: 0.75rem;">
+              <div style="font-size: 0.8rem; font-weight: 500; margin-bottom: 0.25rem;">Способы доставки для этой площадки:</div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px;">
+                {% for c in mp.carriers %}
+                <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.35rem;" title="{{ c.desc }}">
+                  <input type="checkbox" name="mp_{{ mp.key }}_carrier_{{ c.key }}" {% if c.checked %}checked{% endif %} data-testid="cb-mp-carrier-{{ mp.key }}-{{ c.key }}">
+                  <span>{{ c.title }}</span>
+                </label>
+                {% endfor %}
+              </div>
+            </div>
             {% for sec in mp.secrets %}
             <div style="margin-bottom: 0.5rem;">
               <label style="font-size: 0.8rem; font-weight: 500; display: block; margin-bottom: 0.2rem;">{{ sec.label }}</label>

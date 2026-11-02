@@ -128,7 +128,11 @@ def assemble_listing_text(
     # 6. Completeness
     completeness = item_data.get("completeness") or []
 
-    # 7. Delivery options formatting
+    # 7. Delivery options formatting (filtered for marketplace compatibility)
+    if marketplace_key:
+        from nextlife.services.marketplace_shipping import filter_compatible_delivery_options
+        delivery_options, _ = filter_compatible_delivery_options(delivery_options, marketplace_key)
+
     formatted_delivery = []
     for opt in delivery_options:
         name = opt.get("name", "Doprava")

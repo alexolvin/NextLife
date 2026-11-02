@@ -181,6 +181,11 @@ def screen_listing_detail(
         photos = session.scalars(select(ItemPhoto).where(ItemPhoto.item_code == listing.item_code)).all()
         photos_data = [{"id": p.id, "url": resolve_photo_url(p.path), "selected": p.id in (listing.photo_ids or [])} for p in photos]
 
+        from nextlife.storage.models import DeliveryOption
+        from nextlife.services.marketplace_shipping import filter_compatible_delivery_options
+        all_delivs = session.scalars(select(DeliveryOption).where(DeliveryOption.item_code == listing.item_code).order_by(DeliveryOption.price.asc())).all()
+        comp_delivs, incomp_delivs = filter_compatible_delivery_options(all_delivs, listing.marketplace_key)
+
         listing_data = SimpleNamespace(
             id=str(listing.id), item_code=str(listing.item_code), marketplace_key=str(listing.marketplace_key),
             external_id=listing.external_id, external_url=listing.external_url,
@@ -198,6 +203,7 @@ def screen_listing_detail(
         context={
             "listing": listing_data, "item": item_data, "caps": caps, "photos": photos_data,
             "category_groups": category_groups,
+            "compatible_deliveries": comp_delivs, "incompatible_deliveries": incomp_delivs,
             "return_to": return_to or (f"/ui/stock/{listing_data.item_code}#listings" if listing_data else "/ui/listings"),
             "notice": notice, "active_tab": "listings",
         },
@@ -342,35 +348,19 @@ def ui_delete_listing(
 
 @router.post("/api/stock/{code}/listings/prepare")
 @router.post("/ui/stock/{code}/listings/prepare")
-def api_prepare_listings(
-    code: str,
-    request: Request,
-    auth: bool = Depends(check_auth),
-) -> Any:
+def api_prepare_listings(code: str, request: Request, auth: bool = Depends(check_auth)) -> Any:
     """Prepare draft listings for item (§5.6)."""
     with get_db_session() as session:
         created = prepare_item_listings(session, code)
         session.commit()
         if request.url.path.startswith("/ui/"):
-            return RedirectResponse(
-                url=f"/ui/stock/{code}#listings",
-                status_code=status.HTTP_303_SEE_OTHER,
-            )
-        return {
-            "status": "ok",
-            "item_code": code,
-            "prepared_count": len(created),
-            "listings": [row.id for row in created],
-        }
+            return RedirectResponse(url=f"/ui/stock/{code}#listings", status_code=status.HTTP_303_SEE_OTHER)
+        return {"status": "ok", "item_code": code, "prepared_count": len(created), "listings": [row.id for row in created]}
 
 
 @router.post("/api/listings/publish-approved")
 @router.post("/ui/listings/publish-approved")
-def api_publish_approved(
-    request: Request,
-    item_code: str | None = Form(default=None),
-    auth: bool = Depends(check_auth),
-) -> Any:
+def api_publish_approved(request: Request, item_code: str | None = Form(default=None), auth: bool = Depends(check_auth)) -> Any:
     """Create batch of publish jobs for approved listings (§6.3)."""
     with get_db_session() as session:
         try:
@@ -378,15 +368,9 @@ def api_publish_approved(
             session.commit()
         except ListingValidationError as exc:
             if request.url.path.startswith("/ui/"):
-                return RedirectResponse(
-                    url=f"/ui/listings?notice=err&reason={exc}",
-                    status_code=status.HTTP_303_SEE_OTHER,
-                )
+                return RedirectResponse(url=f"/ui/listings?notice=err&reason={exc}", status_code=status.HTTP_303_SEE_OTHER)
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     if request.url.path.startswith("/ui/"):
-        return RedirectResponse(
-            url=f"/ui/jobs/batches/{batch_id}",
-            status_code=status.HTTP_303_SEE_OTHER,
-        )
+        return RedirectResponse(url=f"/ui/jobs/batches/{batch_id}", status_code=status.HTTP_303_SEE_OTHER)
     return {"status": "ok", "batch_id": batch_id}
