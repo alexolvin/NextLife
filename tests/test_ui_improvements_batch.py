@@ -329,3 +329,56 @@ def test_stock_item_mobile_stepper_and_navigation_controls():
     assert 'data-testid="btn-stage-footer-prev"' in body
     assert 'data-testid="btn-stage-footer-next"' in body
 
+
+def test_stepper_centered_buttons_and_manual_price_only() -> None:
+    """Verify stepper tabs are plain centered buttons without numbers/checkmarks,
+
+    and that automated price median/range suggestions are removed.
+    """
+    item = {
+        "code": "130",
+        "title": "AMD Radeon RX 7900 XTX",
+        "status": "NEW",
+        "category_key": "gpu",
+        "target_price": None,
+        "target_currency": "CZK",
+        "price_estimate_median": "19500",
+        "price_estimate_currency": "CZK",
+        "photos": [],
+        "description": "",
+        "listings": [],
+        "deal": None,
+        "warranty_until": None,
+    }
+    research = {
+        "total_found": 12,
+        "badge_text": "Live",
+        "query": "RX 7900 XTX",
+        "range": {"min": "18 000", "max": "24 000", "currency": "CZK"},
+        "categories": ["Показать все", "Самостоятельный товар"],
+        "links": [],
+        "run": {"created_at": "2026-11-02 12:00"},
+    }
+
+    req = Request({"type": "http", "method": "GET", "path": "/ui/stock/130", "headers": []})
+    resp = templates.TemplateResponse(
+        request=req,
+        name="stock_item.html",
+        context={"item": item, "it": item, "research": research, "listings": [], "deal": None, "photos": [], "approved_count": 0, "notice": None},
+    )
+    body = resp.body.decode("utf-8")
+
+    # Stepper buttons: centered alignment, no checkmark or circle numbers in tabs
+    assert 'justify-content: center; text-align: center;' in body
+    assert 'data-testid="tab-price"><span>Оценка</span></a>' in body.replace("\n", "").replace("  ", "")
+    assert 'data-testid="tab-photos"><span>Фото</span></a>' in body.replace("\n", "").replace("  ", "")
+
+    # Automated price estimate (median button and range) must be absent
+    assert 'data-testid="btn-sell-median"' not in body
+    assert "(диапазон:" not in body
+
+    # Manual price input form must be present
+    assert 'data-testid="input-custom-price"' in body
+    assert 'data-testid="btn-save-price"' in body
+
+

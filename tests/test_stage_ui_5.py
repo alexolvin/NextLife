@@ -86,7 +86,8 @@ def test_item_card_stepper_and_panels() -> None:
         assert 'data-testid="btn-back-stock"' in html
         assert 'data-testid="btn-dispose"' in html
         assert 'data-testid="btn-delete"' in html
-        assert 'data-testid="btn-sell-median"' in html
+        assert 'data-testid="btn-save-price"' in html
+        assert 'data-testid="btn-sell-median"' not in html
         assert 'data-testid="btn-ready-for-sale"' in html
 
 
