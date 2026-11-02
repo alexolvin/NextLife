@@ -152,6 +152,60 @@ def test_listing_detail_screen_renders_back_to_item_and_category_select():
         assert "Сохранить и вернуться к предмету" in html
 
 
+def test_listing_detail_screen_without_return_to_and_inferred_category():
+    """Verify opening listing directly from search without return_to doesn't crash on detached instance."""
+    mock_session = MagicMock()
+    mock_listing = SimpleNamespace(
+        id="list-search-7900",
+        item_code="130",
+        marketplace_key="bazos_cz",
+        external_id=None,
+        external_url=None,
+        price=21000,
+        currency="CZK",
+        status="DRAFT",
+        title="AMD Radeon RX 7900 XTX 24GB",
+        description="Флагманская карта",
+        category_key="",
+        category_path="",
+        category_auto=False,
+        lang="cs",
+        photo_ids=[],
+        first_published_at=None,
+        expires_at=None,
+    )
+    mock_item = SimpleNamespace(code="130", title="AMD Radeon RX 7900 XTX", category_key="gpu")
+
+    def _get(model, ident):
+        if ident == "list-search-7900":
+            return mock_listing
+        if ident == "130":
+            return mock_item
+        return None
+
+    mock_session.get.side_effect = _get
+    mock_session.scalars.return_value.all.return_value = []
+
+    client = TestClient(create_app())
+    client.cookies.set("nextlife_token", "test_token_secret")
+
+    with patch("nextlife.storage.db.get_db_session") as mock_db, patch(
+        "nextlife.api.routes_listings.get_db_session"
+    ) as mock_db2:
+        mock_ctx = MagicMock()
+        mock_ctx.__enter__.return_value = mock_session
+        mock_ctx.__exit__.return_value = None
+        mock_db.return_value = mock_ctx
+        mock_db2.return_value = mock_ctx
+
+        # Direct navigation from search without return_to parameter
+        resp = client.get("/ui/listings/list-search-7900")
+        assert resp.status_code == 200
+        html = resp.text
+        assert 'data-testid="btn-back-to-item"' in html
+        assert "/ui/stock/130#listings" in html
+
+
 def test_ui_save_listing_save_and_back_redirect():
     mock_session = MagicMock()
     mock_listing = SimpleNamespace(id="list-123", item_code="130")

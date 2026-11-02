@@ -198,7 +198,7 @@ def screen_listing_detail(
         context={
             "listing": listing_data, "item": item_data, "caps": caps, "photos": photos_data,
             "category_groups": category_groups,
-            "return_to": return_to or (f"/ui/stock/{listing.item_code}#listings" if listing else "/ui/listings"),
+            "return_to": return_to or (f"/ui/stock/{listing_data.item_code}#listings" if listing_data else "/ui/listings"),
             "notice": notice, "active_tab": "listings",
         },
     )

@@ -22,14 +22,14 @@
   --c-text-faint:    #9ca3af;
 
   /* Палитра — акцент */
-  --c-accent:        #481e78;
-  --c-accent-hov:    #35155a;
-  --c-accent-light:  #f5f3ff;
-  --c-accent-ring:   #ddd6fe;
+  --c-accent:        #0c5a6e;
+  --c-accent-hov:    #084252;
+  --c-accent-light:  #f0fdfa;
+  --c-accent-ring:   #99f6e4;
 
   /* Палитра — header */
-  --c-header:        #481e78;
-  --c-header-2:      #35155a;
+  --c-header:        #0c5a6e;
+  --c-header-2:      #084252;
 
   /* Палитра — успех */
   --c-success:       #10b981;
@@ -71,7 +71,7 @@
   /* Тени */
   --shadow-sm:       0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow:          0 2px 8px -2px rgba(0, 0, 0, 0.08);
-  --shadow-md:       0 4px 12px rgba(72, 30, 120, 0.1);
+  --shadow-md:       0 4px 12px rgba(12, 90, 110, 0.1);
   --shadow-lg:       0 4px 24px rgba(0, 0, 0, 0.12);
 
   /* Отступы */
@@ -470,7 +470,7 @@ code {
 .wz-select:focus {
   outline: none;
   border-color: var(--c-accent);
-  box-shadow: 0 0 0 3px rgba(72, 30, 120, 0.1);
+  box-shadow: 0 0 0 3px rgba(12, 90, 110, 0.1);
 }
 
 textarea.input-text,
@@ -1859,7 +1859,7 @@ select.input-text {
   width: 36px;
   height: 36px;
   border-radius: var(--r-md);
-  color: var(--c-text);
+  color: #ffffff;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -1868,7 +1868,15 @@ select.input-text {
   transition: background var(--dur-fast);
 }
 .header-btn:hover {
-  background: var(--c-surface-hover);
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+.app-header .header-btn {
+  color: #ffffff;
+}
+.app-header .header-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
 }
 .header-badge {
   position: absolute;
@@ -1918,7 +1926,7 @@ select.input-text {
   max-width: 380px;
   height: 100%;
   background: #fff;
-  box-shadow: -4px 0 16px rgba(72, 30, 120, 0.1);
+  box-shadow: -4px 0 16px rgba(12, 90, 110, 0.1);
   display: flex;
   flex-direction: column;
 }
@@ -1991,11 +1999,22 @@ select.input-text {
   box-shadow: 0 2px 6px rgba(128, 20, 50, 0.3) !important;
   font-weight: 700 !important;
 }
+.stepper-nav-bar button {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.stepper-nav-bar [data-testid="stepper-stage-indicator"] {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
 @media (max-width: 480px) {
   .stepper-nav-bar button {
     min-width: 80px;
     padding: 6px 10px;
-    font-size: 0.82rem;
+    font-size: 0.88rem !important;
+  }
+  .stepper-nav-bar [data-testid="stepper-stage-indicator"] {
+    font-size: 0.88rem !important;
   }
   .stepper-pill {
     min-height: 42px;

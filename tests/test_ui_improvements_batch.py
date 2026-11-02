@@ -315,6 +315,12 @@ def test_stock_item_mobile_stepper_and_navigation_controls():
     assert 'data-testid="btn-stepper-next"' in body
     assert "Вперёд" in body
     assert 'data-testid="stepper-stage-indicator"' in body
+    assert 'font-size: 0.92rem' in body
+
+    # Header controls with white color matching brand NextLife
+    assert 'data-testid="header-search"' in body
+    assert 'data-testid="header-settings"' in body
+    assert 'style="color: #ffffff;" data-testid="header-search"' in body
 
     # Stepper pills
     assert 'data-testid="item-stepper"' in body
