@@ -226,7 +226,7 @@
       </div>
 
       <div style="margin-bottom: 1rem;">
-        <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">URL эндпоинта</label>
+        <label id="image_ai_endpoint_label" style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">URL эндпоинта / Account ID</label>
         <input type="text" name="image_ai_endpoint" id="image_ai_endpoint" value="{{ image_ai_config.endpoint or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="https://api.openai.com/v1/images/edits" data-testid="input-image-ai-endpoint">
         <div id="image_ai_endpoint_help" style="font-size: 0.75rem; color: #94a3b8; margin-top: 3px;">
           {% if image_ai_config.provider == 'gemini' %}
@@ -296,6 +296,7 @@
 
       function updateImageAiFields(provider) {
         var hint = document.getElementById('image_ai_hint');
+        var epLabel = document.getElementById('image_ai_endpoint_label');
         var endpoint = document.getElementById('image_ai_endpoint');
         var help = document.getElementById('image_ai_endpoint_help');
         var key = document.getElementById('image_ai_api_key');
@@ -303,6 +304,7 @@
         var mSelling = document.getElementById('image_ai_model_selling');
         var mBg = document.getElementById('image_ai_model_bg');
         if (provider === 'gemini') {
+          if (epLabel) epLabel.innerText = 'URL эндпоинта';
           if (hint) hint.innerHTML = 'Официальный REST API Google Gemini (поддержка моделей <code>gemini-2.5-flash-image</code> и Imagen 3).';
           if (endpoint) endpoint.placeholder = 'https://generativelanguage.googleapis.com (или оставьте пустым)';
           if (help) help.innerText = 'Базовый адрес API (по умолчанию https://generativelanguage.googleapis.com). Можно оставить пустым — модель указывается в полях ниже.';
@@ -311,6 +313,7 @@
           if (mSelling) mSelling.placeholder = 'gemini-2.5-flash-image';
           if (mBg) mBg.placeholder = 'gemini-2.5-flash-image';
         } else if (provider === 'cloudflare') {
+          if (epLabel) epLabel.innerText = 'URL эндпоинта / Account ID';
           if (hint) hint.innerHTML = 'Cloudflare Workers AI (прямой REST API <code>/ai/run/{model}</code> или ваш прокси-воркер).';
           if (endpoint) endpoint.placeholder = 'https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/run/ (или ваш 32-значный Account ID)';
           if (help) help.innerText = 'Укажите ваш Cloudflare Account ID (из панели dash.cloudflare.com) или полный URL: https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/run/';
@@ -319,6 +322,7 @@
           if (mSelling) mSelling.placeholder = '@cf/black-forest-labs/flux-1-schnell';
           if (mBg) mBg.placeholder = '@cf/runwayml/stable-diffusion-v1-5-inpainting';
         } else {
+          if (epLabel) epLabel.innerText = 'URL эндпоинта';
           if (hint) hint.innerHTML = 'OpenAI-совместимый эндпоинт <code>POST /v1/images/edits</code>.';
           if (endpoint) endpoint.placeholder = 'https://api.openai.com/v1/images/edits';
           if (help) help.innerText = 'URL OpenAI-совместимого эндпоинта (например, https://api.openai.com/v1/images/edits).';
