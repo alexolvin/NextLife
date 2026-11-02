@@ -2,9 +2,16 @@
 
 {% block content %}
 <div class="batch-report-container" data-testid="batch-report" style="max-width: 600px; margin: 0 auto; padding: 16px;">
-  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
     <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Отчёт размещения</h1>
-    <a href="/ui/listings" class="btn btn-secondary" style="font-size: 0.85rem; padding: 6px 12px;">К объявлениям</a>
+    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+      {% if summary.item_code %}
+      <a href="/ui/stock/{{ summary.item_code }}#listings" class="btn btn-secondary" style="font-size: 0.85rem; padding: 6px 12px; font-weight: 600;" data-testid="btn-back-to-item-from-batch">
+        ← Назад к предмету #{{ summary.item_code }}
+      </a>
+      {% endif %}
+      <a href="/ui/listings" class="btn btn-secondary" style="font-size: 0.85rem; padding: 6px 12px; color: #64748b;">К объявлениям</a>
+    </div>
   </div>
 
   <!-- Summary banner -->
@@ -19,7 +26,7 @@
 
   <!-- Listings report list -->
   <div class="batch-items" style="display: flex; flex-direction: column; gap: 12px;">
-    {% for item in summary.items %}
+    {% for item in items or summary["items"] %}
     <div class="card" data-testid="batch-item-{{ loop.index }}" style="padding: 16px; border-radius: 12px; background: var(--bg-card, #fff); border: 1px solid var(--border-color, #e0e0e0);">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
         <div>

@@ -386,7 +386,7 @@ def api_publish_approved(
 
     if request.url.path.startswith("/ui/"):
         return RedirectResponse(
-            url=f"/ui/jobs/{batch_id}",
+            url=f"/ui/jobs/batches/{batch_id}",
             status_code=status.HTTP_303_SEE_OTHER,
         )
     return {"status": "ok", "batch_id": batch_id}

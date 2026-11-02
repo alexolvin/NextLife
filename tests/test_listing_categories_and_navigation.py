@@ -183,3 +183,48 @@ def test_ui_save_listing_save_and_back_redirect():
         )
         assert resp.status_code == 303
         assert resp.headers["location"] == "/ui/stock/130#listings"
+
+
+def test_publish_approved_redirects_to_batch_and_renders_back_button():
+    client = TestClient(create_app())
+    client.cookies.set("nextlife_token", "test_token_secret")
+
+    with patch("nextlife.storage.db.get_db_session") as mock_db, patch(
+        "nextlife.api.routes_listings.get_db_session"
+    ) as mock_db2, patch(
+        "nextlife.api.routes_listings.publish_approved_listings", return_value="batch-abc-123"
+    ):
+        mock_session = MagicMock()
+        mock_ctx = MagicMock()
+        mock_ctx.__enter__.return_value = mock_session
+        mock_ctx.__exit__.return_value = None
+        mock_db.return_value = mock_ctx
+        mock_db2.return_value = mock_ctx
+
+        resp = client.post(
+            "/ui/listings/publish-approved",
+            data={"item_code": "130"},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
+        assert resp.headers["location"] == "/ui/jobs/batches/batch-abc-123"
+
+    with patch("nextlife.api.routes_jobs.get_batch_summary") as mock_sum:
+        mock_sum.return_value = {
+            "batch_id": "batch-abc-123",
+            "item_code": "130",
+            "total": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "running": 0,
+            "pending": 0,
+            "is_completed": True,
+            "jobs": [{"id": "j1"}],
+            "items": [{"state": "SUCCESS", "marketplace": "bazos_cz", "item_code": "130"}],
+        }
+
+        resp2 = client.get("/ui/jobs/batches/batch-abc-123")
+        assert resp2.status_code == 200
+        assert 'data-testid="btn-back-to-item-from-batch"' in resp2.text
+        assert "/ui/stock/130#listings" in resp2.text
+

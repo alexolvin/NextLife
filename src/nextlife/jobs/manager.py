@@ -96,8 +96,10 @@ def get_batch_summary(session: Session, batch_id: str) -> dict[str, Any]:
         )
 
     is_completed = (running == 0 and pending == 0 and total > 0)
+    item_code = next((it["item_code"] for it in items if it.get("item_code")), None)
     return {
         "batch_id": batch_id,
+        "item_code": item_code,
         "total": total,
         "succeeded": succeeded,
         "failed": failed,

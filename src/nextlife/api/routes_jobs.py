@@ -13,6 +13,7 @@ from nextlife.storage.models import Job
 router = APIRouter()
 
 
+@router.get("/ui/jobs/{batch_id}", response_class=HTMLResponse)
 @router.get("/ui/jobs/batches/{batch_id}", response_class=HTMLResponse)
 def view_job_batch(
     request: Request,
@@ -31,6 +32,7 @@ def view_job_batch(
             context={
                 "batch_id": batch_id,
                 "summary": summary,
+                "items": summary.get("items", []),
             },
         )
 

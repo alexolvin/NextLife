@@ -427,7 +427,7 @@ def api_stock_update(
         sep = "&" if "?" in next else "?"
         return RedirectResponse(url=f"{next}{sep}notice={notice}", status_code=status.HTTP_303_SEE_OTHER)
     return RedirectResponse(
-        url=f"/ui/stock/{code}#describe?notice={notice}", status_code=status.HTTP_303_SEE_OTHER
+        url=f"/ui/stock/{code}?notice={notice}#describe", status_code=status.HTTP_303_SEE_OTHER
     )
 
 
@@ -445,7 +445,7 @@ def api_stock_ready(
                 detail={"error": "Чек-лист не выполнен", "missing": missing},
             )
         session.commit()
-    return RedirectResponse(url=f"/ui/stock/{code}#describe?notice=ready", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url=f"/ui/stock/{code}?notice=ready#describe", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @stock_router.post("/api/stock/{code}/dispose")
@@ -471,7 +471,7 @@ def api_stock_return(
     with get_db_session() as session:
         return_item_warranty(session, code, reason=reason)
         session.commit()
-    return RedirectResponse(url=f"/ui/stock/{code}#warranty?notice=returned", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url=f"/ui/stock/{code}?notice=returned#warranty", status_code=status.HTTP_303_SEE_OTHER)
 
 
 class PriceEstimateRequest(BaseModel):
@@ -504,7 +504,7 @@ def api_stock_price_estimate(
             high=high,
         )
         session.commit()
-    return RedirectResponse(url=f"/ui/stock/{code}#price?notice=price_estimated", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url=f"/ui/stock/{code}?notice=price_estimated#price", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @stock_router.post("/api/stock/{code}/sold")
@@ -522,12 +522,12 @@ def api_stock_sold(
     # Компактная сводка снятия по площадкам для экрана: "mp:archived;mp2:failed".
     parts = [f"{r['marketplace_key']}:{r['result']}" for r in result.get("unpublish", [])]
     sold_results = ";".join(parts)
-    url = f"/ui/stock/{code}?notice=sold"
+    sold_param = ""
     if sold_results:
         from urllib.parse import quote
 
-        url += f"&sold_results={quote(sold_results)}"
-    return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
+        sold_param = f"&sold_results={quote(sold_results)}"
+    return RedirectResponse(url=f"/ui/stock/{code}?notice=sold{sold_param}#sale", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @stock_router.get("/api/stock/{code}/delete-preview")
