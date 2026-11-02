@@ -75,14 +75,16 @@ def get_image_ai_config() -> dict[str, str]:
     api_key = (cfg.get("api_key") or cfg.get("key") or os.environ.get("NEXTLIFE_IMAGE_AI_KEY") or "").strip()
     default_model = "gemini-2.5-flash-image" if provider == "gemini" else ("@cf/runwayml/stable-diffusion-v1-5-inpainting" if provider == "cloudflare" else "dall-e-2")
     base_model = (cfg.get("model") or default_model).strip()
+    default_selling = "@cf/bria/remove-background" if provider == "cloudflare" else base_model
+    default_bg = "@cf/bria/remove-background" if provider == "cloudflare" else base_model
     return {
         "provider": provider,
         "endpoint": endpoint,
         "api_key": api_key,
         "model": base_model,
         "model_dust": (cfg.get("model_dust") or base_model).strip(),
-        "model_selling": (cfg.get("model_selling") or ("@cf/black-forest-labs/flux-1-schnell" if provider == "cloudflare" else base_model)).strip(),
-        "model_bg": (cfg.get("model_bg") or base_model).strip(),
+        "model_selling": (cfg.get("model_selling") or default_selling).strip(),
+        "model_bg": (cfg.get("model_bg") or default_bg).strip(),
     }
 
 
@@ -174,7 +176,13 @@ def _save_derived_ai_photo(
     dest_path = dest_dir / f"ai_{uuid.uuid4().hex[:8]}.jpg"
 
     with Image.open(io.BytesIO(generated_png_bytes)) as pil_img:
-        rgb_img = pil_img.convert("RGB")
+        if pil_img.mode in ("RGBA", "LA") or (pil_img.mode == "P" and "transparency" in pil_img.info):
+            bg = Image.new("RGB", pil_img.size, (255, 255, 255))
+            pil_rgba = pil_img.convert("RGBA")
+            bg.paste(pil_rgba, mask=pil_rgba.split()[3])
+            rgb_img = bg
+        else:
+            rgb_img = pil_img.convert("RGB")
         rgb_img.save(dest_path, format="JPEG", quality=95)
         width, height = rgb_img.size
 

@@ -230,3 +230,54 @@ def test_ai_remove_dust_save_derived_photo_db(tmp_path: Path, monkeypatch: pytes
     assert new_photo.id in item.attrs["photo_order"]
 
 
+def test_cloudflare_flux_omits_image_b64():
+    dummy_jpeg = _make_dummy_jpeg()
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.headers = {"content-type": "image/jpeg"}
+    mock_resp.content = dummy_jpeg
+
+    with patch("httpx.post", return_value=mock_resp) as mock_post:
+        res = call_cloudflare_image(
+            prompt="A sleek studio rendering",
+            image_bytes=dummy_jpeg,
+            cfg={"endpoint": "https://api.cloudflare.com/client/v4/accounts/acc123/ai/run/"},
+            model="@cf/black-forest-labs/flux-1-schnell",
+        )
+        assert res == dummy_jpeg
+        mock_post.assert_called_once()
+        _, kwargs = mock_post.call_args
+        # Flux rejects requests containing image_b64
+        assert "image_b64" not in kwargs["json"]
+        assert kwargs["json"]["prompt"] == "A sleek studio rendering"
+
+
+def test_cloudflare_bria_remove_background():
+    dummy_jpeg = _make_dummy_jpeg()
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.headers = {"content-type": "application/json"}
+    mock_resp.content = b'{"state": "Completed", "result": {"image": "https://cdn.example.com/cutout.png"}}'
+    mock_resp.json.return_value = {"result": {"image": "https://cdn.example.com/cutout.png"}}
+
+    mock_img_resp = MagicMock()
+    mock_img_resp.status_code = 200
+    mock_img_resp.content = dummy_jpeg
+
+    with patch("httpx.post", return_value=mock_resp) as mock_post, patch("httpx.get", return_value=mock_img_resp) as mock_get:
+        res = call_cloudflare_image(
+            prompt="Isolate object",
+            image_bytes=dummy_jpeg,
+            cfg={"endpoint": "https://api.cloudflare.com/client/v4/accounts/acc123/ai/run/"},
+            model="@cf/bria/remove-background",
+        )
+        assert res == dummy_jpeg
+        mock_post.assert_called_once()
+        _, kwargs = mock_post.call_args
+        assert "image" in kwargs["json"]
+        assert kwargs["json"]["image"].startswith("data:image/jpeg;base64,")
+        assert "prompt" not in kwargs["json"]
+        mock_get.assert_called_once_with("https://cdn.example.com/cutout.png", timeout=30.0)
+
+
+

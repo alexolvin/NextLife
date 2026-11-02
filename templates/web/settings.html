@@ -255,13 +255,13 @@
         <div style="margin-bottom: 0.85rem;">
           <label style="display: block; font-weight: 500; font-size: 0.8rem; margin-bottom: 0.25rem; color: #475569;">2. Продающее фото (Студия / Свет)</label>
           <input type="text" name="image_ai_model_selling" id="image_ai_model_selling" value="{{ image_ai_config.model_selling or image_ai_config.model or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="gemini-2.5-flash-image" data-testid="input-image-ai-model-selling">
-          <div id="image_ai_model_selling_help" style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Для Cloudflare: <code>@cf/black-forest-labs/flux-1-schnell</code></div>
+          <div id="image_ai_model_selling_help" style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Для Cloudflare: <code>@cf/bria/remove-background</code> или <code>@cf/black-forest-labs/flux-1-schnell</code></div>
         </div>
 
         <div>
           <label style="display: block; font-weight: 500; font-size: 0.8rem; margin-bottom: 0.25rem; color: #475569;">3. Замена фона</label>
           <input type="text" name="image_ai_model_bg" id="image_ai_model_bg" value="{{ image_ai_config.model_bg or image_ai_config.model or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="gemini-2.5-flash-image" data-testid="input-image-ai-model-bg">
-          <div id="image_ai_model_bg_help" style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Для Cloudflare: <code>@cf/runwayml/stable-diffusion-v1-5-inpainting</code></div>
+          <div id="image_ai_model_bg_help" style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Для Cloudflare: <code>@cf/bria/remove-background</code> или <code>@cf/runwayml/stable-diffusion-v1-5-inpainting</code></div>
         </div>
         <input type="hidden" name="image_ai_model" id="image_ai_model" value="{{ image_ai_config.model or '' }}">
       </div>
@@ -319,8 +319,8 @@
           if (help) help.innerText = 'Укажите ваш Cloudflare Account ID (из панели dash.cloudflare.com) или полный URL: https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/run/';
           if (key) key.placeholder = 'Cloudflare API Token';
           if (mDust) mDust.placeholder = '@cf/runwayml/stable-diffusion-v1-5-inpainting';
-          if (mSelling) mSelling.placeholder = '@cf/black-forest-labs/flux-1-schnell';
-          if (mBg) mBg.placeholder = '@cf/runwayml/stable-diffusion-v1-5-inpainting';
+          if (mSelling) mSelling.placeholder = '@cf/bria/remove-background';
+          if (mBg) mBg.placeholder = '@cf/bria/remove-background';
         } else {
           if (epLabel) epLabel.innerText = 'URL эндпоинта';
           if (hint) hint.innerHTML = 'OpenAI-совместимый эндпоинт <code>POST /v1/images/edits</code>.';

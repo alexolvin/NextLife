@@ -137,16 +137,34 @@ def call_cloudflare_image(prompt: str, image_bytes: bytes, cfg: dict[str, str], 
         url = f"{url}/{target_model}"
 
     headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
-    payload: dict[str, Any] = {
-        "prompt": prompt,
-        "image_b64": base64.b64encode(image_bytes).decode("ascii") if image_bytes else "",
-    }
-    if "inpainting" in target_model and image_bytes:
+    target_lower = target_model.lower()
+    is_t2i = any(m in target_lower for m in ["flux", "stable-diffusion-xl", "dreamshaper"])
+    is_remove_bg = "remove-background" in target_lower or "bria" in target_lower or "rmbg" in target_lower
+
+    if is_remove_bg:
+        b64_img = base64.b64encode(image_bytes).decode("ascii") if image_bytes else ""
+        payload: dict[str, Any] = {
+            "image": f"data:image/jpeg;base64,{b64_img}" if b64_img else "",
+            "preserve_alpha": True,
+        }
+    elif is_t2i:
+        # Pure text-to-image models reject image_b64 with error 400
+        payload = {"prompt": prompt}
+    elif "inpainting" in target_lower and image_bytes:
         mask_bytes = _generate_default_mask_bytes(image_bytes)
+        payload = {
+            "prompt": prompt,
+            "image_b64": base64.b64encode(image_bytes).decode("ascii"),
+        }
         if mask_bytes:
             payload["mask_b64"] = base64.b64encode(mask_bytes).decode("ascii")
             payload["mask"] = list(mask_bytes)
             payload["image"] = list(image_bytes)
+    else:
+        payload = {
+            "prompt": prompt,
+            "image_b64": base64.b64encode(image_bytes).decode("ascii") if image_bytes else "",
+        }
 
     resp: httpx.Response | None = None
     for attempt in range(3):
@@ -175,6 +193,9 @@ def call_cloudflare_image(prompt: str, image_bytes: bytes, cfg: dict[str, str], 
         data = resp.json()
         b64_val = data.get("result", {}).get("image") or data.get("result") or data.get("image") or data.get("b64_json")
         if isinstance(b64_val, str):
+            if b64_val.startswith("http://") or b64_val.startswith("https://"):
+                r_img = httpx.get(b64_val, timeout=30.0)
+                return r_img.content
             return base64.b64decode(b64_val)
     except Exception as exc:
         raise ImageAIError(f"Не удалось распознать ответ Cloudflare Workers AI: {exc}") from exc
