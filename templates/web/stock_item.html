@@ -416,7 +416,7 @@
                     {% if l.price and not l.is_auction %}
                       <span style="font-size: 1.05rem;">{{ l.price }}</span> <span style="font-size: 0.85rem; color: #64748b;">{{ l.currency }}</span>
                     {% elif l.is_auction %}
-                      <span style="color: #64748b; font-weight: 500; font-size: 0.85rem; background: #f1f5f9; padding: 2px 8px; border-radius: 4px;" data-testid="auction-no-price">Аукцион (без цены)</span>
+                      <span style="color: #64748b; font-weight: 500; font-size: 0.85rem; background: #f1f5f9; padding: 2px 8px; border-radius: 4px;" data-testid="auction-no-price">Аукцион</span>
                     {% else %}
                       <span style="color: #94a3b8; font-weight: 400; font-size: 0.85rem;">Цена не указана</span>
                     {% endif %}

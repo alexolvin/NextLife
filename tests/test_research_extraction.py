@@ -409,6 +409,6 @@ def test_stock_item_template_renders_auction_without_price():
     )
     body = resp.body.decode("utf-8")
     assert 'data-testid="auction-no-price"' in body
-    assert "Аукцион (без цены)" in body
+    assert "Аукцион" in body
 
 
