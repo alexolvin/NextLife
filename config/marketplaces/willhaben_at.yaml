@@ -5,6 +5,7 @@
 key: willhaben_at
 title: Willhaben
 country: AT
+lang: de
 currency: EUR
 access_mode: ANDROID
 base_url: "https://www.willhaben.at"

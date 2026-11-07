@@ -5,6 +5,7 @@
 key: kleinanzeigen_de
 title: Kleinanzeigen
 country: DE
+lang: de
 currency: EUR
 access_mode: ANDROID
 base_url: "https://www.kleinanzeigen.de"

@@ -1,6 +1,7 @@
 key: bazos_sk
 title: "Bazoš.sk"
 country: SK
+lang: sk
 currency: EUR
 access_mode: ANDROID
 search_mode: html

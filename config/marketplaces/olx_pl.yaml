@@ -5,6 +5,7 @@
 key: olx_pl
 title: OLX
 country: PL
+lang: pl
 currency: PLN
 access_mode: ANDROID
 base_url: "https://www.olx.pl"

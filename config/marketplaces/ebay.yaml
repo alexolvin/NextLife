@@ -1,6 +1,7 @@
 key: ebay
 title: "eBay"
 country: US
+lang: en
 currency: EUR
 access_mode: WEB
 search_mode: html

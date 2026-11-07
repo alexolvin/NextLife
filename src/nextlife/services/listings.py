@@ -90,11 +90,27 @@ def prepare_item_listings(session: Session, item_code: str) -> list[Listing]:
                 Listing.status.notin_([ListingStatus.ARCHIVED.value, "DELETED"]),
             )
         )
+        mp_cfg = config.marketplaces[mp_key]
+        currency = getattr(mp_cfg, "currency", "CZK")
+        from nextlife.services.localize import get_marketplace_language, translate_listing_content
+        target_lang = getattr(mp_cfg, "language", None) or get_marketplace_language(mp_cfg, mp_key)
+        source_lang = (item.description_lang or "cs").strip().lower()
+
         if existing:
-            if not existing.title:
-                existing.title = item.title[:60] if item.title else item_code
-            if not existing.description:
-                existing.description = item.description or ""
+            if existing.status == ListingStatus.DRAFT.value and existing.lang != target_lang:
+                e_title, e_desc = translate_listing_content(
+                    item.title or item_code, item.description or "", target_lang=target_lang, source_lang=source_lang
+                )
+                existing.title = e_title[:60]
+                existing.description = e_desc
+                existing.lang = target_lang
+            else:
+                if not existing.title:
+                    existing.title = item.title[:60] if item.title else item_code
+                if not existing.description:
+                    existing.description = item.description or ""
+                if not existing.lang:
+                    existing.lang = target_lang
             if not existing.price:
                 existing.price = price_val
                 existing.price_base = price_val
@@ -104,10 +120,6 @@ def prepare_item_listings(session: Session, item_code: str) -> list[Listing]:
                 existing.category_key, existing.category_path = cat_key, cat_path
             created_or_existing.append(existing)
             continue
-
-        mp_cfg = config.marketplaces[mp_key]
-        currency = getattr(mp_cfg, "currency", "CZK")
-        lang = getattr(mp_cfg, "lang", item.description_lang or "cs")
 
         item_currency = (item.target_currency or "CZK").strip().upper()
         target_currency = currency.strip().upper()
@@ -162,20 +174,28 @@ def prepare_item_listings(session: Session, item_code: str) -> list[Listing]:
             session.add(mp_db)
             session.flush()
 
+        if target_lang != source_lang:
+            l_title, l_desc = translate_listing_content(
+                item.title or item_code, item.description or "", target_lang=target_lang, source_lang=source_lang
+            )
+        else:
+            l_title = item.title[:60] if item.title else item_code
+            l_desc = item.description or ""
+
         listing = Listing(
             id=str(uuid.uuid4()),
             item_code=item_code,
             marketplace_key=mp_key,
             status=ListingStatus.DRAFT.value,
-            title=item.title[:60] if item.title else item_code,
-            description=item.description or "",
+            title=l_title[:60] if l_title else item_code,
+            description=l_desc,
             category_key=cat_key,
             category_path=cat_path,
             category_auto=True,
             price=item_price,
             currency=currency,
             price_base=item_price,
-            lang=lang,
+            lang=target_lang,
             photo_ids=photo_ids,
             is_free=False,
         )

@@ -189,6 +189,7 @@ class MarketplaceConfig(BaseModel):
     country: str
     currency: str
     access_mode: str
+    lang: str = ""
     # Publish channel override: "" (default) = follow access_mode
     # (DIRECT -> web connector, ANDROID -> blocked until the phone
     # connector lands); "web" = publish via the web connector even when
@@ -234,6 +235,21 @@ class MarketplaceConfig(BaseModel):
     # single source of truth for the app package + rate limits; this keeps
     # only the broker platform id + version-tied screen fingerprints.
     android: AndroidMarketplaceConfig | None = None
+
+    @property
+    def language(self) -> str:
+        if self.lang:
+            return self.lang.lower()
+        country_to_lang = {
+            "SK": "sk",
+            "PL": "pl",
+            "DE": "de",
+            "AT": "de",
+            "US": "en",
+            "GB": "en",
+            "CZ": "cs",
+        }
+        return country_to_lang.get((self.country or "").upper(), "cs")
 
     @property
     def max_description_length(self) -> int:

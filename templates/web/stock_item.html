@@ -619,6 +619,9 @@
                 <div style="display: flex; align-items: center; gap: 8px;">
                   <strong style="font-size: 0.95rem; color: #0f172a;">{{ l.marketplace_key }}</strong>
                   <span class="badge" style="font-size: 0.75rem;">{{ l.status }}</span>
+                  {% if l.lang %}
+                    <span class="badge" style="font-size: 0.7rem; background: #f1f5f9; color: #475569; padding: 2px 6px; font-weight: 600;" data-testid="listing-lang-badge">{{ l.lang | upper }}</span>
+                  {% endif %}
                 </div>
                 <div style="margin-top: 4px;">
                   <a href="/ui/listings/{{ l.id }}?return_to=/ui/stock/{{ item.code }}%23listings" style="font-weight: 600; color: #2563eb; text-decoration: none; position: relative; z-index: 2; cursor: pointer; display: inline-block;" data-testid="listing-item-title">

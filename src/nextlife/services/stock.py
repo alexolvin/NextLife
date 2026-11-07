@@ -198,6 +198,7 @@ def get_stock_item(session: Session, code: str) -> dict[str, Any]:
                 "category_auto": listing_row.category_auto,
                 "price": str(listing_row.price),
                 "currency": listing_row.currency,
+                "lang": listing_row.lang,
                 "is_approved": listing_row.status == ListingStatus.APPROVED.value,
                 "external_url": listing_row.external_url,
                 "published_at": listing_row.published_at.isoformat() if listing_row.published_at else None,
