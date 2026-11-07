@@ -23,7 +23,7 @@ def view_job_batch(
     """Render batch report page."""
     with get_db_session() as session:
         summary = get_batch_summary(session, batch_id)
-        if not summary.get("jobs"):
+        if not summary.get("items") and not summary.get("jobs") and summary.get("total", 0) == 0:
             raise HTTPException(status_code=404, detail="Batch not found")
 
         return templates.TemplateResponse(
@@ -56,7 +56,7 @@ def api_job_batch(
     """Return JSON details for a batch (for drawer/live refresh)."""
     with get_db_session() as session:
         summary = get_batch_summary(session, batch_id)
-        if not summary.get("jobs"):
+        if not summary.get("items") and not summary.get("jobs") and summary.get("total", 0) == 0:
             raise HTTPException(status_code=404, detail="Batch not found")
         return summary
 

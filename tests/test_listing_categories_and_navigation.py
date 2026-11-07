@@ -282,3 +282,71 @@ def test_publish_approved_redirects_to_batch_and_renders_back_button():
         assert 'data-testid="btn-back-to-item-from-batch"' in resp2.text
         assert "/ui/stock/130#listings" in resp2.text
 
+
+def test_listing_card_class_filter():
+    from nextlife.api.routes import listing_card_class
+
+    # 1. Draft (после создания) -> светло-желтый
+    assert listing_card_class({"status": "DRAFT"}) == "listing-card-status-draft"
+    assert listing_card_class({"status": "QUEUED"}) == "listing-card-status-draft"
+
+    # 2. Approved (утверждено) -> светло-зелёный
+    assert listing_card_class({"status": "APPROVED"}) == "listing-card-status-approved"
+
+    # 3. Published / Updating (размещено) -> светло-голубой
+    assert listing_card_class({"status": "PUBLISHED"}) == "listing-card-status-published"
+    assert listing_card_class({"status": "UPDATING"}) == "listing-card-status-published"
+    assert listing_card_class({"status": "ACTIVE"}) == "listing-card-status-published"
+
+    # 4. Error / Failed -> светло-красный
+    assert listing_card_class({"status": "FAILED"}) == "listing-card-status-error"
+    assert listing_card_class({"status": "UNPUBLISH_FAILED"}) == "listing-card-status-error"
+    assert listing_card_class({"status": "ERROR"}) == "listing-card-status-error"
+    assert listing_card_class({"status": "DRAFT", "last_error_text": "Failed"}) == "listing-card-status-error"
+
+    # 5. Archived -> нейтральный
+    assert listing_card_class({"status": "ARCHIVED"}) == "listing-card-status-archived"
+
+
+def test_real_batch_creation_and_view_report_not_404():
+    """Verify that real get_batch_summary contains jobs/items and view_job_batch returns 200."""
+    from decimal import Decimal
+    from nextlife.jobs.manager import create_publish_batch, get_batch_summary
+    from nextlife.storage.db import get_db_session
+    from nextlife.storage.models import Item, Listing
+
+    with get_db_session() as session:
+        # Create item and listing in DB
+        it = Item(code="777", title="Batch Test Item", kind="SELL", category_key="gpu", condition_key="used", status="READY_FOR_SALE")
+        session.add(it)
+        session.flush()
+
+        listing = Listing(
+            item_code="777",
+            marketplace_key="bazos_cz",
+            price=Decimal("1000"),
+            currency="CZK",
+            price_base=Decimal("1000"),
+            status="APPROVED",
+            title="Batch Listing",
+        )
+        session.add(listing)
+        session.flush()
+
+        batch_id = create_publish_batch(session, [listing.id])
+        session.commit()
+
+        summary = get_batch_summary(session, batch_id)
+        assert summary["total"] == 1
+        assert "items" in summary and len(summary["items"]) == 1
+        assert "jobs" in summary and len(summary["jobs"]) == 1
+
+    client = TestClient(create_app())
+    client.cookies.set("nextlife_token", "test_token_secret")
+
+    resp = client.get(f"/ui/jobs/batches/{batch_id}")
+    assert resp.status_code == 200
+    assert "Отчёт размещения" in resp.text
+    assert "bazos_cz" in resp.text
+
+

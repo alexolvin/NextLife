@@ -69,6 +69,24 @@ def format_date_dmy(val: Any) -> str:
 
 templates.env.filters["date_dmy"] = format_date_dmy
 
+
+def listing_card_class(listing: Any) -> str:
+    """Card background/border color class based on listing state (TZ §Listing Card Colors)."""
+    status = getattr(listing, "status", None) if not isinstance(listing, dict) else listing.get("status")
+    last_error = getattr(listing, "last_error_text", None) if not isinstance(listing, dict) else listing.get("last_error_text")
+    if last_error or status in ("FAILED", "UNPUBLISH_FAILED", "ERROR"):
+        return "listing-card-status-error"
+    if status == "APPROVED":
+        return "listing-card-status-approved"
+    if status in ("PUBLISHED", "UPDATING", "ACTIVE"):
+        return "listing-card-status-published"
+    if status in ("ARCHIVED", "EXPIRED"):
+        return "listing-card-status-archived"
+    return "listing-card-status-draft"
+
+
+templates.env.filters["listing_card_class"] = listing_card_class
+
 def resolve_photo_url(path: str | None) -> str:
     """Resolve photo file path to a valid web URL under /media/."""
     if not path:

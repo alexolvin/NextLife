@@ -201,6 +201,8 @@ def get_stock_item(session: Session, code: str) -> dict[str, Any]:
                 "lang": listing_row.lang,
                 "is_approved": listing_row.status == ListingStatus.APPROVED.value,
                 "external_url": listing_row.external_url,
+                "last_error_text": listing_row.last_error_text,
+                "last_error_hint": listing_row.last_error_hint,
                 "published_at": listing_row.published_at.isoformat() if listing_row.published_at else None,
             }
             for listing_row in listings

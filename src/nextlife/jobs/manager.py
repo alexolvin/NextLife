@@ -107,16 +107,23 @@ def get_batch_summary(session: Session, batch_id: str) -> dict[str, Any]:
         "pending": pending,
         "is_completed": is_completed,
         "items": items,
+        "jobs": items,
     }
 
 
 def _purge_inactive_jobs(session: Session) -> None:
-    """Purge completed/stale jobs — background task history is not retained."""
+    """Purge completed/stale jobs — background task history is not retained indefinitely."""
     try:
+        from datetime import timedelta
+        cutoff = datetime.now(UTC) - timedelta(hours=2)
         from sqlalchemy import delete
         session.execute(
             delete(Job).where(
-                (Job.state.notin_(["PENDING", "RUNNING"])) | (Job.kind == "BUY_SEARCH")
+                (Job.kind == "BUY_SEARCH")
+                | (
+                    (Job.state.notin_(["PENDING", "RUNNING"]))
+                    & ((Job.batch_id.is_(None)) | (Job.created_at < cutoff))
+                )
             )
         )
     except Exception:
