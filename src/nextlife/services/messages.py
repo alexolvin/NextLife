@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
+from types import SimpleNamespace
 from typing import Any
 
 from sqlalchemy import desc, func, select
@@ -117,10 +118,43 @@ def get_thread_data(session: Session, thread_id: str) -> dict[str, Any]:
 
     caps = get_marketplace_capabilities(listing.marketplace_key) if listing else {}
 
+    # Convert ORM instances to detached SimpleNamespace to prevent DetachedInstanceError
+    detached_thread = SimpleNamespace(
+        id=thread.id,
+        listing_id=thread.listing_id,
+        channel=thread.channel,
+        counterparty=thread.counterparty,
+        lang=thread.lang,
+        status=thread.status,
+        created_at=thread.created_at,
+        updated_at=thread.updated_at,
+    )
+    detached_item = None
+    if item:
+        detached_item = SimpleNamespace(
+            code=item.code,
+            title=item.title,
+            target_price=item.target_price,
+            target_currency=item.target_currency,
+            warranty_months=item.warranty_months,
+            status=item.status,
+        )
+    detached_listing = None
+    if listing:
+        detached_listing = SimpleNamespace(
+            id=listing.id,
+            item_code=listing.item_code,
+            marketplace_key=listing.marketplace_key,
+            external_url=listing.external_url,
+            status=listing.status,
+            price=listing.price,
+            currency=listing.currency,
+        )
+
     return {
-        "thread": thread,
-        "item": item,
-        "listing": listing,
+        "thread": detached_thread,
+        "item": detached_item,
+        "listing": detached_listing,
         "caps": caps,
         "messages": [
             {

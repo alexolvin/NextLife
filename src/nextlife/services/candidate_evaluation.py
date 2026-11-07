@@ -183,7 +183,7 @@ def evaluate_candidates(
         verdict = "FAIR"
         if match_score < 0.5:
             verdict = "CRITERIA_MISMATCH"
-        elif price_base > buy_req.budget:
+        elif buy_req.budget and buy_req.budget > 0 and price_base > buy_req.budget:
             verdict = "EXCEEDS_BUDGET"
         elif deviation_pct is not None:
             if deviation_pct <= -15.0 and match_score >= 0.8:
@@ -193,7 +193,10 @@ def evaluate_candidates(
             else:
                 verdict = "FAIR"
         else:
-            verdict = "WITHIN_BUDGET" if price_base <= buy_req.budget else "EXCEEDS_BUDGET"
+            if buy_req.budget and buy_req.budget > 0:
+                verdict = "WITHIN_BUDGET" if price_base <= buy_req.budget else "EXCEEDS_BUDGET"
+            else:
+                verdict = "FAIR"
 
         evaluated_results.append({
             "external_url": cand["url"],

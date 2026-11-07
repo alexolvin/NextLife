@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily NextLife Connector Status Check Timer
+Requires=nextlife-connector-check.service
+
+[Timer]
+OnCalendar=*-*-* 04:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

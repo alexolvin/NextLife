@@ -60,7 +60,7 @@ def resolve_message_item_code(
         .join(Thread, Thread.listing_id == Listing.id)
         .where(
             Thread.counterparty == sender_email,
-            Listing.status.in_(["ACTIVE", "PUBLISHED"]),
+            Listing.status.in_(["PUBLISHED", "UPDATING"]),
         )
         .distinct()
     )

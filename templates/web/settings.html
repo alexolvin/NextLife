@@ -31,6 +31,8 @@
     {% elif notice == 'llm_test_ok' %}Проверка Text LLM: успешно!
     {% elif notice == 'image_ai_test_ok' %}Проверка Image AI: успешно!
     {% elif notice == 'notion_test_ok' %}Проверка Notion: подключение успешно!
+    {% elif notice == 'phone_opened' %}Приложение успешно открыто на телефоне.
+    {% elif notice and notice.startswith('phone_error_') %}Ошибка открытия на телефоне: {{ notice[12:] }}
     {% else %}Настройки сохранены.
     {% endif %}
   </div>
@@ -72,8 +74,24 @@
     <!-- Capabilities Matrix Table -->
     <div class="card" style="padding: 1.25rem; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; overflow-x: auto;">
       <h2 style="font-size: 1.15rem; font-weight: 600; margin-top: 0; margin-bottom: 0.5rem;">Матрица возможностей площадок</h2>
-      <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">Только для чтения. Возможности включаются при наличии реальной реализации в коннекторе.</p>
+      <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 0.75rem;">Только для чтения. Возможности включаются при наличии реальной реализации в коннекторе.</p>
       
+      <!-- Статусная легенда -->
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; font-size: 0.8rem;" data-testid="mp-status-legend">
+        <span style="display: inline-flex; align-items: center; gap: 0.35rem; background: #dcfce7; color: #166534; padding: 3px 8px; border-radius: 6px; border: 1px solid #bbf7d0;">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: #16a34a;"></span>
+          Светло-зелёный: Полный доступ
+        </span>
+        <span style="display: inline-flex; align-items: center; gap: 0.35rem; background: #fef9c3; color: #854d0e; padding: 3px 8px; border-radius: 6px; border: 1px solid #fef08a;">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: #ca8a04;"></span>
+          Светло-жёлтый: Только просмотр
+        </span>
+        <span style="display: inline-flex; align-items: center; gap: 0.35rem; background: #fee2e2; color: #991b1b; padding: 3px 8px; border-radius: 6px; border: 1px solid #fecaca;">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: #dc2626;"></span>
+          Светло-красный: Недоступен
+        </span>
+      </div>
+
       <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;" data-testid="capabilities-table">
         <thead>
           <tr style="border-bottom: 2px solid #e2e8f0; text-align: left;">
@@ -81,21 +99,24 @@
             <th style="padding: 0.5rem; text-align: center;">Поиск</th>
             <th style="padding: 0.5rem; text-align: center;">Размещение</th>
             <th style="padding: 0.5rem; text-align: center;">Изменение</th>
-            <th style="padding: 0.5rem; text-align: center;">Снятие</th>
-            <th style="padding: 0.5rem; text-align: center;">Перевыставление</th>
+            <th style="padding: 0.5rem; text-align: center;" title="Автоматическое снятие объявлений коннектором">Автоснятие</th>
+            <th style="padding: 0.5rem; text-align: center;" title="Автоматическое перевыставление объявлений коннектором">Автоперевыставление</th>
             <th style="padding: 0.5rem; text-align: center;">Сообщения</th>
             <th style="padding: 0.5rem; text-align: center;">Доставка</th>
           </tr>
         </thead>
         <tbody>
           {% for mp in marketplaces %}
-          <tr style="border-bottom: 1px solid #f1f5f9;">
-            <td style="padding: 0.5rem; font-weight: 600;">{{ mp.title }}</td>
+          <tr style="border-bottom: 1px solid #e2e8f0; background: {{ mp.status_bg }};" data-testid="row-mp-{{ mp.key }}">
+            <td style="padding: 0.5rem; font-weight: 600;">
+              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: {{ mp.status_dot }}; margin-right: 6px;" title="{{ mp.status_label }}"></span>
+              {{ mp.title }}
+            </td>
             <td style="padding: 0.5rem; text-align: center;">{{ "✓" if mp.caps.search else "—" }}</td>
             <td style="padding: 0.5rem; text-align: center;">{{ "✓" if mp.caps.publish else "—" }}</td>
             <td style="padding: 0.5rem; text-align: center;">{{ "✓" if mp.caps.update else "—" }}</td>
-            <td style="padding: 0.5rem; text-align: center;">{{ "✓" if mp.caps.unpublish else "—" }}</td>
-            <td style="padding: 0.5rem; text-align: center;">{{ "✓" if mp.caps.relist else "—" }}</td>
+            <td style="padding: 0.5rem; text-align: center;">{{ "✓" if (mp.auto_unpublish or mp.caps.unpublish) else "—" }}</td>
+            <td style="padding: 0.5rem; text-align: center;">{{ "✓" if (mp.auto_relist or mp.caps.relist) else "—" }}</td>
             <td style="padding: 0.5rem; text-align: center;">{{ "✓" if mp.caps.messages_read else "—" }}</td>
             <td style="padding: 0.5rem; text-align: center;">{{ "✓" if mp.caps.delivery_parse else "—" }}</td>
           </tr>
@@ -115,19 +136,56 @@
 
       <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem;">
         {% for mp in marketplaces %}
-        <details style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem;" {% if mp.search or mp.publish %}open{% endif %}>
-          <summary style="font-weight: 600; cursor: pointer;">{{ mp.title }}</summary>
+        <details id="mp-{{ mp.key }}" style="border: 1px solid {{ mp.status_border }}; border-left: 5px solid {{ mp.status_dot }}; background: {{ mp.status_bg }}; border-radius: 8px; padding: 0.75rem;" {% if mp.search or mp.publish %}open{% endif %} data-testid="details-mp-{{ mp.key }}">
+          <summary style="font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+            <span>{{ mp.title }}</span>
+            <span style="font-size: 0.75rem; font-weight: 500; padding: 2px 8px; border-radius: 9999px; background: {{ mp.badge_bg }}; color: {{ mp.badge_text }}; border: 1px solid {{ mp.badge_border }};" data-testid="badge-status-{{ mp.key }}">{{ mp.status_label }}</span>
+          </summary>
           <div style="margin-top: 0.75rem;">
+            <!-- Прямой вход и управление сессией / приложением -->
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 0.85rem; padding: 8px 10px; background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.06); border-radius: 8px;">
+              {% if mp.login_url %}
+              <a href="{{ mp.login_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; font-size: 0.82rem;" data-testid="btn-login-{{ mp.key }}">
+                🔗 Открыть сайт для входа ↗
+              </a>
+              {% endif %}
+              {% if mp.phone_platform %}
+              <button type="submit" form="form-open-phone-{{ mp.key }}" class="btn btn-sm btn-secondary" style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; font-weight: 600; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 4px;" data-testid="btn-phone-{{ mp.key }}">
+                📱 Открыть на телефоне
+              </button>
+              {% endif %}
+            </div>
             <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem;">{{ 'Прямой доступ' if mp.access_mode == 'DIRECT' else 'Через приложение' }}</div>
-            <div style="display: flex; gap: 1rem; margin-bottom: 0.75rem;">
-              <label style="font-size: 0.875rem; display: flex; align-items: center; gap: 0.35rem;">
+            <div style="display: flex; gap: 1rem; margin-bottom: 0.5rem;">
+              <label style="font-size: 0.875rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer;">
                 <input type="checkbox" name="mp_{{ mp.key }}_search" {% if mp.search %}checked{% endif %}>
-                Поиск
+                <span>Поиск</span>
               </label>
-              <label style="font-size: 0.875rem; display: flex; align-items: center; gap: 0.35rem;">
+              <label style="font-size: 0.875rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer;">
                 <input type="checkbox" name="mp_{{ mp.key }}_publish" {% if mp.publish %}checked{% endif %}>
-                Размещение
+                <span>Размещение</span>
               </label>
+            </div>
+            <!-- Системные информационные параметры (только для чтения) -->
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.75rem; padding: 6px 10px; background: rgba(241, 245, 249, 0.75); border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.8rem;" data-testid="sys-params-{{ mp.key }}">
+              <div style="display: flex; align-items: center; gap: 4px;" title="Возможность автоматического снятия объявления коннектором">
+                <span style="color: #64748b;">Автоснятие:</span>
+                {% if mp.auto_unpublish or mp.caps.unpublish %}
+                  <span style="color: #15803d; font-weight: 600;">✓ Поддерживается</span>
+                {% else %}
+                  <span style="color: #64748b; font-weight: 500;">— Вручную</span>
+                {% endif %}
+              </div>
+              <span style="color: #cbd5e1;">•</span>
+              <div style="display: flex; align-items: center; gap: 4px;" title="Возможность автоматического перевыставления объявления коннектором">
+                <span style="color: #64748b;">Автоперевыставление:</span>
+                {% if mp.auto_relist or mp.caps.relist %}
+                  <span style="color: #15803d; font-weight: 600;">✓ Поддерживается</span>
+                {% else %}
+                  <span style="color: #64748b; font-weight: 500;">— Вручную</span>
+                {% endif %}
+              </div>
+              <span style="color: #94a3b8; font-size: 0.72rem; margin-left: auto;">(системный параметр)</span>
             </div>
             <div style="margin-bottom: 0.75rem;">
               <label style="font-size: 0.8rem; font-weight: 500; display: block; margin-bottom: 0.2rem;">Срок публикации на этой площадке (дней):</label>
@@ -158,6 +216,12 @@
 
       <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.65rem;" data-testid="marketplaces-save-btn">Сохранить площадки</button>
     </form>
+
+    {% for mp in marketplaces %}
+      {% if mp.phone_platform %}
+      <form id="form-open-phone-{{ mp.key }}" method="POST" action="/ui/settings/marketplaces/{{ mp.key }}/open-phone" style="display: none;"></form>
+      {% endif %}
+    {% endfor %}
   </div>
   {% endif %}
 

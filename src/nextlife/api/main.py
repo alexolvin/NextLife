@@ -190,12 +190,14 @@ def create_app() -> FastAPI:
     from nextlife.api.routes_settings import settings_router
     from nextlife.api.routes_openclaw_v2 import oc_v2_router
     from nextlife.api.routes_bazos_recon import bazos_recon_router
+    from nextlife.api.routes_connectors import router as connectors_router
 
     app.include_router(messages_router)
     app.include_router(threads_router)
     app.include_router(research_router)
     app.include_router(settings_router)
     app.include_router(bazos_recon_router)
+    app.include_router(connectors_router)
     app.include_router(router)
     app.include_router(stock_router)
     app.include_router(lots_router)

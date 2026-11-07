@@ -244,11 +244,14 @@ def api_lot_wizard_search(
         # Переведённый ключ (на язык площадки) вместо исходного, если есть.
         q = translated.get(mp_key, q)
         if mp_key == "vinted":
+            try:
+                connector = get_connector(mp_key, cfg)
+                items = connector.search(q)
+                if items:
+                    return items
+            except Exception:
+                pass
             from nextlife.api.routes_openclaw import _search_vinted_android
-
-            # Полный поиск: все доступные карточки (брокер скроллит до 4
-            # экранов, ~20). Share-flow ~26 с/карточку → до ~9 мин; владелец
-            # сам решает, ждать ли, кнопкой «Прервать» останавливает поиск.
             return _search_vinted_android(q, cfg, 20)
         connector = get_connector(mp_key, cfg)
         return connector.search(q)
@@ -296,6 +299,13 @@ def api_lot_wizard_search(
         def _search_one(mp: str) -> tuple[str, list[Any]]:
             q = translated.get(mp, query)
             if mp == "vinted":
+                try:
+                    connector = get_connector(mp, cfg)
+                    items = connector.search(q)
+                    if items:
+                        return mp, items
+                except Exception:
+                    pass
                 from nextlife.api.routes_openclaw import _search_vinted_android
 
                 return mp, _search_vinted_android(q, cfg, 20, cancel_event, lambda n: progress_q.put(n))
@@ -697,10 +707,12 @@ def api_lot_wizard_publish_bazos(
                 price_base=price,
                 status="PUBLISHED",
                 published_at=datetime.now(UTC),
+                external_url=result.get("final_url"),
                 publish_evidence={
                     "url": result.get("final_url"),
                     "evidence_file": result.get("evidence_path"),
                     "timestamp": result.get("timestamp"),
+                    "live_status": "LIVE_VERIFIED",
                 },
             )
             session.add(listing)
@@ -708,6 +720,7 @@ def api_lot_wizard_publish_bazos(
             notice = "publish_done"
             detail = result.get("steps", [])[-1] if result.get("steps") else ""
         else:
+            session.commit()
             notice = "publish_error"
             detail = result.get("errors", ["unknown error"])[0]
 

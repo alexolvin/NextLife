@@ -15,6 +15,7 @@ from nextlife.core.config import ConfigBundle
 from nextlife.core.exceptions import NextLifeError
 from nextlife.core.research_texts import generate_research_texts
 from nextlife.money.money import UnknownCurrencyError, convert_price, format_money
+from nextlife.services.search_query_parser import matches_query_tags, parse_search_query
 from nextlife.storage.models import Item, ResearchResult, ResearchRun
 
 
@@ -63,7 +64,6 @@ def calculate_price_stats(prices: list[Decimal], min_comparables: int = 5) -> di
             "reason": f"Выборка недостаточна для рыночной оценки: найдено {len(filtered)} (требуется {min_comparables}).",
             "count": len(filtered),
         }
-
     sorted_p = sorted(filtered)
     return {
         "sufficient_data": True,
@@ -141,29 +141,48 @@ def run_research(
     session.add(run)
     session.flush()
 
+    parsed = parse_search_query(query)
     raw_items: list[tuple[str, RawListing]] = []
     effective_query = query.strip()
     if raw_listings_override is not None:
-        raw_items = raw_listings_override
+        raw_items = [
+            (mk, it) for mk, it in raw_listings_override
+            if not parsed.has_tags or matches_query_tags(
+                it.title, str((it.raw or {}).get("description") or it.condition_text or ""), parsed
+            )
+        ]
     else:
-        # Сначала ищем по точному запросу; при 0 результатов пробуем кандидаты модели
-        candidates = [query.strip()]
-        for c in extract_search_candidates(query):
+        search_q = parsed.marketplace_query if parsed.has_tags else query.strip()
+        candidates = [search_q] if search_q else [query.strip()]
+        for c in extract_search_candidates(search_q or query):
             if c not in candidates:
                 candidates.append(c)
 
         for candidate_q in candidates:
             cand_items = []
             for mp_key, mp_cfg in config.marketplaces.items():
-                if mp_cfg.access_mode != "DIRECT":
+                caps = mp_cfg.capabilities if isinstance(mp_cfg.capabilities, dict) else {}
+                if not caps.get("search", False):
                     continue
                 try:
                     connector = get_connector(mp_key, config)
-                    items = connector.search(candidate_q)
-                    for item in items:
+                    for item in connector.search(candidate_q)[:5]:
                         cand_items.append((mp_key, item))
                 except Exception as e:
                     run.error[mp_key] = str(e)
+            if cand_items and parsed.has_tags:
+                cand_items = [
+                    (mk, it) for mk, it in cand_items
+                    if matches_query_tags(
+                        it.title, str((it.raw or {}).get("description") or it.condition_text or ""), parsed
+                    )
+                ]
+            from nextlife.services.sample_filter import is_relevant_sample
+
+            cand_items = [
+                (mk, it) for mk, it in cand_items
+                if is_relevant_sample(candidate_q, it.title, it.price, str((it.raw or {}).get("description") or it.condition_text or ""))[0]
+            ]
             if cand_items:
                 raw_items = cand_items
                 effective_query = candidate_q
@@ -198,30 +217,19 @@ def run_research(
                 price_base = triple.amount_base
                 fx_date = triple.rate_date
             except UnknownCurrencyError:
-                # Rule 7.6: currency_unknown -> skip aggregate inclusion
                 continue
             except Exception:
-                fallback_rates = {"CZK": Decimal("25.0"), "PLN": Decimal("4.30"), "EUR": Decimal("1.0")}
-                rate = fallback_rates.get((raw_item.currency or "").upper(), Decimal("1.0"))
+                rate = {"CZK": Decimal("25.0"), "PLN": Decimal("4.30"), "EUR": Decimal("1.0")}.get((raw_item.currency or "").upper(), Decimal("1.0"))
                 price_base = (raw_item.price / rate).quantize(Decimal("0.01"))
                 fx_date = today
 
-        res_row = ResearchResult(
-            id=str(uuid.uuid4()),
-            run_id=run_id,
-            marketplace_key=mp_key,
-            external_url=raw_item.external_url[:1024],
-            title=raw_item.title[:255],
-            price=item_price,
-            currency=raw_item.currency,
-            price_base=price_base,
-            fx_rate_date=fx_date,
+        session.add(ResearchResult(
+            id=str(uuid.uuid4()), run_id=run_id, marketplace_key=mp_key,
+            external_url=raw_item.external_url[:1024], title=raw_item.title[:255],
+            price=item_price, currency=raw_item.currency, price_base=price_base, fx_rate_date=fx_date,
             condition_text=raw_item.condition_text[:100] if raw_item.condition_text else None,
-            posted_at=raw_item.posted_at,
-            raw=raw_dict,
-            captured_at=now_utc,
-        )
-        session.add(res_row)
+            posted_at=raw_item.posted_at, raw=raw_dict, captured_at=now_utc,
+        ))
 
     run.marketplaces = {
         "queried": list(config.marketplaces.keys()),
@@ -251,10 +259,8 @@ def build_research_report(
 
     closest_links = [
         {
-            "marketplace": r.marketplace_key,
-            "title": r.title,
-            "url": r.external_url,
-            "price_base": float(r.price_base),
+            "marketplace": r.marketplace_key, "title": r.title,
+            "url": r.external_url, "price_base": float(r.price_base),
             "currency_base": config.app.base_currency,
         }
         for r in results[:5]
@@ -276,12 +282,9 @@ def build_research_report(
 
     if stats["sufficient_data"]:
         report["price_range"] = {
-            "base_currency": config.app.base_currency,
-            "min": float(stats["min"]),
-            "q25": float(stats["q25"]),
-            "median": float(stats["median"]),
-            "q75": float(stats["q75"]),
-            "max": float(stats["max"]),
+            "base_currency": config.app.base_currency, "min": float(stats["min"]),
+            "q25": float(stats["q25"]), "median": float(stats["median"]),
+            "q75": float(stats["q75"]), "max": float(stats["max"]),
         }
     return report
 
@@ -341,18 +344,15 @@ def build_research_panel(
     categories = cat_result.get("options", []) if cat_result else []
     assignments = cat_result.get("assignments", []) if cat_result else []
 
-    candidate_prices = [
-        r.price for idx, r in enumerate(own)
-        if not _is_auction(r) and (idx >= len(assignments) or assignments[idx] != "Спрос / Покупка")
-    ]
-    standalone_prices = sorted(
-        r.price for idx, r in enumerate(own)
-        if not _is_auction(r) and (idx < len(assignments) and assignments[idx] == "Самостоятельный товар")
-    )
+    from nextlife.services.sample_filter import is_relevant_sample
+
+    verified = [r for r in own if not _is_auction(r) and is_relevant_sample(current_query, r.title, r.price)[0]]
     min_comp = int(getattr(config.app, "min_comparables", 5) or 5)
-    valid_prices = standalone_prices if len(standalone_prices) >= min_comp else sorted(candidate_prices)
+    valid_prices = sorted(r.price for r in verified)
     stats = calculate_price_stats(valid_prices, min_comparables=min_comp)
 
+    # Put verified relevant items first in links
+    own_sorted = sorted(own, key=lambda r: 0 if is_relevant_sample(current_query, r.title, r.price)[0] else 1)
     links = [
         {
             "marketplace": r.marketplace_key,
@@ -364,7 +364,7 @@ def build_research_panel(
             "category": assignments[idx] if idx < len(assignments) else "Другое",
             "is_auction": _is_auction(r),
         }
-        for idx, r in enumerate(own)
+        for idx, r in enumerate(own_sorted)
     ]
 
     panel: dict[str, Any] = {
@@ -375,7 +375,7 @@ def build_research_panel(
         "range": None,
         "message": None,
         "categories": categories,
-        "links": links,
+        "links": links[:5],
         "variants": (
             generate_research_texts(
                 item.title,

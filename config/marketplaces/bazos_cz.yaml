@@ -18,7 +18,8 @@ capabilities:
   # (human-in-the-loop). Dry-run в коннекторе; live — через bazos_publish.py.
   post: true
   edit: false
-  archive: false
+  archive: true
+  relist: true
   messaging: false
   max_photos: 10
   max_title_len: 60

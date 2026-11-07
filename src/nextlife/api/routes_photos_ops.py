@@ -1,8 +1,4 @@
-"""API endpoints for photo edit operations: reorder, cover, rotate, crop.
-
-TZ v2.0 Section IV.2, V.1.
-Rule K-1: Module must strictly be <= 400 lines.
-"""
+"""API endpoints for photo edit operations: reorder, cover, rotate, crop."""
 
 from __future__ import annotations
 
@@ -13,7 +9,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from nextlife.api.routes import check_auth
+from nextlife.api.routes import check_auth, resolve_photo_url
 from nextlife.media.jobs import regenerate_item_variants
 from nextlife.media.ops import (
     PhotoOpForbiddenError,
@@ -193,6 +189,7 @@ def api_rotate_item_photo(
             "item_code": code,
             "photo_id": photo.id,
             "degrees": payload.degrees,
+            "url": resolve_photo_url(photo.path),
             "width": photo.width,
             "height": photo.height,
         }
@@ -242,16 +239,13 @@ def api_crop_item_photo(
             "item_code": code,
             "photo_id": photo.id,
             "box": payload.box,
+            "url": resolve_photo_url(photo.path),
             "width": photo.width,
             "height": photo.height,
         }
 
 
-# ---------------------------------------------------------------------------
-# TZ-NextLife-UI-N2 §4 V6: per-фото операции в UI (R5). Результат — новая
-# версия, оригинал неизменен; чистка фото дефекта запрещена (400).
-# ---------------------------------------------------------------------------
-
+# Per-photo UI operations (TZ-NextLife-UI-N2 §4 V6, R5).
 def _redirect_card(
     code: str, notice: str | None = None, reason: str | None = None, fragment: str = "photos"
 ) -> RedirectResponse:

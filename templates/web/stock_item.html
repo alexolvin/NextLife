@@ -65,7 +65,7 @@
     }
   }
 </style>
-<div class="stock-item-container" style="padding: 16px; max-width: 900px; margin: 0 auto; padding-bottom: 80px;"
+<div class="stock-item-container" style="padding: 8px 8px 80px 8px; max-width: 900px; margin: 0 auto;"
      x-data="{
        activeTab: (window.location.hash ? window.location.hash.split('?')[0] : '#price'),
        stages: ['#price', '#photos', '#describe', '#listings', '#sale', '#warranty'],
@@ -241,36 +241,39 @@
 
   <!-- ================= STAGE 1: PRICE RESEARCH (#price) ================= -->
   <div x-show="activeTab === '#price'" data-testid="stage-price-panel" class="stack-3">
-    <div class="card" style="padding: 18px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
-      <h2 style="font-size: 1.15rem; font-weight: 700; margin-top: 0;">Этап 1. Оценка цены аналогов</h2>
+    <div class="card" style="padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
+      <h2 style="font-size: 1.1rem; font-weight: 700; margin-top: 0; margin-bottom: 8px;">Этап 1. Оценка цены аналогов</h2>
 
       {% if item.target_price %}
-        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
-          <div style="font-size: 0.85rem; color: #166534;">Текущая целевая цена:</div>
-          <div style="font-size: 1.4rem; font-weight: 700; color: #15803d;">{{ item.target_price }} {{ item.target_currency or 'CZK' }}</div>
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 6px 10px; border-radius: 8px; margin-bottom: 8px;">
+          <div style="font-size: 0.8rem; color: #166534;">Текущая целевая цена:</div>
+          <div style="font-size: 1.3rem; font-weight: 700; color: #15803d; line-height: 1.2;">
+            {{ item.target_price }} {{ item.target_currency or 'CZK' }}
+          </div>
         </div>
       {% endif %}
 
       <!-- Price Decisions: owner determines price -->
-      <div style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
-        <h3 style="font-size: 0.95rem; font-weight: 600; margin-top: 0; margin-bottom: 10px;">Цена продажи:</h3>
+      <div style="background: #f8fafc; padding: 7px 8px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 8px;">
+        <div style="font-size: 0.88rem; font-weight: 600; margin-bottom: 6px; color: #1e293b;">Цена продажи:</div>
         
-        <form method="post" action="/api/stock/{{ item.code }}/price-estimate" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <form method="post" action="/api/stock/{{ item.code }}/price-estimate" style="display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; width: 100%;">
           <input type="number" step="1" name="price" placeholder="Своя цена" value="{{ item.target_price or '' }}" required
-                 class="input-field" style="width: 140px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px;" data-testid="input-custom-price">
-          <select name="currency" class="input-field" style="padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                 class="input-field" style="flex: 1 1 110px; min-width: 0; max-width: 140px; height: 38px; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem;" data-testid="input-custom-price">
+          <select name="currency" class="input-field" style="width: 72px; flex-shrink: 0; height: 38px; padding: 6px 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem; background: #fff;">
             <option value="CZK" {% if (item.target_currency or 'CZK') == 'CZK' %}selected{% endif %}>CZK</option>
             <option value="EUR" {% if item.target_currency == 'EUR' %}selected{% endif %}>EUR</option>
             <option value="PLN" {% if item.target_currency == 'PLN' %}selected{% endif %}>PLN</option>
           </select>
-          <button type="submit" class="btn btn-primary" style="padding: 8px 16px; font-weight: 600;" data-testid="btn-save-price">
-            Сохранить цену
+          <button type="submit" class="btn btn-primary" title="Сохранить цену" aria-label="Сохранить цену" data-testid="btn-save-price"
+                  style="height: 38px; min-width: 38px; padding: 0 10px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           </button>
         </form>
       </div>
 
       <!-- Live Search & Comparables Panel (§5.2) -->
-      <div style="margin-top: 20px; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;"
+      <div style="margin-top: 8px; padding: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;"
            data-testid="research-panel"
            x-data="{
              selectedCategory: 'Показать все',
@@ -301,27 +304,38 @@
                rows.forEach(row => list.appendChild(row));
              }
            }">
-        <div style="font-weight: 700; font-size: 1rem; color: #1e293b; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-          <span>🔍 Поиск аналогов на площадках (Bazoš, Sbazar, Aukro)</span>
-          {% if research and research.badge_text %}
-            <span class="badge" style="font-size: 0.8rem; font-weight: 600; padding: 4px 8px; border-radius: 6px; background: #e2e8f0; color: #334155;">{{ research.badge_text }}</span>
-          {% endif %}
+        {% if research and research.badge_text %}
+        <div style="margin-bottom: 6px; display: flex; justify-content: flex-end;">
+          <span class="badge" style="font-size: 0.8rem; font-weight: 600; padding: 3px 8px; border-radius: 6px; background: #e2e8f0; color: #334155;">{{ research.badge_text }}</span>
         </div>
+        {% endif %}
 
-        <form method="post" action="/ui/stock/{{ item.code }}/research" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px;">
+        <form method="post" action="/ui/stock/{{ item.code }}/research"
+              x-data="{ searching: false }"
+              @submit="searching = true"
+              style="display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; margin-bottom: 4px; width: 100%;">
           <input type="hidden" name="next" value="/ui/stock/{{ item.code }}#price">
-          <input type="text" name="q" value="{{ (research and research.query) or item.title }}" placeholder="Ключевые слова модели для поиска..."
-                 class="input-field" style="flex: 1; min-width: 240px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px;" data-testid="input-research-query">
-          <button type="submit" class="btn btn-primary" style="padding: 8px 16px; font-weight: 600;" data-testid="btn-run-research">
-            Найти аналоги
+          <input type="text" name="q" value="{{ (research and research.query) or item.title }}" placeholder="Модель для поиска аналогов..."
+                 class="input-field" style="flex: 1 1 auto; min-width: 0; width: 100%; height: 38px; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" data-testid="input-research-query">
+          <button type="submit" class="btn btn-primary"
+                  style="height: 38px; min-width: 42px; padding: 0 12px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;"
+                  title="Найти аналоги" aria-label="Найти аналоги"
+                  data-testid="btn-run-research" :disabled="searching">
+            <template x-if="!searching">
+              <span style="display: inline-flex; align-items: center; justify-content: center;">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              </span>
+            </template>
+            <template x-if="searching">
+              <span style="display: inline-flex; align-items: center; gap: 4px;">
+                <svg style="animation: spin 1s linear infinite; width: 16px; height: 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
+              </span>
+            </template>
           </button>
         </form>
-
-        {% if research and research.query and research.query != item.title %}
-          <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 12px;">
-            💡 Поисковый запрос был оптимизирован под площадки: «<strong>{{ research.query }}</strong>»
-          </div>
-        {% endif %}
+        <div style="font-size: 0.72rem; color: #64748b; line-height: 1.3; margin-bottom: 8px;" data-testid="research-tags-hint">
+          💡 Теги: <code>+слово</code> или <code>+"фраза"</code> — обязательно, <code>-слово</code> или <code>-"фраза"</code> — исключить.
+        </div>
 
         {% if research and research.total_found > 0 %}
           <div style="margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 14px;">
@@ -334,12 +348,12 @@
               {% endif %}
             </div>
 
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; padding: 8px 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; flex-wrap: nowrap;" data-testid="research-filter-container">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 8px; padding: 6px 8px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; flex-wrap: nowrap;" data-testid="research-filter-container">
               <!-- Left: Category filter (dropdown only, no label) -->
               {% if research.categories and research.categories|length > 1 %}
                 <div style="flex: 1; min-width: 0;">
                   <select id="research-category-select" x-model="selectedCategory" aria-label="Категория"
-                          class="input-field" style="width: 100%; padding: 6px 10px; font-size: 0.85rem; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; font-weight: 500; text-overflow: ellipsis;"
+                          class="input-field" style="width: 100%; padding: 6px 8px; font-size: 0.85rem; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; font-weight: 500; text-overflow: ellipsis;"
                           data-testid="select-research-category">
                     {% for cat in research.categories %}
                       <option value="{{ cat }}">{{ cat }}</option>
@@ -353,7 +367,7 @@
               <!-- Right: Sort control (dropdown only, no label) -->
               <div style="flex: 1; min-width: 0;">
                 <select id="research-sort-select" x-model="sortBy" @change="sortResearchRows()" aria-label="Сортировка"
-                        class="input-field" style="width: 100%; padding: 6px 10px; font-size: 0.85rem; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; font-weight: 500; text-overflow: ellipsis;"
+                        class="input-field" style="width: 100%; padding: 6px 8px; font-size: 0.85rem; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; font-weight: 500; text-overflow: ellipsis;"
                         data-testid="select-research-sort">
                   <option value="default">По умолчанию</option>
                   <option value="price_asc">По цене (сначала дешевле)</option>
@@ -364,7 +378,7 @@
               </div>
             </div>
 
-            <div x-ref="researchLinksList" style="display: flex; flex-direction: column; gap: 8px;" data-testid="research-links-list">
+            <div x-ref="researchLinksList" style="display: flex; flex-direction: column; gap: 6px;" data-testid="research-links-list">
               {% for l in research.links %}
                 <div class="research-row"
                      data-orig-index="{{ loop.index0 }}"
@@ -373,20 +387,20 @@
                      data-is-auction="{{ 'true' if l.is_auction else 'false' }}"
                      data-title="{{ l.title|escape }}"
                      x-show="!selectedCategory || selectedCategory === 'Показать все' || selectedCategory === '{{ l.category|escape }}'"
-                     style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; gap: 12px;">
+                     style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.88rem; gap: 8px;">
                   
-                  <div style="display: flex; align-items: center; gap: 12px; overflow: hidden; flex: 1;">
+                  <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; flex: 1;">
                     <!-- Thumbnail (§5.2) -->
                     {% if l.image_url %}
                       <img src="{{ l.image_url }}" alt="" loading="lazy"
-                           style="width: 52px; height: 52px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0; flex-shrink: 0; background: #f8fafc;"
+                           style="width: 44px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0; flex-shrink: 0; background: #f8fafc;"
                            onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"
                            data-testid="research-thumb">
-                      <div style="display: none; width: 52px; height: 52px; border-radius: 6px; background: #f1f5f9; border: 1px solid #e2e8f0; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
+                      <div style="display: none; width: 44px; height: 44px; border-radius: 6px; background: #f1f5f9; border: 1px solid #e2e8f0; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
                         📷
                       </div>
                     {% else %}
-                      <div style="width: 52px; height: 52px; border-radius: 6px; background: #f1f5f9; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; color: #94a3b8;" data-testid="research-thumb-placeholder">
+                      <div style="width: 44px; height: 44px; border-radius: 6px; background: #f1f5f9; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; color: #94a3b8;" data-testid="research-thumb-placeholder">
                         📷
                       </div>
                     {% endif %}
@@ -466,7 +480,7 @@
 
   <!-- ================= STAGE 2: PHOTOS (#photos) ================= -->
   <div x-show="activeTab === '#photos'" data-testid="stage-photos-panel" class="stack-3">
-    <div class="card" style="padding: 18px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
+    <div class="card" style="padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
         <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0;">Этап 2. Фотографии</h2>
         <a href="/ui/photo-stand?codes={{ item.code }}" class="btn btn-secondary btn-sm" data-testid="btn-photo-stand">
@@ -503,9 +517,9 @@
   <!-- ================= STAGE 3: DESCRIBE & SHIPPING (#describe) ================= -->
   <div x-show="activeTab === '#describe'" data-testid="stage-describe-panel" class="stack-3">
     <!-- Ready for sale Checklist (§5.5.5) -->
-    <div class="card" style="padding: 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 16px;" data-testid="checklist-card">
-      <h3 style="font-size: 1.05rem; font-weight: 700; margin-top: 0; margin-bottom: 10px;">Чек-лист «Готов к продаже»</h3>
-      <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; margin-bottom: 14px;">
+    <div class="card" style="padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 12px;" data-testid="checklist-card">
+      <h3 style="font-size: 1.05rem; font-weight: 700; margin-top: 0; margin-bottom: 8px;">Чек-лист «Готов к продаже»</h3>
+      <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; margin-bottom: 10px;">
         <div>{{ '✓' if item.photos|length > 0 else '○' }} ≥ 1 фото предмета</div>
         <div>{{ '✓' if item.description else '○' }} Заполнено описание</div>
         <div>{{ '✓' if item.weight_g and item.dim_l_mm else '○' }} Указаны вес и габариты</div>
@@ -513,7 +527,7 @@
         <div>{{ '✓' if item.target_price else '○' }} Задана цена продажи</div>
       </div>
       <form method="post" action="/api/stock/{{ item.code }}/ready">
-        <button type="submit" class="btn btn-primary" style="padding: 10px 18px; font-weight: 700; border-radius: 8px;" data-testid="btn-ready-for-sale">
+        <button type="submit" class="btn btn-primary" style="padding: 8px 16px; font-weight: 700; border-radius: 8px;" data-testid="btn-ready-for-sale">
           Готов к продаже
         </button>
       </form>
@@ -548,21 +562,50 @@
 
   <!-- ================= STAGE 4: LISTINGS (#listings) ================= -->
   <div x-show="activeTab === '#listings'" data-testid="stage-listings-panel" class="stack-3">
-    <div class="card" style="padding: 18px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;" data-testid="stock-listings">
+    <div class="card" style="padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;" data-testid="stock-listings">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
         <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0;">Объявления на площадках ({{ item.listings_count }})</h2>
-        <form method="post" action="/ui/stock/{{ item.code }}/listings/prepare" style="margin: 0;">
-          <button type="submit" class="btn btn-secondary btn-sm" data-testid="btn-prepare-listings">
-            ⚡ Подготовить объявления
-          </button>
-        </form>
+        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+          <form method="post" action="/ui/listings/recheck-live" style="margin: 0;">
+            <input type="hidden" name="item_code" value="{{ item.code }}">
+            <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
+            <button type="submit" class="btn btn-secondary btn-sm" data-testid="btn-recheck-item-listings" title="Сверить статусы с реальными площадками">
+              🔄 Ревизия
+            </button>
+          </form>
+          <form method="post" action="/ui/stock/{{ item.code }}/listings/prepare" style="margin: 0;">
+            <button type="submit" class="btn btn-secondary btn-sm" data-testid="btn-prepare-listings">
+              ⚡ Подготовить
+            </button>
+          </form>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-facebook-pack" data-testid="btn-facebook-pack">Пакет для Facebook</button>
+        </div>
       </div>
 
+      <script type="application/json" id="facebook-pack-text">{{ (item.facebook_text or '') | tojson }}</script>
+      <script>
+        document.getElementById("btn-facebook-pack")?.addEventListener("click", async function () {
+          const raw = document.getElementById("facebook-pack-text").textContent || "";
+          const text = JSON.parse(raw);
+          try { await navigator.clipboard.writeText(text); } catch (err) { /* download still works */ }
+          window.location = "/ui/stock/{{ item.code }}/facebook-pack.zip";
+        });
+      </script>
+      {% if item.category_rejections %}
+        <div data-testid="category-rejections" style="margin-bottom: 14px; padding: 12px; background: #fff7ed; border: 1px solid #fdba74; border-radius: 8px;">
+          <strong>Не ставится в очередь</strong>
+          <ul style="margin: 8px 0 0; padding-left: 18px;">
+            {% for row in item.category_rejections %}
+              <li data-testid="category-rejection-{{ row.marketplace }}"><strong>{{ row.title }}</strong> — {{ row.reason }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
       {% if not item.listings %}
-        <div style="padding: 24px; text-align: center; color: #64748b; background: #f8fafc; border-radius: 8px;">
+        <div style="padding: 24px 16px; text-align: center; color: #64748b; background: #f8fafc; border-radius: 8px;">
           Объявления ещё не подготовлены.<br><br>
-          <form method="post" action="/ui/stock/{{ item.code }}/listings/prepare">
-            <button type="submit" class="btn btn-primary" data-testid="btn-prepare-listings-empty">
+          <form method="post" action="/ui/stock/{{ item.code }}/listings/prepare" style="margin: 0; width: 100%; display: flex; justify-content: center;">
+            <button type="submit" class="btn btn-primary" style="white-space: normal; height: auto; min-height: 44px; padding: 12px 18px; line-height: 1.35; width: 100%; max-width: 480px; box-sizing: border-box; text-align: center;" data-testid="btn-prepare-listings-empty">
               ⚡ Подготовить объявления для рекомендованных площадок
             </button>
           </form>
@@ -578,7 +621,7 @@
                   <span class="badge" style="font-size: 0.75rem;">{{ l.status }}</span>
                 </div>
                 <div style="margin-top: 4px;">
-                  <a href="/ui/listings/{{ l.id }}?return_to=/ui/stock/{{ item.code }}%23listings" style="font-weight: 600; color: #2563eb; text-decoration: none;" data-testid="listing-item-title">
+                  <a href="/ui/listings/{{ l.id }}?return_to=/ui/stock/{{ item.code }}%23listings" style="font-weight: 600; color: #2563eb; text-decoration: none; position: relative; z-index: 2; cursor: pointer; display: inline-block;" data-testid="listing-item-title">
                     {{ l.title or 'Черновик объявления' }}
                   </a>
                 </div>
@@ -590,30 +633,128 @@
                     </span>
                   {% endif %}
                 </div>
-                {% if l.external_url %}
-                  <div style="margin-top: 4px;">
-                    <a href="{{ l.external_url }}" target="_blank" rel="noopener" style="font-size: 0.8rem; color: #2563eb;">Открыть на сайте ↗</a>
-                  </div>
-                {% endif %}
+                <div style="display: flex; gap: 6px; align-items: center; margin-top: 6px;">
+                  {% if l.status not in ('PUBLISHED', 'UPDATING') %}
+                    <form method="post" action="/ui/listings/{{ l.id }}/delete" style="margin: 0;" onsubmit="return confirm('Удалить объявление для площадки {{ l.marketplace_key }}?');">
+                      <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
+                      <button type="submit" class="btn btn-secondary btn-sm"
+                              style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border-radius: 6px; background: #fee2e2; border: 1px solid #fecaca; color: #b91c1c; cursor: pointer; position: relative; z-index: 2;"
+                              title="Удалить объявление" aria-label="Удалить объявление"
+                              data-testid="btn-delete-listing">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                          <line x1="10" y1="11" x2="10" y2="17"></line>
+                          <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
               </div>
 
               <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
-                {% if l.is_approved %}
-                  <form method="post" action="/ui/listings/{{ l.id }}/unapprove" style="margin: 0;">
-                    <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
-                    <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 0.8rem;" data-testid="btn-toggle-unapprove">
-                      ✓ Утверждено
-                    </button>
-                  </form>
-                {% elif l.status == 'DRAFT' %}
-                  <form method="post" action="/ui/listings/{{ l.id }}/approve" style="margin: 0;">
-                    <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
-                    <button type="submit" class="btn btn-primary btn-sm" style="font-size: 0.8rem;" data-testid="btn-toggle-approve">
-                      Утвердить
-                    </button>
-                  </form>
-                {% endif %}
-                <a href="/ui/listings/{{ l.id }}?return_to=/ui/stock/{{ item.code }}%23listings" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;" data-testid="btn-edit-listing">Правка ✎</a>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; align-items: center;">
+                  <!-- Просмотр (карточка объявления) -->
+                  <a href="/ui/listings/{{ l.id }}?return_to=/ui/stock/{{ item.code }}%23listings"
+                     class="btn btn-secondary btn-sm"
+                     style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border-radius: 6px; background: #f8fafc; border: 1px solid #cbd5e1; color: #475569; text-decoration: none; cursor: pointer; position: relative; z-index: 2;"
+                     title="Открыть карточку объявления" aria-label="Открыть карточку объявления"
+                     data-testid="btn-open-detail">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="16" y1="13" x2="8" y2="13"></line>
+                      <line x1="16" y1="17" x2="8" y2="17"></line>
+                      <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                  </a>
+
+                  <!-- Внешняя ссылка на площадку (если есть) -->
+                  {% if l.external_url %}
+                    <a href="{{ l.external_url }}" target="_blank" rel="noopener"
+                       class="btn btn-secondary btn-sm"
+                       style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border-radius: 6px; background: #eff6ff; border: 1px solid #bfdbfe; color: #2563eb; text-decoration: none; cursor: pointer; position: relative; z-index: 2;"
+                       title="Открыть на площадке" aria-label="Открыть на площадке"
+                       data-testid="btn-open-marketplace">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                      </svg>
+                    </a>
+                  {% endif %}
+
+                  <!-- Действия в зависимости от статуса -->
+                  {% if l.status in ('PUBLISHED', 'UPDATING') %}
+                    <!-- Снять с площадки -->
+                    <form method="post" action="/ui/listings/{{ l.id }}/unpublish" style="margin: 0;">
+                      <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
+                      <button type="submit" class="btn btn-danger btn-sm"
+                              style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border-radius: 6px; background: #fee2e2; border: 1px solid #fca5a5; color: #dc2626; cursor: pointer;"
+                              title="Снять объявление с площадки" aria-label="Снять объявление с площадки"
+                              data-testid="btn-unpublish-listing" onclick="return confirm('Снять объявление с площадки?')">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </form>
+                    <!-- Опубликовать снова -->
+                    <form method="post" action="/ui/listings/{{ l.id }}/relist" style="margin: 0;">
+                      <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
+                      <button type="submit" class="btn btn-primary btn-sm"
+                              style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border-radius: 6px; background: #eff6ff; border: 1px solid #bfdbfe; color: #2563eb; cursor: pointer;"
+                              title="Опубликовать снова" aria-label="Опубликовать снова"
+                              data-testid="btn-republish-listing">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                          <polyline points="23 4 23 10 17 10"></polyline>
+                          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                      </button>
+                    </form>
+                  {% elif l.status == 'ARCHIVED' %}
+                    <!-- Опубликовать снова -->
+                    <form method="post" action="/ui/listings/{{ l.id }}/relist" style="margin: 0;">
+                      <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
+                      <button type="submit" class="btn btn-primary btn-sm"
+                              style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border-radius: 6px; background: #eff6ff; border: 1px solid #bfdbfe; color: #2563eb; cursor: pointer;"
+                              title="Опубликовать снова" aria-label="Опубликовать снова"
+                              data-testid="btn-republish-listing">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                          <polyline points="23 4 23 10 17 10"></polyline>
+                          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                      </button>
+                    </form>
+                  {% elif l.is_approved %}
+                    <!-- Утверждено (нажмите для отмены) -->
+                    <form method="post" action="/ui/listings/{{ l.id }}/unapprove" style="margin: 0;">
+                      <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
+                      <button type="submit" class="btn btn-secondary btn-sm"
+                              style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border-radius: 6px; background: #dcfce7; border: 1px solid #86efac; color: #15803d; cursor: pointer;"
+                              title="Утверждено (нажмите для отмены)" aria-label="Утверждено (нажмите для отмены)"
+                              data-testid="btn-toggle-unapprove">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      </button>
+                    </form>
+                  {% elif l.status == 'DRAFT' %}
+                    <!-- Утвердить объявление -->
+                    <form method="post" action="/ui/listings/{{ l.id }}/approve" style="margin: 0;">
+                      <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
+                      <button type="submit" class="btn btn-primary btn-sm"
+                              style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border-radius: 6px; background: #2563eb; border: 1px solid #1d4ed8; color: #fff; cursor: pointer;"
+                              title="Утвердить объявление" aria-label="Утвердить объявление"
+                              data-testid="btn-toggle-approve">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
               </div>
             </div>
           {% endfor %}
@@ -656,7 +797,7 @@
 
   <!-- ================= STAGE 5: SALE (#sale) ================= -->
   <div x-show="activeTab === '#sale'" data-testid="stage-sale-panel" class="stack-3">
-    <div class="card" style="padding: 18px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
+    <div class="card" style="padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
       <h2 style="font-size: 1.15rem; font-weight: 700; margin-top: 0; margin-bottom: 14px;">Этап 5. Продажа</h2>
 
       {% if item.deal %}
@@ -719,7 +860,7 @@
 
   <!-- ================= STAGE 6: WARRANTY (#warranty) ================= -->
   <div x-show="activeTab === '#warranty'" data-testid="stage-warranty-panel" class="stack-3">
-    <div class="card" style="padding: 18px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
+    <div class="card" style="padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
       <h2 style="font-size: 1.15rem; font-weight: 700; margin-top: 0; margin-bottom: 14px;">Этап 6. Гарантия</h2>
 
       {% if item.warranty_until %}

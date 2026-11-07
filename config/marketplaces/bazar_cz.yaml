@@ -1,0 +1,41 @@
+key: bazar_cz
+title: "Bazar.cz"
+country: CZ
+currency: CZK
+access_mode: DIRECT
+search_mode: html
+base_url: "https://www.bazar.cz"
+canary_query: "notebook"
+auth:
+  type: none
+  secret_ref: ""
+rate_limits:
+  requests_per_minute: 20
+  min_delay_seconds: 2
+capabilities:
+  search: true
+  post: false
+  edit: false
+  archive: false
+  messaging: false
+  max_photos: 10
+  max_title_len: 70
+  max_body_len: 3000
+  allows_generative_photos: false
+  delivery_options:
+    - pickup
+    - post
+    - zasilkovna
+    - balikovna
+  payment_options:
+    - cash
+    - bank_transfer
+    - cod
+selectors:
+  search_result: ".inzerat"
+  price: ".cena"
+  title: ".nadpis"
+routes:
+  search: "/?hledat={query}"
+  search_params:
+    query: "hledat"

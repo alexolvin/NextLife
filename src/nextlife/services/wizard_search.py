@@ -96,18 +96,27 @@ def _listing_extra_text(raw: RawListing) -> str:
 
 
 def filter_by_query(raw_listings: list[RawListing], query: str) -> list[RawListing]:
-    """Drop listings whose title/text lack the query string (pure).
+    """Drop listings whose title/text lack the query string or violate +/- tags (pure).
 
     Buying requests (the poster wants to acquire the item, «Koupím …») are
     also dropped — they are not sales, so they are not useful reference
     listings for a seller (owner 2026-10-20: Bazos results «не релевантные»).
     """
-    return [
-        r
-        for r in raw_listings
-        if listing_matches_query(r.title, query, _listing_extra_text(r))
-        and not _is_buying_request(r.title)
-    ]
+    from nextlife.services.search_query_parser import matches_query_tags, parse_search_query
+
+    parsed = parse_search_query(query)
+    terms_to_check = parsed.base_terms if parsed.has_tags else ([query] if query.strip() else [])
+    out: list[RawListing] = []
+    for r in raw_listings:
+        extra = _listing_extra_text(r)
+        if any(not listing_matches_query(r.title, t, extra) for t in terms_to_check):
+            continue
+        if parsed.has_tags and not matches_query_tags(r.title, extra, parsed):
+            continue
+        if _is_buying_request(r.title):
+            continue
+        out.append(r)
+    return out
 
 
 def filter_results_by_intent(results: list[dict[str, Any]], intent: str) -> list[dict[str, Any]]:

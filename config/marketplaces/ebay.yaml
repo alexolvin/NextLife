@@ -1,0 +1,39 @@
+key: ebay
+title: "eBay"
+country: US
+currency: EUR
+access_mode: WEB
+search_mode: html
+base_url: "https://www.ebay.com"
+canary_query: "thinkpad"
+auth:
+  type: none
+  secret_ref: ""
+rate_limits:
+  requests_per_minute: 10
+  min_delay_seconds: 3
+capabilities:
+  search: true
+  post: true
+  edit: true
+  archive: false
+  messaging: false
+  max_photos: 24
+  max_title_len: 80
+  max_body_len: 4000
+  allows_generative_photos: false
+  delivery_options:
+    - post
+    - courier
+    - pickup
+  payment_options:
+    - card
+    - paypal
+    - bank_transfer
+routes:
+  search: "/sch/i.html?_nkw={query}"
+selectors:
+  listing_card: ".s-item"
+  title: ".s-item__title"
+  price: ".s-item__price"
+  link: ".s-item__link"

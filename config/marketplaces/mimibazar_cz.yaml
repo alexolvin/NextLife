@@ -1,0 +1,46 @@
+key: mimibazar_cz
+title: "Mimibazar.cz"
+country: CZ
+currency: CZK
+access_mode: DIRECT
+search_mode: html
+base_url: "https://www.mimibazar.cz"
+canary_query: "kocarek"
+auth:
+  type: none
+  secret_ref: ""
+rate_limits:
+  requests_per_minute: 20
+  min_delay_seconds: 2
+capabilities:
+  search: true
+  post: false
+  edit: false
+  archive: false
+  messaging: false
+  max_photos: 10
+  max_title_len: 80
+  max_body_len: 3000
+  allows_generative_photos: false
+  delivery_options:
+    - pickup
+    - post
+    - zasilkovna
+    - balikovna
+  payment_options:
+    - cash
+    - bank_transfer
+    - cod
+allowed_categories:
+  - baby
+  - kids
+  - clothing
+  - toys
+filter_reason: "Mimibazar.cz specializes exclusively in baby, children and family goods. Computer hardware is prohibited."
+selectors:
+  search_result: ".inzerat"
+  price: ".cena"
+routes:
+  search: "/bazar.php?hledat={query}"
+  search_params:
+    query: "hledat"

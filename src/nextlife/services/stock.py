@@ -42,6 +42,7 @@ _APPROVAL_FIELDS = (
     "specs",
     "target_price",
     "target_currency",
+    "price_eur",
     "category_key",
 )
 # Правило 2: изменение этих полей статус не меняет.
@@ -56,7 +57,7 @@ _DELIVERY_FIELDS = (
 )
 
 # Статусы, которые считаются «объявление на площадке» для счётчика (§2.3.3).
-_ACTIVE_LISTING_STATUSES = ("PUBLISHED", "PARTIALLY_PUBLISHED", "ACTIVE", "UNPUBLISH_FAILED")
+_ACTIVE_LISTING_STATUSES = ("PUBLISHED", "PARTIALLY_PUBLISHED", "UPDATING", "UNPUBLISH_FAILED")
 
 # status_group -> набор статусов (ТЗ §4.1.2).
 _STATUS_GROUPS: dict[str, frozenset[str] | None] = {
@@ -149,6 +150,7 @@ def get_stock_item(session: Session, code: str) -> dict[str, Any]:
     return {
         "code": item.code,
         "title": item.title,
+        "category_key": item.category_key,
         "status": item.status,
         "description": item.description,
         "description_lang": item.description_lang,
@@ -158,6 +160,7 @@ def get_stock_item(session: Session, code: str) -> dict[str, Any]:
         "storage_location": item.storage_location,
         "target_price": str(item.target_price) if item.target_price is not None else None,
         "target_currency": item.target_currency,
+        "price_eur": str(item.price_eur) if item.price_eur is not None else (str(item.attrs.get("price_eur")) if item.attrs and item.attrs.get("price_eur") else None),
         "warranty_months": item.warranty_months,
         "warranty_terms": item.warranty_terms,
         "warranty_until": item.warranty_until.isoformat() if item.warranty_until else None,
@@ -407,7 +410,7 @@ def update_stock_item(
         current = getattr(item, field)
         if value is None:
             continue
-        if field in ("target_price",):
+        if field in ("target_price", "price_eur"):
             value = Decimal(str(value)) if value != "" else None
         if current == value:
             continue
@@ -703,11 +706,14 @@ def save_price_estimate(
     median: Decimal | float | int | str | None = None,
     low: Decimal | float | int | str | None = None,
     high: Decimal | float | int | str | None = None,
+    price_eur: Decimal | float | int | str | None = None,
 ) -> Item:
     """Save price research estimate and set status to ESTIMATED (§5.2)."""
     item = _get_item(session, code)
     item.target_price = Decimal(str(target_price))
     item.target_currency = currency
+    if price_eur is not None and str(price_eur).strip() != "":
+        item.price_eur = Decimal(str(price_eur))
     if median is not None:
         item.price_estimate_median = Decimal(str(median))
     if low is not None:

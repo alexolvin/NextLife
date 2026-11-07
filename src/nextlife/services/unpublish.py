@@ -69,7 +69,7 @@ def unpublish_listings_now(
         select(Listing).where(
             Listing.item_code == item_code,
             Listing.status.in_(
-                ["PUBLISHED", "PARTIALLY_PUBLISHED", "ACTIVE", "UNPUBLISH_FAILED"]
+                ["PUBLISHED", "PARTIALLY_PUBLISHED", "UPDATING", "UNPUBLISH_FAILED"]
             ),
         )
     ).all()
@@ -149,7 +149,7 @@ def initiate_unpublish_on_sale(
         select(Listing).where(
             Listing.item_code == item.code,
             Listing.marketplace_key != sold_marketplace_key,
-            Listing.status.in_(["PUBLISHED", "PARTIALLY_PUBLISHED", "ACTIVE"]),
+            Listing.status.in_(["PUBLISHED", "PARTIALLY_PUBLISHED", "UPDATING"]),
         )
     ).all()
 

@@ -107,6 +107,7 @@ def test_hourly_expired_relisting_task():
         item_code="ITM-4",
         marketplace_key="bazos_cz",
         status=ListingStatus.PUBLISHED.value,
+        auto_relist=True,
         expires_at=now - timedelta(hours=2),
     )
     session.scalars.return_value.all.return_value = [expired_listing]

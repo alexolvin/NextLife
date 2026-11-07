@@ -53,6 +53,7 @@ class Item(Base, TimestampMixin):
     status: Mapped[str] = mapped_column(String(50), nullable=False)
     target_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
     target_currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
+    price_eur: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Склад (ТЗ «Склад» вместо «Ленты», этап 1): канонические текстовые поля
@@ -214,6 +215,7 @@ class Listing(Base, TimestampMixin):
     last_error_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     last_error_hint: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_free: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    auto_relist: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     item: Mapped[Item] = relationship(back_populates="listings")
 
@@ -302,7 +304,7 @@ class BuyRequest(Base, TimestampMixin):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     query: Mapped[str] = mapped_column(String(255), nullable=False)
     attrs: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, nullable=False)
-    budget: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    budget: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True, default=Decimal("0.00"))
     currency: Mapped[str] = mapped_column(String(3), nullable=False)
     status: Mapped[str] = mapped_column(String(30), nullable=False)
     poll_interval_seconds: Mapped[int] = mapped_column(Integer, default=60, nullable=False)

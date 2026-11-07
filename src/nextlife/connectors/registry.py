@@ -7,13 +7,17 @@ from typing import Any
 import httpx
 from sqlalchemy.orm import Session
 
+from nextlife.connectors.allegro import AllegroConnector
 from nextlife.connectors.annonce import AnnonceConnector
 from nextlife.connectors.aukro import AukroConnector
 from nextlife.connectors.base import BaseConnector, ConnectorConfigError
+from nextlife.connectors.bazar import BazarConnector
 from nextlife.connectors.bazos import BazosConnector
+from nextlife.connectors.ebay import EbayConnector
 from nextlife.connectors.facebook import FacebookMarketplaceConnector
 from nextlife.connectors.hyperinzerce import HyperinzerceConnector
 from nextlife.connectors.kleinanzeigen import KleinanzeigenConnector
+from nextlife.connectors.mimibazar import MimibazarConnector
 from nextlife.connectors.olx import OlxConnector
 from nextlife.connectors.sbazar import SbazarConnector
 from nextlife.connectors.trhknih import TrhKnihConnector
@@ -24,6 +28,7 @@ from nextlife.storage.models import Marketplace
 
 CONNECTOR_MAP: dict[str, type[BaseConnector]] = {
     "bazos_cz": BazosConnector,
+    "bazos_sk": BazosConnector,
     "sbazar_cz": SbazarConnector,
     "aukro_cz": AukroConnector,
     # TZ M1 A.4: подключение по шаблону Bazoš (live-verified 2026-10-04)
@@ -39,6 +44,12 @@ CONNECTOR_MAP: dict[str, type[BaseConnector]] = {
     "willhaben_at": WillhabenConnector,
     # TZ-connectors-add-4: honest placeholder (login wall, no public search)
     "facebook_marketplace": FacebookMarketplaceConnector,
+    # New Czech platforms
+    "bazar_cz": BazarConnector,
+    "mimibazar_cz": MimibazarConnector,
+    "allegro_cz": AllegroConnector,
+    # Global platforms
+    "ebay": EbayConnector,
 }
 
 
@@ -68,10 +79,16 @@ def _registry_capabilities(mp_cfg: MarketplaceConfig) -> dict[str, Any]:
         if flag not in caps:
             if flag == "publish" and "post" in caps:
                 caps["publish"] = bool(caps["post"])
+            elif flag == "unpublish" and "archive" in caps:
+                caps["unpublish"] = bool(caps["archive"])
+            elif flag == "relist" and "bump" in caps:
+                caps["relist"] = bool(caps["bump"])
             else:
                 caps[flag] = val
         else:
             caps[flag] = bool(caps[flag])
+    caps["auto_unpublish"] = bool(caps["unpublish"])
+    caps["auto_relist"] = bool(caps["relist"])
 
     allowed = mp_cfg.allowed_categories
     if allowed:

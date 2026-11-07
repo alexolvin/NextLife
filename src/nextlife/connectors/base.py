@@ -51,6 +51,11 @@ class PublishResult:
     external_id: str
     external_url: str
     evidence: dict[str, Any]
+    # Operational contract (TZ Connectors 5.4). Empty status means the
+    # legacy search-era publish path, which is not a live-listing verdict.
+    status: str = ""
+    public_url: str = ""
+    evidence_dir: str = ""
 
 
 @dataclass(frozen=True)

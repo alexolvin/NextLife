@@ -70,8 +70,10 @@ def _clean_int(val: str | None) -> int | None:
 
 def _listing_row_status(status: str) -> str:
     """Отображение статуса объявления (§3.3)."""
-    if status in ("PUBLISHED", "ACTIVE"):
+    if status == "PUBLISHED":
         return "Размещено"
+    if status == "UPDATING":
+        return "Обновляется"
     if status == "ARCHIVED":
         return "Снято"
     if status == "UNPUBLISH_FAILED":
@@ -92,6 +94,17 @@ def _item_screen_context(request: Request, code: str | None, notice: str | None,
         with get_db_session() as session:
             item = get_stock_item(session, code)
             item["status_badge_cls"] = get_status_badge_class(item["status"])
+            from nextlife.core.config import load_config
+            from nextlife.services.category_gate import rejections_for_item
+            from nextlife.services.facebook_pack import clipboard_text
+
+            item["category_rejections"] = rejections_for_item(load_config(), item.get("category_key"))
+            item["facebook_text"] = clipboard_text(
+                title=item.get("title") or "",
+                price=str(item.get("target_price") or ""),
+                currency=item.get("target_currency") or "",
+                description=item.get("description") or "",
+            )
             entries = logical_photo_entries(session, code)
             item["photos"] = entries
             # _photo_gallery.html обращается к верхнеуровневому `photos`.
@@ -110,7 +123,6 @@ def _item_screen_context(request: Request, code: str | None, notice: str | None,
 
             # Данные разведки аналогов для Этапа 1 (Оценка цены)
             try:
-                from nextlife.core.config import load_config
                 from nextlife.services.research import build_research_panel
 
                 item_model = session.get(Item, code)
@@ -376,6 +388,7 @@ def api_stock_update(
     description_lang: str | None = Form(None),
     target_price: str | None = Form(None),
     target_currency: str | None = Form(None),
+    price_eur: str | None = Form(None),
     storage_location: str | None = Form(None),
     description: str | None = Form(None),
     usage: str | None = Form(None),
@@ -398,6 +411,7 @@ def api_stock_update(
         "description_lang": _clean(description_lang),
         "target_price": _clean(target_price),
         "target_currency": _clean(target_currency),
+        "price_eur": _clean(price_eur),
         "storage_location": _clean(storage_location),
         "description": _clean(description),
         "usage": _clean(usage),
@@ -487,6 +501,7 @@ def api_stock_price_estimate(
     code: str,
     price: str = Form(...),
     currency: str = Form("CZK"),
+    price_eur: str | None = Form(None),
     median: str | None = Form(None),
     low: str | None = Form(None),
     high: str | None = Form(None),
@@ -499,6 +514,7 @@ def api_stock_price_estimate(
             code=code,
             target_price=price,
             currency=currency,
+            price_eur=price_eur,
             median=median,
             low=low,
             high=high,

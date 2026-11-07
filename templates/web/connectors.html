@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="connectors-page-container" style="padding: 16px; max-width: 960px; margin: 0 auto; padding-bottom: 80px;" data-testid="connectors-screen">
+  
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+    <div>
+      <h1 style="margin: 0; font-size: 1.6rem; font-weight: 700; color: #0f172a;">Карта коннекторов NextLife</h1>
+      <p style="margin: 4px 0 0; font-size: 0.9rem; color: #64748b;">
+        Постоянный мониторинг состояния публикаций и доступности торговых площадок (ТЗ v2 §7)
+      </p>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <form method="post" action="/ui/connectors/check" style="margin: 0;">
+        <button type="submit" class="btn btn-primary" style="padding: 8px 16px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;" data-testid="btn-check-now">
+          <span>⟳</span> Проверить сейчас
+        </button>
+      </form>
+    </div>
+  </div>
+
+  {% if request.query_params.get('notice') == 'check_completed' %}
+    <div style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.92rem;" data-testid="notice-check-done">
+      ✓ Регулярная проверка коннекторов успешно завершена. Статусы актуализированы.
+    </div>
+  {% endif %}
+
+  <!-- 1. РАБОТАЕТ -->
+  <div class="card" style="margin-bottom: 20px; border-top: 4px solid #10b981; border-radius: 8px; padding: 16px 20px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+      <h2 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: #065f46; display: flex; align-items: center; gap: 8px;">
+        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #10b981;"></span>
+        Работает ({{ working_list | length }})
+      </h2>
+      <span class="badge" style="background: #d1fae5; color: #065f46; font-size: 0.8rem; padding: 4px 8px; border-radius: 6px;">LIVE_VERIFIED</span>
+    </div>
+    
+    {% if working_list %}
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        {% for item in working_list %}
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; flex-wrap: wrap; gap: 8px;" data-testid="connector-working-{{ item.platform_key }}">
+            <div>
+              <strong style="font-size: 1rem; color: #0f172a;">{{ item.title }}</strong>
+              <span style="font-size: 0.82rem; color: #64748b; margin-left: 8px;">Проверено: {{ item.last_checked_at }}</span>
+            </div>
+            <div>
+              <a href="{{ item.public_url }}" target="_blank" rel="noopener" class="btn btn-sm" style="background: #10b981; color: #fff; text-decoration: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;" data-testid="link-live-ad">
+                Живое объявление ↗
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p style="margin: 0; font-size: 0.9rem; color: #64748b;">Нет активных опубликованных объявлений.</p>
+    {% endif %}
+  </div>
+
+  <!-- 2. НУЖНА ПОМОЩЬ ВЛАДЕЛЬЦА -->
+  <div class="card" style="margin-bottom: 20px; border-top: 4px solid #f59e0b; border-radius: 8px; padding: 16px 20px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+      <h2 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: #92400e; display: flex; align-items: center; gap: 8px;">
+        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #f59e0b;"></span>
+        Нужна помощь владельца ({{ owner_list | length }})
+      </h2>
+      <span class="badge" style="background: #fef3c7; color: #92400e; font-size: 0.8rem; padding: 4px 8px; border-radius: 6px;">Закрытый список §3.1</span>
+    </div>
+
+    {% if owner_list %}
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for item in owner_list %}
+          <div style="padding: 12px 14px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;" data-testid="connector-owner-{{ item.platform_key }}">
+            <div style="flex: 1; min-width: 260px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <strong style="color: #0f172a; font-size: 0.98rem;">{{ loop.index }}. {{ item.title }}</strong>
+                {% if item.owner_action_eta_minutes %}
+                  <span style="font-size: 0.78rem; background: #fef3c7; color: #b45309; padding: 2px 6px; border-radius: 4px; font-weight: 600;">
+                    ~{{ item.owner_action_eta_minutes }} мин
+                  </span>
+                {% endif %}
+              </div>
+              <p style="margin: 4px 0 0; font-size: 0.88rem; color: #475569;">
+                {{ item.owner_action_text }}
+              </p>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <a href="/ui/connect?platform={{ item.platform_key }}" class="btn btn-sm btn-primary" style="padding: 6px 14px; font-size: 0.85rem; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;" data-testid="btn-auth-{{ item.platform_key }}">
+                <span>🔑</span> Авторизоваться →
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p style="margin: 0; font-size: 0.9rem; color: #64748b;">Нет действий, требующих участия владельца.</p>
+    {% endif %}
+  </div>
+
+  <!-- 3. НЕ РЕШЕНО АГЕНТОМ -->
+  <div class="card" style="margin-bottom: 20px; border-top: 4px solid #ef4444; border-radius: 8px; padding: 16px 20px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+      <h2 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: #991b1b; display: flex; align-items: center; gap: 8px;">
+        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ef4444;"></span>
+        Не решено агентом ({{ unresolved_list | length }})
+      </h2>
+      <span class="badge" style="background: #fee2e2; color: #991b1b; font-size: 0.8rem; padding: 4px 8px; border-radius: 6px;">5 подходов §3.2</span>
+    </div>
+
+    {% if unresolved_list %}
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        {% for item in unresolved_list %}
+          <div style="padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px;" data-testid="connector-unresolved-{{ item.platform_key }}">
+            <strong>{{ item.title }}</strong> (шаг {{ item.unresolved_step }}): {{ item.unresolved_error }}
+            <div style="font-size: 0.82rem; color: #64748b; margin-top: 4px;">
+              Пробовали: {{ item.unresolved_attempts }}. Доказательства: {{ item.unresolved_evidence_path }}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p style="margin: 0; font-size: 0.9rem; color: #64748b;">Нет нерешённых технических препятствий.</p>
+    {% endif %}
+  </div>
+
+  <!-- 4. ТОЛЬКО ПОИСК -->
+  <div class="card" style="margin-bottom: 20px; border-top: 4px solid #64748b; border-radius: 8px; padding: 16px 20px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+      <h2 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 8px;">
+        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #64748b;"></span>
+        Только поиск ({{ search_only_list | length }})
+      </h2>
+      <span class="badge" style="background: #f1f5f9; color: #475569; font-size: 0.8rem; padding: 4px 8px; border-radius: 6px;">Правила площадки</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      {% for item in search_only_list %}
+        <div style="padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;" data-testid="connector-search-{{ item.platform_key }}">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <strong style="color: #1e293b; font-size: 0.95rem;">{{ item.title }}</strong>
+            {% if item.search_only_evidence_link %}
+              <span style="font-size: 0.78rem; color: #64748b;">{{ item.search_only_evidence_link }}</span>
+            {% endif %}
+          </div>
+          <p style="margin: 4px 0 0; font-size: 0.85rem; color: #475569;">
+            {{ item.search_only_reason }}
+          </p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 5. ТЕКСТ СООБЩЕНИЯ ВЛАДЕЛЬЦУ (§8.3) -->
+  <div class="card" style="padding: 16px 20px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px;">
+    <h3 style="margin-top: 0; font-size: 1.05rem; font-weight: 700; color: #1e293b;">Сообщение владельцу (§8.3)</h3>
+    <pre style="background: #ffffff; padding: 14px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: monospace; font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap; margin-bottom: 0;" data-testid="owner-message-box">{{ owner_message }}</pre>
+  </div>
+
+</div>
+{% endblock %}

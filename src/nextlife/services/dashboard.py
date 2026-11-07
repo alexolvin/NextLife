@@ -5,6 +5,7 @@ Rule K-1: Module must strictly be <= 400 lines.
 
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -77,7 +78,7 @@ def get_attention_cards(session: Session) -> list[dict[str, Any]]:
     # 7. Застоявшиеся объявления (> 14 дней без сообщений)
     stale_listings = session.scalars(
         select(Listing).where(
-            Listing.status.in_([ListingStatus.PUBLISHED.value, "ACTIVE"]),
+            Listing.status.in_([ListingStatus.PUBLISHED.value, ListingStatus.UPDATING.value]),
             Listing.first_published_at <= fourteen_days_ago,
         )
     ).all()
@@ -105,10 +106,16 @@ def get_attention_cards(session: Session) -> list[dict[str, Any]]:
 
     # 10. Выгодные комплекты (profit >= 25%)
     all_candidates = session.scalars(select(BuyCandidate)).all()
-    profitable_kits = [
-        c for c in all_candidates
-        if (c.verdict or {}).get("kit_analysis", {}).get("is_profitable")
-    ]
+    profitable_kits = []
+    for c in all_candidates:
+        v = c.verdict
+        if isinstance(v, str) and v.strip():
+            try:
+                v = json.loads(v)
+            except Exception:
+                v = {}
+        if isinstance(v, dict) and v.get("kit_analysis", {}).get("is_profitable"):
+            profitable_kits.append(c)
     count_10 = len(profitable_kits)
 
     cards = [
@@ -127,7 +134,9 @@ def get_attention_cards(session: Session) -> list[dict[str, Any]]:
     return [c for c in cards if c["count"] > 0]
 
 
-def get_dashboard_metrics(session: Session) -> dict[str, Any]:
+def get_dashboard_metrics(session: Session | None) -> dict[str, Any]:
     """Legacy backward-compatible metrics dictionary."""
+    if session is None:
+        return {}
     cards = get_attention_cards(session)
     return {c["title"]: {"count": c["count"], "url": c["url"]} for c in cards}

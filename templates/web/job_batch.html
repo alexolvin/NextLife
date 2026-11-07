@@ -54,8 +54,14 @@
 
       {% if item.state == 'SUCCESS' and item.external_url %}
       <div style="margin-top: 8px;">
-        <a href="{{ item.external_url }}" target="_blank" rel="noopener noreferrer" style="color: #1a73e8; text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px;">
-          Открыть на площадке ↗
+        <a href="{{ item.external_url }}" target="_blank" rel="noopener noreferrer"
+           title="Открыть на площадке" aria-label="Открыть на площадке"
+           style="color: #2563eb; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; padding: 0 8px;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
         </a>
       </div>
       {% endif %}

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from unittest.mock import MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -12,11 +11,9 @@ from fastapi.testclient import TestClient
 from nextlife.api.main import create_app
 from nextlife.api.routes import check_auth
 from nextlife.services.marketplace_shipping import (
-    ALL_CARRIERS,
     filter_compatible_delivery_options,
     get_marketplace_allowed_carriers,
     get_marketplace_listing_ttl,
-    is_carrier_compatible,
 )
 from nextlife.text.assembler import assemble_listing_text
 
@@ -149,3 +146,31 @@ def test_settings_save_marketplace_shipping_and_ttl(tmp_path: Path, monkeypatch:
     assert 'data-testid="input-mp-ttl-bazos_cz"' in get_resp.text
     assert 'data-testid="cb-mp-carrier-bazos_cz-zasilkovna"' in get_resp.text
     assert 'data-testid="cb-mp-carrier-kleinanzeigen_de-gls"' in get_resp.text
+
+
+def test_settings_marketplace_color_coding(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr("nextlife.services.marketplace_shipping.get_data_dir", lambda: tmp_path)
+    monkeypatch.setattr("nextlife.services.llm_filter.get_data_dir", lambda: tmp_path)
+
+    app = create_app()
+    app.dependency_overrides[check_auth] = lambda: True
+    client = TestClient(app)
+
+    get_resp = client.get("/ui/settings?tab=marketplaces")
+    assert get_resp.status_code == 200
+    html = get_resp.text
+
+    # Legend check
+    assert 'data-testid="mp-status-legend"' in html
+    assert "Светло-зелёный: Полный доступ" in html
+    assert "Светло-жёлтый: Только просмотр" in html
+    assert "Светло-красный: Недоступен" in html
+
+    # Status badges and row backgrounds check
+    assert 'data-testid="row-mp-bazos_cz"' in html
+    assert 'data-testid="badge-status-bazos_cz"' in html
+    assert "Полный доступ" in html
+    assert "#f0fdf4" in html  # Light green bg
+    assert "#fefce8" in html  # Light yellow bg
+    assert "#fef2f2" in html  # Light red bg
+

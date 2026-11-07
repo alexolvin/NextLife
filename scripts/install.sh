@@ -186,7 +186,7 @@ if [ "$DATA_EMPTY" -eq 1 ]; then
     log "  Copied source: $SRC_SIZE / $SRC_COUNT files"
 fi
 run chown -R "$NEXTLIFE_USER:$NEXTLIFE_USER" "$DATA_DIR"
-run chmod 750 "$DATA_DIR"
+run chmod 755 "$DATA_DIR"
 
 # ─── 3. pg_dump backup (before any schema change) ──────────────────────────
 set_step "3-backup"
@@ -268,15 +268,18 @@ NFT
 fi
 run cp "$REPO_ROOT/systemd/nextlife-nft.service" /etc/systemd/system/
 run cp "$REPO_ROOT/systemd/nextlife-web.service" /etc/systemd/system/
+run cp "$REPO_ROOT/systemd/nextlife-worker.service" /etc/systemd/system/
 run systemctl daemon-reload
 run systemctl enable nextlife-nft.service
 run systemctl enable nextlife-web.service
+run systemctl enable nextlife-worker.service
 
 # ─── 7. Start ──────────────────────────────────────────────────────────────
 set_step "7-start"
 log "Step 7: start services"
 run systemctl start nextlife-nft
 run systemctl start nextlife-web
+run systemctl start nextlife-worker
 if [ "$DRY_RUN" -eq 0 ]; then
     sleep 3
 fi

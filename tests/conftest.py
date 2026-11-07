@@ -62,6 +62,14 @@ def setup_test_env() -> None:
 
     command.upgrade(AlembicConfig(str(ROOT_DIR / "alembic.ini")), "head")
 
+    from nextlife.connectors.registry import sync_marketplaces
+    from nextlife.core.config import load_config
+    from nextlife.storage.db import get_db_session
+
+    with get_db_session() as session:
+        sync_marketplaces(session, load_config())
+        session.commit()
+
     if not os.environ.get("NEXTLIFE_WEB_TOKEN"):
         os.environ["NEXTLIFE_WEB_TOKEN"] = "test_token_secret"
 

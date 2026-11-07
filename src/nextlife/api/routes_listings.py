@@ -16,19 +16,11 @@ from sqlalchemy import desc, select
 
 from nextlife.api.routes import check_auth, resolve_photo_url, templates
 from nextlife.core.status import ListingStatus
+from nextlife.services.listings_reconcile import reconcile_listings_with_marketplaces
 from nextlife.services.listings import (
-    ListingValidationError,
-    approve_listing,
-    delete_listing,
-    get_listings_counts,
-    get_marketplace_capabilities,
-    prepare_item_listings,
-    publish_approved_listings,
-    relist_listing_now,
-    set_listing_free,
-    unapprove_listing,
-    unpublish_listing,
-    update_listing,
+    ListingValidationError, approve_listing, delete_listing, get_listings_counts,
+    get_marketplace_capabilities, prepare_item_listings, publish_approved_listings,
+    relist_listing_now, set_listing_free, unapprove_listing, unpublish_listing, update_listing,
 )
 from nextlife.storage.db import get_db_session
 from nextlife.storage.models import Item, ItemPhoto, Listing
@@ -43,18 +35,26 @@ def screen_listings_list(
     marketplace: str | None = Query(default=None),
     sort: str = Query(default="first_published_asc"),
     q: str | None = Query(default=None),
+    item_code: str | None = Query(default=None),
     auth: bool = Depends(check_auth),
 ) -> HTMLResponse:
     """Render Listings section with chips, search, sort, and direct links (§6.1)."""
     with get_db_session() as session:
-        counts = get_listings_counts(session)
+        counts = get_listings_counts(session, item_code=item_code)
 
-        stmt = select(Listing)
+        stmt = select(Listing).join(Item, Item.code == Listing.item_code).where(Item.status != "DELETED")
+        if item_code:
+            stmt = stmt.where(Listing.item_code == item_code)
 
         # Chips filtering (§6.1)
         now = datetime.now(UTC)
-        if filter_group == "all":
-            stmt = stmt.where(Listing.status.in_([ListingStatus.PUBLISHED.value, "ACTIVE"]))
+        if item_code and filter_group == "all":
+            # For a single item, "all" displays all active/draft/approved/published listings
+            stmt = stmt.where(Listing.status.notin_([ListingStatus.ARCHIVED.value, "ARCHIVED"]))
+        elif filter_group == "all":
+            stmt = stmt.where(Listing.status.in_([ListingStatus.PUBLISHED.value, ListingStatus.UPDATING.value]))
+        elif filter_group == "published":
+            stmt = stmt.where(Listing.status.in_([ListingStatus.PUBLISHED.value, ListingStatus.UPDATING.value]))
         elif filter_group == "errors":
             stmt = stmt.where(
                 Listing.status.in_([ListingStatus.FAILED.value, ListingStatus.UNPUBLISH_FAILED.value])
@@ -66,7 +66,7 @@ def screen_listings_list(
         elif filter_group == "expiring":
             three_days = now + timedelta(days=3)
             stmt = stmt.where(
-                Listing.status.in_([ListingStatus.PUBLISHED.value, "ACTIVE"]),
+                Listing.status.in_([ListingStatus.PUBLISHED.value, ListingStatus.UPDATING.value]),
                 Listing.expires_at.is_not(None),
                 Listing.expires_at <= three_days,
             )
@@ -83,14 +83,8 @@ def screen_listings_list(
             )
 
         # Sorting (§6.1)
-        if sort == "first_published_asc":
-            stmt = stmt.order_by(Listing.first_published_at.asc().nulls_last())
-        elif sort == "first_published_desc":
-            stmt = stmt.order_by(Listing.first_published_at.desc().nulls_last())
-        elif sort == "price":
-            stmt = stmt.order_by(desc(Listing.price))
-        else:
-            stmt = stmt.order_by(desc(Listing.created_at))
+        sort_map = {"first_published_asc": Listing.first_published_at.asc().nulls_last(), "first_published_desc": Listing.first_published_at.desc().nulls_last(), "price": desc(Listing.price)}
+        stmt = stmt.order_by(sort_map.get(sort, desc(Listing.created_at)))
 
         listings = session.scalars(stmt).all()
 
@@ -127,19 +121,20 @@ def screen_listings_list(
                 "messages_count": 0,
             })
 
-    return templates.TemplateResponse(
-        request=request,
-        name="listings.html",
-        context={
-            "listings": formatted,
-            "filter_group": filter_group,
-            "marketplace_filter": marketplace,
-            "sort": sort,
-            "q": q or "",
-            "counts": counts,
-            "active_tab": "listings",
-        },
-    )
+        return templates.TemplateResponse(
+            request=request,
+            name="listings.html",
+            context={
+                "listings": formatted,
+                "filter_group": filter_group,
+                "marketplace_filter": marketplace,
+                "sort": sort,
+                "q": q or "",
+                "counts": counts,
+                "item_code": item_code,
+                "active_tab": "listings",
+            },
+        )
 
 
 @router.get("/ui/listings/{listing_id}", response_class=HTMLResponse)
@@ -184,7 +179,13 @@ def screen_listing_detail(
         from nextlife.storage.models import DeliveryOption
         from nextlife.services.marketplace_shipping import filter_compatible_delivery_options
         all_delivs = session.scalars(select(DeliveryOption).where(DeliveryOption.item_code == listing.item_code).order_by(DeliveryOption.price.asc())).all()
-        comp_delivs, incomp_delivs = filter_compatible_delivery_options(all_delivs, listing.marketplace_key)
+        comp_delivs_raw, incomp_delivs_raw = filter_compatible_delivery_options(all_delivs, listing.marketplace_key)
+
+        def _to_deliv(d: Any) -> SimpleNamespace:
+            return SimpleNamespace(id=str(getattr(d, "id", "")), service_name=str(getattr(d, "service_name", "")), carrier_key=str(getattr(d, "carrier_key", "")), price=str(getattr(d, "price", "0")), currency=str(getattr(d, "currency", "CZK")))
+
+        comp_delivs = [_to_deliv(d) for d in comp_delivs_raw]
+        incomp_delivs = [_to_deliv(d) for d in incomp_delivs_raw]
 
         listing_data = SimpleNamespace(
             id=str(listing.id), item_code=str(listing.item_code), marketplace_key=str(listing.marketplace_key),
@@ -195,6 +196,7 @@ def screen_listing_detail(
             category_path=category_path, category_key=category_key, category_auto=bool(listing.category_auto),
             lang=listing.lang or "cs", photo_ids=list(listing.photo_ids or []),
             first_published_at=listing.first_published_at, expires_at=listing.expires_at,
+            auto_relist=bool(getattr(listing, "auto_relist", False)),
         )
         item_data = SimpleNamespace(code=item.code, title=item.title or "") if item else None
 
@@ -217,16 +219,16 @@ def ui_save_listing(
     description: str = Form(""),
     category_key: str = Form(""),
     price: str = Form("0"),
+    auto_relist: str | None = Form(default=None),
     return_to: str | None = Form(default=None),
     submit_action: str | None = Form(default=None),
     auth: bool = Depends(check_auth),
 ) -> RedirectResponse:
     with get_db_session() as session:
         listing = update_listing(session, listing_id, {
-            "title": title,
-            "description": description,
-            "category_key": category_key,
-            "price": price,
+            "title": title, "description": description,
+            "category_key": category_key, "price": price,
+            "auto_relist": auto_relist in ("true", "on", "1", "True"),
         })
         item_code = listing.item_code
         session.commit()
@@ -290,18 +292,22 @@ def ui_set_listing_free(
 @router.post("/ui/listings/{listing_id}/unpublish")
 def ui_unpublish_listing(
     listing_id: str,
+    return_to: str | None = Form(default=None),
     auth: bool = Depends(check_auth),
 ) -> RedirectResponse:
     with get_db_session() as session:
         res = unpublish_listing(session, listing_id)
         session.commit()
         if not res.get("supported"):
+            target_url = return_to or f"/ui/listings/{listing_id}"
+            sep = "&" if "?" in target_url else "?"
             return RedirectResponse(
-                url=f"/ui/listings/{listing_id}?notice=unsupported&reason={quote(str(res.get('message') or ''))}",
+                url=f"{target_url}{sep}notice=unsupported&reason={quote(str(res.get('message') or ''))}",
                 status_code=status.HTTP_303_SEE_OTHER,
             )
+    target = return_to or "/ui/listings?notice=unpublished"
     return RedirectResponse(
-        url="/ui/listings?notice=unpublished",
+        url=target,
         status_code=status.HTTP_303_SEE_OTHER,
     )
 
@@ -309,18 +315,22 @@ def ui_unpublish_listing(
 @router.post("/ui/listings/{listing_id}/relist")
 def ui_relist_listing(
     listing_id: str,
+    return_to: str | None = Form(default=None),
     auth: bool = Depends(check_auth),
 ) -> RedirectResponse:
     with get_db_session() as session:
         res = relist_listing_now(session, listing_id)
         session.commit()
         if not res.get("supported"):
+            target_url = return_to or f"/ui/listings/{listing_id}"
+            sep = "&" if "?" in target_url else "?"
             return RedirectResponse(
-                url=f"/ui/listings/{listing_id}?notice=unsupported&reason={quote(str(res.get('message') or ''))}",
+                url=f"{target_url}{sep}notice=unsupported&reason={quote(str(res.get('message') or ''))}",
                 status_code=status.HTTP_303_SEE_OTHER,
             )
+    target = return_to or f"/ui/listings/{listing_id}?notice=relisting_queued"
     return RedirectResponse(
-        url=f"/ui/listings/{listing_id}?notice=relisting_queued",
+        url=target,
         status_code=status.HTTP_303_SEE_OTHER,
     )
 
@@ -337,13 +347,25 @@ def ui_delete_listing(
         delete_listing(session, listing_id)
         session.commit()
     target_url = return_to or (f"/ui/stock/{item_code}#listings?notice=listing_deleted" if item_code else "/ui/listings?notice=deleted")
-    return RedirectResponse(
-        url=target_url,
-        status_code=status.HTTP_303_SEE_OTHER,
-    )
+    return RedirectResponse(url=target_url, status_code=status.HTTP_303_SEE_OTHER)
 
 
-# --- Preparation and Batch Publish endpoints ---
+@router.post("/ui/listings/recheck-live")
+def ui_recheck_live(
+    request: Request,
+    item_code: str | None = Form(default=None),
+    return_to: str | None = Form(default=None),
+    auth: bool = Depends(check_auth),
+) -> RedirectResponse:
+    with get_db_session() as session:
+        stats = reconcile_listings_with_marketplaces(session, item_code=item_code)
+        session.commit()
+    sep = "&" if "?" in (return_to or "") else "?"
+    target = f"{return_to}{sep}notice=reconciled" if return_to else (f"/ui/listings?item_code={item_code}&notice=reconciled" if item_code else "/ui/listings?notice=reconciled")
+    return RedirectResponse(url=target, status_code=status.HTTP_303_SEE_OTHER)
+
+
+# --- Preparation, Recheck and Batch Publish endpoints ---
 
 
 @router.post("/api/stock/{code}/listings/prepare")
@@ -353,9 +375,9 @@ def api_prepare_listings(code: str, request: Request, auth: bool = Depends(check
     with get_db_session() as session:
         created = prepare_item_listings(session, code)
         session.commit()
-        if request.url.path.startswith("/ui/"):
-            return RedirectResponse(url=f"/ui/stock/{code}#listings", status_code=status.HTTP_303_SEE_OTHER)
-        return {"status": "ok", "item_code": code, "prepared_count": len(created), "listings": [row.id for row in created]}
+    if request.url.path.startswith("/ui/"):
+        return RedirectResponse(url=f"/ui/stock/{code}#listings", status_code=status.HTTP_303_SEE_OTHER)
+    return {"status": "ok", "item_code": code, "prepared_count": len(created), "listings": [row.id for row in created]}
 
 
 @router.post("/api/listings/publish-approved")
@@ -370,7 +392,6 @@ def api_publish_approved(request: Request, item_code: str | None = Form(default=
             if request.url.path.startswith("/ui/"):
                 return RedirectResponse(url=f"/ui/listings?notice=err&reason={exc}", status_code=status.HTTP_303_SEE_OTHER)
             raise HTTPException(status_code=400, detail=str(exc)) from exc
-
     if request.url.path.startswith("/ui/"):
         return RedirectResponse(url=f"/ui/jobs/batches/{batch_id}", status_code=status.HTTP_303_SEE_OTHER)
     return {"status": "ok", "batch_id": batch_id}

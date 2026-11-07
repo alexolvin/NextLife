@@ -1,0 +1,13 @@
+[Unit]
+Description=NextLife Daily Connector Status and Verification Check
+After=network.target nextlife-web.service
+
+[Service]
+Type=oneshot
+User=nextlife
+Group=nextlife
+WorkingDirectory=/opt/nextlife/app
+EnvironmentFile=-/opt/nextlife/app/.env
+Environment=NEXTLIFE_DATA_DIR=/var/lib/nextlife
+ExecStart=/opt/nextlife/venv/bin/python /opt/nextlife/app/scripts/run_connector_check.py
+TimeoutSec=120

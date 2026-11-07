@@ -22,9 +22,16 @@
         <a href="/ui/search" class="header-btn" title="Поиск" style="color: #ffffff;" data-testid="header-search">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         </a>
-        <button id="btn-tasks" class="header-btn hidden" onclick="toggleTasksDrawer(event)" title="Фоновые задачи" style="color: #ffffff;" data-testid="header-tasks">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-          <span id="tasks-badge" class="header-badge">0</span>
+        <button id="btn-tasks" class="header-btn tasks-indicator-idle" onclick="toggleTasksDrawer(event)" title="Нет фоновых задач" aria-label="Нет фоновых задач" style="color: #ffffff; width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" data-testid="header-tasks">
+          <!-- Idle: simple gray inactive circle -->
+          <svg id="tasks-icon-idle" viewBox="0 0 24 24" width="18" height="18" fill="none" style="display: inline-block;">
+            <circle cx="12" cy="12" r="6" stroke="#cbd5e1" stroke-width="2.5" fill="none"></circle>
+          </svg>
+          <!-- Active: waiting_circle animated spinner -->
+          <svg id="tasks-icon-active" class="waiting-circle-spin" viewBox="0 0 24 24" width="20" height="20" fill="none" style="display: none;">
+            <circle cx="12" cy="12" r="8" stroke="rgba(255, 255, 255, 0.25)" stroke-width="2.5" fill="none"></circle>
+            <path d="M12 4a8 8 0 0 1 8 8" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"></path>
+          </svg>
         </button>
         <a href="/ui/settings" class="header-btn" title="Настройки" style="color: #ffffff;" data-testid="header-settings">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -253,6 +260,10 @@
 
     function toggleTasksDrawer(e) {
       if (e) e.preventDefault();
+      const btn = document.getElementById('btn-tasks');
+      if (btn && btn.classList.contains('tasks-indicator-idle')) {
+        return;
+      }
       const drawer = document.getElementById('tasks-drawer-overlay');
       if (drawer) {
         drawer.classList.toggle('hidden');
@@ -263,7 +274,7 @@
     }
 
     function refreshTasksDrawer() {
-      fetch('/api/jobs/active', { credentials: 'same-origin' })
+      return fetch('/api/jobs/active', { credentials: 'same-origin' })
         .then(r => r.json())
         .then(data => {
           const list = document.getElementById('tasks-drawer-list');
@@ -272,11 +283,28 @@
             list.innerHTML = '<div style="padding: 16px; color: #64748b; font-size: 0.9rem;">Нет активных задач</div>';
             return;
           }
+          const kindTitles = {
+            'PUBLISH_LISTING': 'Публикация объявления',
+            'UPDATE_LISTING': 'Обновление объявления',
+            'UNPUBLISH_LISTING': 'Снятие с публикации',
+            'RELIST_LISTING': 'Переразмещение',
+            'GENERATE_MEDIA_VARIANT': 'Обработка медиа',
+            'BUY_SEARCH': 'Поиск предложений'
+          };
+          const stateTitles = {
+            'PENDING': 'В очереди',
+            'RUNNING': 'Выполняется'
+          };
           let html = '<div style="display: flex; flex-direction: column; gap: 8px;">';
           data.jobs.forEach(j => {
+            const kindText = kindTitles[j.kind] || j.kind;
+            const stateText = stateTitles[j.state] || j.state;
             html += `<div style="padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
-              <div style="font-weight: 600; font-size: 0.85rem;">${j.kind}</div>
-              <div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">Статус: ${j.state} • Попытка ${j.attempts}</div>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <div style="font-weight: 600; font-size: 0.85rem; color: #1e293b;">${kindText}</div>
+                <span class="badge" style="font-size: 0.72rem; padding: 2px 6px; background: #e0f2fe; color: #0369a1;">${stateText}</span>
+              </div>
+              ${j.created_at ? `<div style="font-size: 0.75rem; color: #94a3b8; margin-top: 3px;">Создано: ${new Date(j.created_at).toLocaleTimeString()}</div>` : ''}
               ${j.batch_id ? `<a href="/ui/jobs/batches/${j.batch_id}" style="font-size: 0.8rem; color: #2563eb; margin-top: 4px; display: inline-block;">Открыть отчёт пакета →</a>` : ''}
             </div>`;
           });
@@ -286,23 +314,41 @@
     }
 
     function checkActiveJobs() {
-      fetch('/api/jobs/active', { credentials: 'same-origin' })
+      return fetch('/api/jobs/active', { credentials: 'same-origin' })
         .then(r => r.json())
         .then(data => {
           const btn = document.getElementById('btn-tasks');
-          const badge = document.getElementById('tasks-badge');
-          if (btn && badge) {
-            if (data.count > 0) {
-              btn.classList.remove('hidden');
-              badge.textContent = data.count;
-            } else {
-              btn.classList.add('hidden');
+          const iconIdle = document.getElementById('tasks-icon-idle');
+          const iconActive = document.getElementById('tasks-icon-active');
+          if (!btn) return;
+          const count = Number(data.count) || 0;
+          if (count > 0) {
+            btn.classList.remove('tasks-indicator-idle');
+            btn.classList.add('tasks-indicator-active');
+            btn.setAttribute('title', 'Фоновые задачи: ' + count + ' (нажмите для списка)');
+            btn.setAttribute('aria-label', 'Фоновые задачи: ' + count);
+            btn.style.pointerEvents = 'auto';
+            btn.style.cursor = 'pointer';
+            if (iconIdle) iconIdle.style.display = 'none';
+            if (iconActive) iconActive.style.display = 'inline-block';
+          } else {
+            btn.classList.remove('tasks-indicator-active');
+            btn.classList.add('tasks-indicator-idle');
+            btn.setAttribute('title', 'Нет фоновых задач');
+            btn.setAttribute('aria-label', 'Нет фоновых задач');
+            btn.style.pointerEvents = 'none';
+            btn.style.cursor = 'default';
+            if (iconIdle) iconIdle.style.display = 'inline-block';
+            if (iconActive) iconActive.style.display = 'none';
+            const drawer = document.getElementById('tasks-drawer-overlay');
+            if (drawer && !drawer.classList.contains('hidden')) {
+              drawer.classList.add('hidden');
             }
           }
         }).catch(() => {});
     }
 
-    setInterval(checkActiveJobs, 30000);
+    setInterval(checkActiveJobs, 10000);
     document.addEventListener('visibilitychange', function() {
       if (document.visibilityState === 'visible') {
         checkActiveJobs();
@@ -384,6 +430,41 @@
         if (box && (box === e.target || box.contains(e.target))) return;
         overlay.classList.add('hidden');
       });
+    })();
+  </script>
+
+  <!-- Auto-dismiss toast notifications -->
+  <script>
+    (function () {
+      function initToasts() {
+        var toasts = document.querySelectorAll('.toast-banner');
+        if (!toasts.length) return;
+        toasts.forEach(function (t) {
+          t.setAttribute('role', 'status');
+          t.title = 'Нажмите, чтобы скрыть';
+          t.addEventListener('click', function () {
+            t.classList.add('toast-fadeout');
+            setTimeout(function () { t.remove(); }, 350);
+          });
+          setTimeout(function () {
+            t.classList.add('toast-fadeout');
+            setTimeout(function () { t.remove(); }, 350);
+          }, 3500);
+        });
+        try {
+          var url = new URL(window.location.href);
+          if (url.searchParams.has('notice') || url.searchParams.has('reason')) {
+            url.searchParams.delete('notice');
+            url.searchParams.delete('reason');
+            window.history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);
+          }
+        } catch (e) {}
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initToasts);
+      } else {
+        initToasts();
+      }
     })();
   </script>
 </body>

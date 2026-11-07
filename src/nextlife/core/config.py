@@ -2,6 +2,7 @@
 
 import os
 from decimal import Decimal
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -223,6 +224,9 @@ class MarketplaceConfig(BaseModel):
     # marketplace (the publish path refuses them; enforced by tests).
     # None = no restriction (most marketplaces).
     allowed_categories: list[str] | None = None
+    # Shown when a lot is rejected by allowed_categories (TZ Connectors 5.7).
+    filter_reason: str | None = None
+    rules_evidence: str | None = None
     # TZ Реструктуризация UI (§2.4, §6.4): Срок показа объявления в днях (listing_ttl_days)
     listing_ttl_days: int = 30
     # TZ Marketplaces: the ANDROID channel for this marketplace (None = the
@@ -291,14 +295,14 @@ def _load_yaml_file(path: Path) -> dict[str, Any]:
         raise ConfigError(f"YAML syntax error in file '{path}': {exc}") from exc
 
 
-def load_config(config_dir: Path | str | None = None) -> ConfigBundle:
-    """Load and validate all configuration files from the config directory."""
-    if config_dir is None:
+@lru_cache(maxsize=16)
+def _load_config_cached(config_dir_resolved: str | None) -> ConfigBundle:
+    if config_dir_resolved is None:
         # Default to repo root config/
         base_dir = Path(__file__).resolve().parent.parent.parent.parent
         c_dir = base_dir / "config"
     else:
-        c_dir = Path(config_dir)
+        c_dir = Path(config_dir_resolved)
 
     nextlife_yaml_path = c_dir / "nextlife.yaml"
     raw_nextlife = _load_yaml_file(nextlife_yaml_path)
@@ -367,6 +371,20 @@ def load_config(config_dir: Path | str | None = None) -> ConfigBundle:
         shipping=shipping_config,
         faq=faq_config,
     )
+
+
+def load_config(config_dir: Path | str | None = None) -> ConfigBundle:
+    """Load and validate all configuration files from the config directory (cached)."""
+    key = str(Path(config_dir).resolve()) if config_dir is not None else None
+    return _load_config_cached(key)
+
+
+def clear_config_cache() -> None:
+    """Clear cached configuration bundles (useful for tests and dynamic reloads)."""
+    _load_config_cached.cache_clear()
+
+
+load_config.cache_clear = _load_config_cached.cache_clear  # type: ignore[attr-defined]
 
 
 def get_database_url(config: ConfigBundle | None = None) -> str:

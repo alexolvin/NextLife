@@ -35,6 +35,10 @@ DEFAULT_MARKETPLACE_CARRIERS: dict[str, list[str]] = {
     "facebook_marketplace": ["pickup", "zasilkovna", "balikovna", "cpost", "ppl", "gls", "courier"],
     "vinted": ["pickup", "zasilkovna", "balikovna", "ppl", "gls"],
     "vinted_cz": ["pickup", "zasilkovna", "balikovna", "ppl", "gls"],
+    "bazar_cz": ["pickup", "zasilkovna", "balikovna", "cpost", "ppl", "gls", "courier"],
+    "mimibazar_cz": ["pickup", "zasilkovna", "balikovna", "cpost", "ppl", "gls", "courier"],
+    "allegro_cz": ["pickup", "zasilkovna", "balikovna", "cpost", "ppl", "gls", "courier"],
+    "bazos_sk": ["pickup", "zasilkovna", "cpost", "gls", "courier"],
     # Foreign marketplaces: Zásilkovna and Balíkovna are incompatible
     "kleinanzeigen_de": ["pickup", "gls", "courier", "cpost"],
     "willhaben_at": ["pickup", "gls", "courier", "cpost"],
@@ -54,6 +58,10 @@ DEFAULT_MARKETPLACE_TTL: dict[str, int] = {
     "olx_pl": 30,
     "vinted": 30,
     "vinted_cz": 30,
+    "bazar_cz": 60,
+    "mimibazar_cz": 90,
+    "allegro_cz": 30,
+    "bazos_sk": 60,
 }
 
 

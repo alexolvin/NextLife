@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from nextlife.comms.outgoing_filter import InternalFieldLeakageError
-from nextlife.connectors.base import CapabilityNotSupported
+from nextlife.connectors.base import CapabilityNotSupported, ConnectorError
 from nextlife.connectors.bazos import BazosConnector
 from nextlife.core.config import load_config
 
@@ -38,7 +38,7 @@ def test_bazos_publish_not_implemented_honest_error(bazos_connector):
         "category": "electronics",
         "item_code": "348",
     }
-    with pytest.raises(CapabilityNotSupported, match="post"):
+    with pytest.raises(ConnectorError, match="Bazoš live publish not in connector"):
         bazos_connector.publish(lot_data)
 
 
@@ -53,13 +53,15 @@ def test_bazos_publish_still_filters_internal_fields(bazos_connector):
         bazos_connector.publish(lot_data)
 
 
-def test_bazos_update_and_unpublish_not_implemented(bazos_connector):
-    """Edit/archive are not implemented (same reason as publish)."""
+def test_bazos_update_and_unpublish(bazos_connector, monkeypatch):
+    """Edit is not implemented. Unpublish is supported via Android PhoneBroker."""
     lot_data = {"title": "Updated title", "description": "Updated desc"}
     with pytest.raises(CapabilityNotSupported, match="edit"):
         bazos_connector.update("bazos-348-123", lot_data)
-    with pytest.raises(CapabilityNotSupported, match="archive"):
-        bazos_connector.unpublish("bazos-348-123")
+    from nextlife.services import bazos_android_publish as bap
+
+    monkeypatch.setattr(bap, "bazos_android_delete_listing", lambda **kw: {"ok": True})
+    assert bazos_connector.unpublish("bazos-348-123") is True
 
 
 def test_bazos_parses_sample_fixture(bazos_connector):

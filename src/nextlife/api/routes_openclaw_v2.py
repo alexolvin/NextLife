@@ -304,9 +304,10 @@ def oc_get_buy_request(request_id: int, segment: str = "all", auth: bool = _AUTH
 
 @oc_v2_router.post("/buy/{request_id}/kits/analyze")
 def oc_analyze_kits(request_id: int, auth: bool = _AUTH) -> dict[str, Any]:
+    from nextlife.services.buy import _parse_verdict
     with get_db_session() as session:
         candidates = session.scalars(select(BuyCandidate).where(BuyCandidate.request_id == request_id)).all()
-        kits = [c for c in candidates if (c.verdict or {}).get("is_kit")]
+        kits = [c for c in candidates if _parse_verdict(c.verdict).get("is_kit")]
         results = []
         for k in kits:
             res = analyze_kit(session, k.id)

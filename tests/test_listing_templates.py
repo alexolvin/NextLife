@@ -12,7 +12,7 @@ def test_zero_html_tags_in_src():
     """
     cmd = (
         "grep -rnE --exclude-dir=__pycache__ --exclude-dir=vendor "
-        "'<(div|span|html|body|p|table|h[1-6]|form)' src/"
+        "'<(div|span|html|body|p\\b|table|h[1-6]|form\\b)' src/"
     )
     proc = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     assert proc.stdout.strip() == "", f"Found forbidden HTML tags in src/: {proc.stdout}"

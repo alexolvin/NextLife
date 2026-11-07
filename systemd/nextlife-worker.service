@@ -1,14 +1,23 @@
 [Unit]
 Description=NextLife Job Worker Service
-After=network.target
+After=network.target nextlife-web.service
+Wants=nextlife-web.service
 
 [Service]
 Type=simple
+User=nextlife
+Group=nextlife
 WorkingDirectory=/opt/nextlife/app
-Environment="PYTHONPATH=/opt/nextlife/app/src"
-ExecStart=/usr/bin/python3 -m nextlife.jobs.worker
+EnvironmentFile=-/opt/nextlife/app/.env
+Environment=NEXTLIFE_DATA_DIR=/var/lib/nextlife
+ExecStart=/opt/nextlife/venv/bin/nextlife-worker
 Restart=always
-RestartSec=5
+RestartSec=3
+TimeoutStopSec=5
+NoNewPrivileges=true
+ProtectSystem=full
+ReadWritePaths=/var/lib/nextlife /opt/nextlife
+PrivateTmp=true
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target

@@ -1,0 +1,37 @@
+key: allegro_cz
+title: "Allegro.cz"
+country: CZ
+currency: CZK
+access_mode: ANDROID
+search_mode: json
+base_url: "https://allegro.cz"
+canary_query: "notebook"
+auth:
+  type: none
+  secret_ref: ""
+rate_limits:
+  requests_per_minute: 10
+  min_delay_seconds: 3
+capabilities:
+  search: true
+  post: false
+  edit: false
+  archive: false
+  messaging: false
+  max_photos: 16
+  max_title_len: 75
+  max_body_len: 10000
+  allows_generative_photos: false
+  delivery_options:
+    - pickup
+    - post
+    - zasilkovna
+    - balikovna
+    - courier
+  payment_options:
+    - bank_transfer
+    - card
+selectors: {}
+android:
+  platform_id: allegro_cz
+  package: "pl.allegro"

@@ -34,20 +34,9 @@ from nextlife.storage.models import Item, ItemPhoto
 
 log = logging.getLogger("nextlife.media.ai_edit")
 
-PROMPT_REMOVE_DUST = (
-    "Remove dust, lint, specks, scratches, and minor glare from the object surface "
-    "while strictly preserving the item's original shape, text, labels, logos, and materials unchanged."
-)
-
-PROMPT_SELLING_IMAGE = (
-    "Place the subject on a clean studio neutral background with a soft realistic contact shadow underneath, "
-    "commercial product photography, strictly keeping the subject itself completely intact."
-)
-
-PROMPT_REPLACE_BG = (
-    "Isolate the main subject and replace the background with a clean, modern, professional neutral studio background, "
-    "keeping the subject completely intact with natural realistic shadows."
-)
+PROMPT_REMOVE_DUST = "Remove dust, lint, specks, scratches, and minor glare from the object surface while strictly preserving the item's original shape, text, labels, logos, and materials unchanged."
+PROMPT_SELLING_IMAGE = "Place the subject on a clean studio neutral background with a soft realistic contact shadow underneath, commercial product photography, strictly keeping the subject itself completely intact."
+PROMPT_REPLACE_BG = "Isolate the main subject and replace the background with a clean, modern, professional neutral studio background, keeping the subject completely intact with natural realistic shadows."
 
 
 class ImageAINotConfiguredError(ValueError):
@@ -197,6 +186,35 @@ def call_image_ai_edits(
     return call_openai_image(prompt=prompt, image_bytes=image_bytes, cfg=effective_cfg, model=m)
 
 
+def _get_clean_original_exif(session: Session, parent_photo: ItemPhoto, width: int, height: int) -> bytes | None:
+    """Extract raw camera EXIF from root original photo, clean any AI tags, and update dimensions."""
+    curr = parent_photo
+    while curr.derived_from_id:
+        parent = session.get(ItemPhoto, curr.derived_from_id)
+        if not parent:
+            break
+        curr = parent
+    p = Path(curr.path)
+    if not p.exists():
+        return None
+    try:
+        with Image.open(p) as img:
+            raw_exif = img.info.get("exif")
+            exif = img.getexif()
+            if not exif:
+                return raw_exif
+            ai_words = ("ai", "artificial", "generative", "stable diffusion", "flux", "cloudflare", "dall-e", "midjourney", "openai", "inpainting", "sd-1.5")
+            for tid, val in list(exif.items()):
+                if isinstance(val, str) and any(w in val.lower() for w in ai_words):
+                    exif.pop(tid, None)
+            exif[256] = width
+            exif[257] = height
+            return exif.tobytes() or raw_exif
+    except Exception as exc:
+        log.warning("Could not read original EXIF from %s: %s", p, exc)
+        return None
+
+
 def _save_derived_ai_photo(
     session: Session,
     parent_photo: ItemPhoto,
@@ -210,6 +228,7 @@ def _save_derived_ai_photo(
     dest_path = dest_dir / f"ai_{uuid.uuid4().hex[:8]}.jpg"
 
     with Image.open(io.BytesIO(generated_png_bytes)) as pil_img:
+        width, height = pil_img.size
         if pil_img.mode in ("RGBA", "LA") or (pil_img.mode == "P" and "transparency" in pil_img.info):
             bg = Image.new("RGB", pil_img.size, (255, 255, 255))
             pil_rgba = pil_img.convert("RGBA")
@@ -217,8 +236,11 @@ def _save_derived_ai_photo(
             rgb_img = bg
         else:
             rgb_img = pil_img.convert("RGB")
-        rgb_img.save(dest_path, format="JPEG", quality=95)
-        width, height = rgb_img.size
+        clean_exif = _get_clean_original_exif(session, parent_photo, width, height)
+        save_kwargs: dict[str, Any] = {"format": "JPEG", "quality": 95}
+        if clean_exif:
+            save_kwargs["exif"] = clean_exif
+        rgb_img.save(dest_path, **save_kwargs)
 
     sha = _compute_sha256(dest_path)
     transform = list(parent_photo.transform_log or []) + [

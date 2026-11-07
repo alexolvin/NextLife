@@ -110,19 +110,37 @@ def get_batch_summary(session: Session, batch_id: str) -> dict[str, Any]:
     }
 
 
+def _purge_inactive_jobs(session: Session) -> None:
+    """Purge completed/stale jobs — background task history is not retained."""
+    try:
+        from sqlalchemy import delete
+        session.execute(
+            delete(Job).where(
+                (Job.state.notin_(["PENDING", "RUNNING"])) | (Job.kind == "BUY_SEARCH")
+            )
+        )
+    except Exception:
+        pass
+
+
 def get_active_jobs_count(session: Session) -> int:
     """Count of currently active (running or pending) jobs."""
+    _purge_inactive_jobs(session)
     count = session.scalar(
-        select(func.count(Job.id)).where(Job.state.in_(["PENDING", "RUNNING"]))
+        select(func.count(Job.id))
+        .where(Job.state.in_(["PENDING", "RUNNING"]))
+        .where(Job.kind != "BUY_SEARCH")
     )
     return int(count or 0)
 
 
 def get_active_jobs(session: Session, limit: int = 10) -> list[dict[str, Any]]:
-    """List of recent/active jobs for header drawer."""
+    """List of currently active jobs for header drawer."""
+    _purge_inactive_jobs(session)
     jobs = session.scalars(
         select(Job)
         .where(Job.state.in_(["PENDING", "RUNNING"]))
+        .where(Job.kind != "BUY_SEARCH")
         .order_by(Job.created_at.desc())
         .limit(limit)
     ).all()
@@ -131,6 +149,7 @@ def get_active_jobs(session: Session, limit: int = 10) -> list[dict[str, Any]]:
             "id": j.id,
             "kind": j.kind,
             "state": j.state,
+            "attempts": j.attempts,
             "batch_id": j.batch_id,
             "created_at": j.created_at.isoformat() if j.created_at else None,
         }

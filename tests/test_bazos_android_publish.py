@@ -238,3 +238,44 @@ def test_driver_records_no_success_for_an_unmapped_screen():
     ).read_text(encoding="utf-8")
     assert 'steps.append("submitted")' not in source
     assert "submit screen unrecognized" in source
+
+
+def test_find_ad_card_and_delete_button_boxes():
+    from nextlife.services.bazos_android_publish import (
+        find_ad_card_box,
+        find_delete_button_box,
+        find_confirm_button_box,
+    )
+
+    myads_xml = (
+        "<hierarchy><node class='android.view.View' clickable='true' bounds='[22,974][529,1571]'>"
+        + _node("Koupím / vyměním RTX 3090", bounds="[44,1452][422,1487]")
+        + "</node></hierarchy>"
+    )
+    box = find_ad_card_box(myads_xml, "RTX 3090")
+    assert box == (22, 974, 529, 1571)
+
+    detail_xml = (
+        "<hierarchy>"
+        + _node("", desc="Smazat inzerát", rid="cz.ackee.bazos:id/btn_delete", bounds="[900,100][1000,200]")
+        + "</hierarchy>"
+    )
+    del_box = find_delete_button_box(detail_xml)
+    assert del_box == (900, 100, 1000, 200)
+
+    dialog_xml = (
+        "<hierarchy>"
+        + _node("Opravdu smazat?", bounds="[100,500][900,600]")
+        + _node("SMAZAT", bounds="[600,700][800,780]")
+        + "</hierarchy>"
+    )
+    confirm_box = find_confirm_button_box(dialog_xml)
+    assert confirm_box == (600, 700, 800, 780)
+
+
+def test_bazos_android_delete_listing_validation():
+    from nextlife.services.bazos_android_publish import bazos_android_delete_listing
+
+    res = bazos_android_delete_listing(title="")
+    assert res["ok"] is False
+    assert "Не указан заголовок" in res["errors"][0]

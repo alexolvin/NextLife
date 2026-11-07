@@ -37,7 +37,6 @@ class ListingStatus(StrEnum):
     QUEUED = "QUEUED"
     PUBLISHING = "PUBLISHING"
     PUBLISHED = "PUBLISHED"
-    ACTIVE = "ACTIVE"
     UPDATING = "UPDATING"
     EXPIRED = "EXPIRED"
     FAILED = "FAILED"

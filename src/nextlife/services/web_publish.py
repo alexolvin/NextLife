@@ -78,7 +78,7 @@ def recon_bazos() -> dict[str, Any]:
             _shot(page, recon, "bazos-2-login")
             steps.append(f"1. login page: {page.url} (phone set={bool(phone)})")
 
-            # 2. Dump each <form> on the page with its action + inputs
+            # 2. Dump each form element on the page with its action + inputs
             for frame in page.frames:
                 if "bazos.cz" not in frame.url:
                     continue

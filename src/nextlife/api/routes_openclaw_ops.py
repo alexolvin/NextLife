@@ -201,7 +201,7 @@ def oc_deal_close(body: OcDealCloseBody, auth: bool = _AUTH) -> dict[str, Any]:
     with get_db_session() as session:
         _get_item(session, code)
         active_listings = session.query(Listing).filter(
-            Listing.item_code == code, Listing.status == "ACTIVE"
+            Listing.item_code == code, Listing.status.in_(["PUBLISHED", "UPDATING"])
         ).count()
         if active_listings:
             require_current_approval(session, code)

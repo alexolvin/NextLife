@@ -47,22 +47,7 @@ def ui_attention_page(
         with get_db_session() as session:
             cards = get_attention_cards(session)
     except Exception:
-        metrics = get_dashboard_metrics(None)
-        if isinstance(metrics, dict):
-            cards = [
-                {
-                    "order": idx + 1,
-                    "title": m.get("title", k),
-                    "count": m.get("count", 0),
-                    "url": m.get("link", m.get("url", "/ui/stock")),
-                    "icon": "📋",
-                    "color": "#2563eb",
-                }
-                for idx, (k, m) in enumerate(metrics.items())
-                if isinstance(m, dict) and m.get("count", 0) > 0
-            ]
-        else:
-            cards = []
+        cards = []
 
     total_attention = sum(c["count"] for c in cards)
 

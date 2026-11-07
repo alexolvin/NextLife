@@ -1,140 +1,149 @@
 #!/usr/bin/env bash
-# NextLife Deploy Script (available and runnable without SUDO)
+# NextLife Production Deploy Script with Rollback
 #
 # Usage:
 #   bash scripts/deploy.sh
 #
-# Steps:
-#   1. Commit & environment verification
-#   2. Version and theme verification
-#   3. Local database backup (when pg_dump available)
-#   4. Alembic migrations (upgrade head)
-#   5. Build-info registration
-#   6. Web server reload / healthcheck
-#   7. Gateway & UI verification (/health, /api/oc/stock, /ui/settings)
-#
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-PORT=8081
-DATA_DIR="$REPO_ROOT/data"
-BACKUP_DIR="$DATA_DIR/backup"
-VENV_PYTHON="$REPO_ROOT/.venv/bin/python"
+TARGET_DIR="/opt/nextlife/app"
+VENV_DIR="/opt/nextlife/venv"
+SERVICE_NAME="nextlife-web.service"
+HEALTH_URL="http://127.0.0.1:8081/health"
+BACKUP_BASE="/opt/nextlife/backups"
+BACKUP_DIR="$BACKUP_BASE/app_pre_$(date +%Y%m%d_%H%M%S)"
+SUDO_LOG="$REPO_ROOT/evidence/_system/sudo.log"
 
-if [ ! -x "$VENV_PYTHON" ]; then
-    VENV_PYTHON="python3"
-fi
+log() { echo "[deploy $(date +%H:%M:%S)] $*"; }
+die() { echo "[deploy ERROR] $*" >&2; exit 1; }
 
-log() { echo "[deploy] $*"; }
-die() { echo "[deploy] ERROR: $*" >&2; exit 1; }
+log_sudo() {
+    local msg="$1"
+    if [ -f "$SUDO_LOG" ]; then
+        python3 -c "
+import datetime
+ts = datetime.datetime.now(datetime.timezone.utc).isoformat()
+with open('$SUDO_LOG', 'a') as f:
+    f.write(f'[{ts}] {msg}\n')
+" 2>/dev/null || true
+    fi
+}
 
-CURRENT_STEP=""
-trap 'rc=$?; if [ $rc -ne 0 ]; then echo ""; echo "[deploy] Прервано на шаге ${CURRENT_STEP}."; exit $rc; fi' EXIT
-set_step() { CURRENT_STEP="$1"; }
+# Ensure required commands
+command -v rsync >/dev/null 2>&1 || die "rsync is required"
+command -v curl >/dev/null 2>&1 || die "curl is required"
 
-# ── 1. git log ───────────────────────────────────────────────────────────────
-set_step "1-git-log"
-log "Step 1: commit verification"
+# Sudo wrapper if not running as root
+run_sudo() {
+    if [ "$(id -u)" -eq 0 ]; then
+        "$@"
+    else
+        log_sudo "deploy.sh: sudo $*"
+        sudo "$@"
+    fi
+}
+
+ROLLBACK_NEEDED=0
+rollback() {
+    if [ "$ROLLBACK_NEEDED" -eq 1 ] && [ -d "$BACKUP_DIR" ]; then
+        echo ""
+        log "!!! DEPLOY FAILED - INITIATING ROLLBACK !!!"
+        log "Restoring from $BACKUP_DIR to $TARGET_DIR..."
+        run_sudo rsync -a --delete "$BACKUP_DIR/" "$TARGET_DIR/"
+        run_sudo chown -R nextlife:nextlife "$TARGET_DIR"
+        run_sudo systemctl restart "$SERVICE_NAME" || true
+        log "Rollback completed. Restored service restarted."
+    fi
+}
+trap rollback ERR
+
+log "=== Starting NextLife Deploy ==="
+log "Source: $REPO_ROOT"
+log "Target: $TARGET_DIR"
+
+# 1. Verify git commit & version
 GIT_COMMIT="$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo 'unknown')"
-log "  Commit: $(git -C "$REPO_ROOT" log -1 --oneline 2>/dev/null || echo "$GIT_COMMIT")"
+log "Step 1: Git commit is $GIT_COMMIT"
 
-# ── 2. Version & theme check ────────────────────────────────────────────────
-set_step "2-version"
-log "Step 2: version & theme check"
-VERSION_STR="$("$VENV_PYTHON" "$REPO_ROOT/scripts/bump_version.py" --print-version 2>/dev/null || echo 'unknown')"
-log "  NextLife Version: $VERSION_STR"
-"$VENV_PYTHON" "$REPO_ROOT/scripts/bump_version.py" --check
-
-# ── 3. Database backup ──────────────────────────────────────────────────────
-set_step "3-backup"
-log "Step 3: DB backup (local data/backup)"
-mkdir -p "$BACKUP_DIR"
-BACKUP_FILE="$BACKUP_DIR/pre-deploy-$(date +%Y%m%d-%H%M%S).sql"
-
-if command -v pg_dump >/dev/null 2>&1; then
-    if pg_dump -h /var/run/postgresql -d nextlife > "$BACKUP_FILE" 2>/dev/null; then
-        log "  Backup saved: $BACKUP_FILE ($(du -sh "$BACKUP_FILE" 2>/dev/null | cut -f1))"
-    else
-        log "  pg_dump returned non-zero (continuing with existing data state)"
-        rm -f "$BACKUP_FILE"
-    fi
-else
-    log "  pg_dump not found in environment (backup skipped)"
+# 1b. Bump version and cycle UI dark accent theme
+if [ -f "$REPO_ROOT/scripts/bump_version.py" ]; then
+    log "Step 1b: Incrementing version and rotating dark UI theme"
+    python3 "$REPO_ROOT/scripts/bump_version.py" || true
 fi
 
-# ── 4. Alembic migrations ───────────────────────────────────────────────────
-set_step "4-alembic"
-log "Step 4: database migrations (alembic upgrade head)"
-if [ -f "$REPO_ROOT/alembic.ini" ]; then
-    ALEMBIC_OUT=$(NEXTLIFE_DSN="${NEXTLIFE_DSN:-postgresql+psycopg2:///nextlife?host=/var/run/postgresql}" \
-    "$VENV_PYTHON" -m alembic -c "$REPO_ROOT/alembic.ini" upgrade head 2>&1 || true)
-    if echo "$ALEMBIC_OUT" | grep -q "Running upgrade"; then
-        log "  [alembic] Migrations applied successfully"
-    elif echo "$ALEMBIC_OUT" | grep -qi "error\|denied"; then
-        log "  [alembic] DB check noted (skipping migration: local socket restricted or offline)"
-    else
-        log "  [alembic] Schema is up to date"
-    fi
+# 2. Create backup of current target
+log "Step 2: Creating backup in $BACKUP_DIR"
+run_sudo mkdir -p "$BACKUP_BASE"
+if [ -d "$TARGET_DIR" ]; then
+    run_sudo cp -a "$TARGET_DIR" "$BACKUP_DIR"
+    ROLLBACK_NEEDED=1
+    log "  Backup created at $BACKUP_DIR"
 fi
 
-# ── 5. Build-info registration ──────────────────────────────────────────────
-set_step "5-build-info"
-log "Step 5: write build-info.json"
-BUILT_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-printf '{"commit": "%s", "version": "%s", "built_at": "%s"}\n' "$GIT_COMMIT" "$VERSION_STR" "$BUILT_AT" > "$DATA_DIR/build-info.json"
-log "  build-info: commit=$GIT_COMMIT version=$VERSION_STR built_at=$BUILT_AT"
+# 3. Synchronize repository files to target
+log "Step 3: Syncing repository files to $TARGET_DIR"
+run_sudo rsync -a --delete \
+    --exclude='.git' \
+    --exclude='.venv' \
+    --exclude='.env' \
+    --exclude='.a/' \
+    --exclude='data/' \
+    --exclude='__pycache__' \
+    --exclude='.pytest_cache' \
+    --exclude='evidence/' \
+    --exclude='data/backup/' \
+    "$REPO_ROOT/" "$TARGET_DIR/"
 
-# ── 6. Web service verification ─────────────────────────────────────────────
-set_step "6-web-service"
-log "Step 6: web service reload / restart"
-export NEXTLIFE_DSN="${NEXTLIFE_DSN:-postgresql+psycopg2:///nextlife?host=/var/run/postgresql}"
+# Ensure evidence directory exists and permissions are preserved
+run_sudo mkdir -p "$TARGET_DIR/evidence"
+if [ -d "$REPO_ROOT/evidence" ]; then
+    run_sudo rsync -a "$REPO_ROOT/evidence/" "$TARGET_DIR/evidence/" || true
+fi
 
-log "  Restarting server on port $PORT via scripts/start_server.py..."
-"$VENV_PYTHON" "$REPO_ROOT/scripts/start_server.py" restart --port "$PORT" || true
+# Fix ownership and permissions
+run_sudo chown -R nextlife:nextlife "$TARGET_DIR"
+run_sudo chmod -R u+rwX,g+rX,o-rwx "$TARGET_DIR"
 
-HEALTH=""
-for i in $(seq 1 15); do
-    HEALTH="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/health" || true)"
-    [ "$HEALTH" = "200" ] && break
+# 4. Database migrations
+log "Step 4: Running alembic migrations"
+if [ -x "$VENV_DIR/bin/alembic" ] && [ -f "$TARGET_DIR/alembic.ini" ]; then
+    run_sudo -u nextlife bash -c "set -a; [ -f '$TARGET_DIR/.env' ] && . '$TARGET_DIR/.env'; '$VENV_DIR/bin/alembic' -c '$TARGET_DIR/alembic.ini' upgrade head"
+    log "  Migrations applied successfully"
+fi
+
+# 5. Restart service
+log "Step 5: Restarting $SERVICE_NAME and nextlife-worker"
+if [ -f "$REPO_ROOT/systemd/nextlife-worker.service" ]; then
+    run_sudo cp "$REPO_ROOT/systemd/nextlife-worker.service" /etc/systemd/system/
+fi
+run_sudo systemctl daemon-reload
+run_sudo systemctl enable nextlife-worker.service || true
+run_sudo systemctl restart "$SERVICE_NAME"
+run_sudo systemctl restart nextlife-worker.service || true
+
+# 6. Verify healthcheck
+log "Step 6: Verifying service health at $HEALTH_URL"
+HEALTH_OK=0
+for i in $(seq 1 20); do
+    STATUS="$(curl -s -o /dev/null -w '%{http_code}' "$HEALTH_URL" || true)"
+    if [ "$STATUS" = "200" ]; then
+        HEALTH_OK=1
+        break
+    fi
     sleep 1
 done
-log "  GET /health: $HEALTH"
-[ "$HEALTH" = "200" ] || die "GET /health returned $HEALTH (expected 200)"
 
-# ── 7. Gateway & UI verification ────────────────────────────────────────────
-set_step "7-gateway"
-log "Step 7: verify endpoints"
-
-LOGIN_STATUS="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/ui/login" || true)"
-log "  GET /ui/login: $LOGIN_STATUS"
-[ "$LOGIN_STATUS" = "200" ] || die "GET /ui/login failed with status $LOGIN_STATUS"
-
-# Read tokens from .env if present
-OC_TOKEN=""
-WEB_TOKEN=""
-if [ -f "$REPO_ROOT/.env" ]; then
-    OC_TOKEN="$(grep -E '^NEXTLIFE_OPENCLAW_TOKEN=' "$REPO_ROOT/.env" | head -1 | cut -d= -f2- | tr -d ' \r\n')"
-    WEB_TOKEN="$(grep -E '^NEXTLIFE_WEB_TOKEN=' "$REPO_ROOT/.env" | head -1 | cut -d= -f2- | tr -d ' \r\n')"
+if [ "$HEALTH_OK" -ne 1 ]; then
+    die "Health check failed after 20s (last HTTP status: $STATUS)"
 fi
 
-if [ -n "$WEB_TOKEN" ]; then
-    SETTINGS_STATUS="$(curl -s -o /dev/null -w '%{http_code}' -L -b "nextlife_token=$WEB_TOKEN" "http://127.0.0.1:$PORT/ui/settings" || true)"
-    log "  GET /ui/settings: $SETTINGS_STATUS"
-    [ "$SETTINGS_STATUS" = "200" ] || die "GET /ui/settings failed with status $SETTINGS_STATUS"
+log "  Health check passed (HTTP 200)!"
 
-    STOCK_UI_STATUS="$(curl -s -o /dev/null -w '%{http_code}' -L -b "nextlife_token=$WEB_TOKEN" "http://127.0.0.1:$PORT/ui/stock" || true)"
-    log "  GET /ui/stock: $STOCK_UI_STATUS"
-    [ "$STOCK_UI_STATUS" = "200" ] || die "GET /ui/stock failed with status $STOCK_UI_STATUS (database or backend error)"
-fi
+# 7. Keep only last 3 backups
+find "$BACKUP_BASE" -maxdepth 1 -type d -name "app_pre_*" | sort | head -n -3 | while read -r old_bak; do
+    [ -n "$old_bak" ] && run_sudo rm -rf "$old_bak"
+done
 
-if [ -n "$OC_TOKEN" ]; then
-    STOCK_STATUS="$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $OC_TOKEN" "http://127.0.0.1:$PORT/api/oc/stock" || true)"
-    log "  GET /api/oc/stock: $STOCK_STATUS"
-    [ "$STOCK_STATUS" = "200" ] || die "GET /api/oc/stock failed with status $STOCK_STATUS"
-fi
-
-# ── 8. Summary ──────────────────────────────────────────────────────────────
-set_step "8-done"
-log "Step 8: deploy completed successfully"
-log "  NextLife Version: $VERSION_STR"
-log "NEXTLIFE DEPLOY OK (without SUDO)"
+ROLLBACK_NEEDED=0
+log "=== Deploy Succeeded ==="

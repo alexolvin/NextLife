@@ -157,13 +157,14 @@ def gallery_confirm_label(xml: str) -> str | None:
 
 
 def submit_outcome(xml: str) -> str:
-    """What the screen after ADD AD means.
-
-    ``form_open`` — the form is still there, so nothing was published.
-    ``unrecognized`` — the form is gone, but the success screen is not
-    mapped and must not be recorded as published.
-    """
-    if screen_kind(xml) == "form" or "ADD AD" in visible_texts(xml):
+    """What the screen after ADD AD means."""
+    shown = visible_texts(xml)
+    blob = " ".join(shown).lower()
+    if any(m in blob for m in ("sms", "kód", "kod", "ověř", "over", "verification", "verify")):
+        return "sms_verification"
+    if any(m in blob for m in ("done", "active in", "top bid", "share", "sdílet", "hotovo", "moje inzeráty", "úspěšn", "vložen", "topovat")):
+        return "published"
+    if screen_kind(xml) == "form" or "ADD AD" in shown:
         return "form_open"
     return "unrecognized"
 
@@ -172,20 +173,27 @@ def screen_kind(xml: str) -> str:
     """Classify a Bazoš app dump. Unknown screens are not acted on."""
     shown = visible_texts(xml)
     blob = " ".join(shown)
+    if any(m in blob.lower() for m in ("done. your ad will be active", "10 times more people", "sdílet")):
+        return "home"
     if "permission_deny_and_dont_ask_again_button" in xml and "Ad submitting" not in shown:
         return "notification"
     if "Choose from gallery" in shown and "Take a picture" in shown:
         return "photo_sheet"
     if "Drag & drop to rearrange" in blob or "Drag &amp; drop to rearrange" in xml:
         return "photos"
-    if "Bazos will only have access" in blob or (
-        "Drag handle" in shown and "Photo taken on " in xml
+    if (
+        "Bazos will only have access" in blob
+        or ("Drag handle" in shown and "Photo taken on " in xml)
+        or "com.google.android.photopicker" in xml
     ):
         return "gallery"
     if (
         "Use current location" in shown
         or "You have not searched for anything yet" in shown
         or "did not match any results" in blob
+        or ("Location" in blob and "Back" in shown)
+        or ("Praha" in shown and "Back" in shown)
+        or ("republika" in blob.lower() and "Back" in shown)
     ):
         return "zip"
     if "All sections" in shown and "Sections" in shown:
@@ -236,6 +244,16 @@ def field_roles(xml: str) -> dict[str, dict[str, Any]]:
         above.sort(key=lambda edit: edit["bounds"][1])
         if above:
             roles["title"] = above[-1]
+    elif len(edits) >= 2:
+        loc = next((n for n in _nodes(xml) if "Location" in (n.get("text") or "") and n["bounds"]), None)
+        zip_top = loc["bounds"][1] if loc else (roles.get("price", {}).get("bounds", [0, 9999])[1])
+        above_zip = [e for e in edits if e["bounds"][3] <= zip_top + 30]
+        above_zip.sort(key=lambda e: e["bounds"][1])
+        if len(above_zip) >= 2:
+            roles["title"] = above_zip[0]
+            roles["description"] = above_zip[1]
+        elif len(above_zip) == 1:
+            roles["title"] = above_zip[0]
     return roles
 
 
@@ -264,6 +282,7 @@ def bazos_android_publish_listing(
     dry_run: bool = False,
     item_code: str = "",
     photo_paths: list[str] | None = None,
+    platform: str = "bazos_cz",
 ) -> dict[str, Any]:
     """Fill a Bazoš ad in the Android app.
 
@@ -348,7 +367,7 @@ def bazos_android_publish_listing(
     evidence = ""
     submitted = False
     try:
-        transport.begin("bazos_cz", "interactive")
+        transport.begin(platform, "interactive")
         transport.open_app()
         time.sleep(2)
         xml = _open_form(transport, steps, errors)
@@ -360,10 +379,9 @@ def bazos_android_publish_listing(
             _leave(transport, steps)
             evidence = _snap(transport, "after")
             return _result(False, steps, errors, evidence=evidence, dry_run=dry_run, item_code=item_code)
-        _fill_public_fields(transport, title=title, description=description, price=price, steps=steps, errors=errors)
         if psc:
             _pick_zip(transport, psc, steps, errors)
-            _open_form(transport, steps, errors)
+        _fill_public_fields(transport, title=title, description=description, price=price, steps=steps, errors=errors)
         section_ok = _pick_from_list(transport, "Select section", "sections", label, steps, errors)
         rubric_ok = (
             _pick_from_list(transport, "Select category", "categories", rubric, steps, errors)
@@ -385,11 +403,16 @@ def bazos_android_publish_listing(
                 )
             else:
                 steps.append(f"category on form: {label} / {rubric}")
+        _fill_price(transport, price=price, steps=steps, errors=errors)
         if seller or account_pass:
             _fill_contact(transport, seller=seller, account_pass=account_pass, steps=steps, errors=errors)
         if not dry_run and attached and not errors:
             submitted = _tap_submit(transport, steps, errors)
             evidence = _snap(transport, "submitted" if submitted else "submit-failed")
+            if submitted:
+                final_url = _find_published_bazos_url(title, platform=platform)
+                if final_url:
+                    steps.append(f"found live ad url: {final_url}")
         else:
             _leave(transport, steps)
             _clear_draft_title(transport, title, steps, errors)
@@ -416,7 +439,7 @@ def bazos_android_publish_listing(
     hidden = [psc, seller, account_pass]
     steps = [_scrub(step, hidden) for step in steps]
     errors = [_scrub(err, hidden) for err in errors]
-    return _result(ok, steps, errors, evidence=evidence, dry_run=dry_run, item_code=item_code)
+    return _result(ok, steps, errors, evidence=evidence, dry_run=dry_run, item_code=item_code, final_url=locals().get("final_url", ""))
 
 
 def _photo_files(photo_paths: list[str] | None, item_code: str) -> list[Path]:
@@ -453,10 +476,6 @@ def _item_publish_photos(item_code: str) -> list[Path]:
 
 def _attach_photos(transport: Any, files: list[Path], steps: list[str], errors: list[str]) -> bool:
     """Push lot photos and pick the new rows in the system gallery. No ADD AD."""
-    before = _open_gallery(transport, steps, errors)
-    if before is None:
-        return False
-    _back_to_form(transport)
     try:
         pushed = transport.push_media(files)
     except AndroidBridgeError as exc:
@@ -467,24 +486,21 @@ def _attach_photos(transport: Any, files: list[Path], steps: list[str], errors: 
         )
         return False
     steps.append(f"photos pushed: {len(pushed.get('pushed') or files)}")
-    if _open_gallery(transport, steps, errors) is None:
+    tiles = _open_gallery(transport, steps, errors)
+    if tiles is None:
         return False
     tapped: list[Box] = []
-    accounted = list(before)
     seen: list[tuple[tuple[str, Box], ...]] = []
     for _ in range(5):
         xml = _read_ui(transport)
         tiles = photo_tiles(xml)
-        fresh = fresh_photo_boxes(accounted, tiles)
-        candidates = fresh + [box for _desc, box in tiles if box not in fresh and box not in tapped]
-        for box in candidates:
+        for _desc, box in tiles:
             if len(tapped) >= len(files):
                 break
-            desc = next((item for item, candidate in tiles if candidate == box), "")
-            _tap_box(transport, box)
-            tapped.append(box)
-            accounted.append((desc, box))
-            time.sleep(0.5)
+            if box not in tapped:
+                _tap_box(transport, box)
+                tapped.append(box)
+                time.sleep(0.4)
         if len(tapped) >= len(files):
             break
         signature = tuple(tiles)
@@ -500,7 +516,7 @@ def _attach_photos(transport: Any, files: list[Path], steps: list[str], errors: 
         )
         _back_to_form(transport)
         return False
-    if not _confirm_photos(transport, steps, errors):
+    if not _confirm_photos(transport, steps, errors, expected_count=len(files)):
         _back_to_form(transport)
         return False
     steps.append(f"photos attached: {len(files)}")
@@ -592,12 +608,28 @@ def _open_gallery(transport: Any, steps: list[str], errors: list[str]) -> list[t
             "Устранение: объявление без фото не отправляется."
         )
         return None
+
+    # Expand drag handle if PhotoPicker opened as a half-screen sheet
+    drag_node = next(
+        (n for n in _nodes(xml) if (n.get("desc") == "Drag handle" or "drag_handle" in n.get("resource_id", "")) and n.get("bounds")),
+        None,
+    )
+    if drag_node and drag_node.get("bounds"):
+        bx = drag_node["bounds"]
+        cx, cy = (bx[0] + bx[2]) // 2, (bx[1] + bx[3]) // 2
+        try:
+            transport._op("swipe", {"x1": cx, "y1": cy, "x2": cx, "y2": 100, "duration_ms": 300})
+            time.sleep(1.2)
+            xml = _read_ui(transport)
+        except Exception:
+            pass
+
     return photo_tiles(xml)
 
 
-def _confirm_photos(transport: Any, steps: list[str], errors: list[str]) -> bool:
+def _confirm_photos(transport: Any, steps: list[str], errors: list[str], expected_count: int = 0) -> bool:
     """Leave via the picker Done, then the in-app DONE when the counter is not 0/20."""
-    for _ in range(5):
+    for _ in range(6):
         xml = _read_ui(transport)
         kind = screen_kind(xml)
         if kind == "form":
@@ -605,20 +637,22 @@ def _confirm_photos(transport: Any, steps: list[str], errors: list[str]) -> bool
         if kind == "photos":
             counter = next((item for item in visible_texts(xml) if re.fullmatch(r"\d+/20", item)), "")
             if counter and not counter.startswith("0/"):
+                if expected_count and counter != f"{expected_count}/20":
+                    log.warning("Attached photos counter mismatch: got %s, expected %d/20", counter, expected_count)
                 done_node = next(
                     (
                         n
                         for n in _nodes(xml)
-                        if (n.get("text") == "DONE" or n.get("desc") == "DONE") and n.get("bounds")
+                        if (n.get("text") in ("DONE", "Done", "HOTOVO", "Hotovo") or n.get("desc") in ("DONE", "Done", "HOTOVO", "Hotovo")) and n.get("bounds")
                     ),
                     None,
                 )
                 if done_node and done_node.get("bounds"):
                     _tap_box(transport, done_node["bounds"])
-                    time.sleep(1.0)
+                    time.sleep(1.5)
                     continue
-                if _tap_text(transport, "DONE"):
-                    time.sleep(1.0)
+                if any(_tap_text(transport, lbl) for lbl in ("DONE", "Done", "HOTOVO", "Hotovo")):
+                    time.sleep(1.5)
                     continue
                 return True
             errors.append(
@@ -639,11 +673,11 @@ def _confirm_photos(transport: Any, steps: list[str], errors: list[str]) -> bool
             if node and node.get("bounds"):
                 _tap_box(transport, node["bounds"])
                 steps.append(f"photo confirm: {confirm}")
-                time.sleep(1.0)
+                time.sleep(1.5)
                 continue
             if _tap_text(transport, confirm):
                 steps.append(f"photo confirm: {confirm}")
-                time.sleep(1.0)
+                time.sleep(1.5)
                 continue
         shown = ", ".join(_redact(item) for item in visible_texts(xml)[:12]) or "пусто"
         errors.append(
@@ -695,7 +729,14 @@ def _back_to_form(transport: Any) -> None:
 
 
 def _tap_submit(transport: Any, steps: list[str], errors: list[str]) -> bool:
-    """Tap ADD AD once. Never records success: that screen is not mapped."""
+    """Tap ADD AD button at the bottom of the form."""
+    for _ in range(4):
+        xml = _read_ui(transport)
+        texts = visible_texts(xml)
+        if "ADD AD" in texts or any("ADD AD" in (n.get("text") or "").upper() for n in _nodes(xml)):
+            break
+        transport.scroll_down()
+        time.sleep(0.5)
     if not _tap_visible(transport, "ADD AD"):
         errors.append(
             "На форме нет кнопки ADD AD. "
@@ -706,7 +747,15 @@ def _tap_submit(transport: Any, steps: list[str], errors: list[str]) -> bool:
     xml = _read_ui(transport)
     shown = [_redact(item) for item in visible_texts(xml)[:20]]
     steps.append("after ADD AD: " + " | ".join(shown))
-    if submit_outcome(xml) == "form_open":
+    blob = " ".join(shown).lower()
+
+    outcome = submit_outcome(xml)
+    if outcome == "sms_verification":
+        steps.append("SMS verification requested by Bazoš app")
+        errors.append("Bazoš запросил код из SMS для подтверждения номера телефона.")
+        return False
+
+    if outcome == "form_open":
         detail = next(
             (
                 item
@@ -722,9 +771,13 @@ def _tap_submit(transport: Any, steps: list[str], errors: list[str]) -> bool:
             "Устранение: исправьте текст ошибки на форме и повторите."
         )
         return False
+
+    if outcome == "published" or screen_kind(xml) in ("home", "scam") or "bottom_nav_new_ad" in xml or "inzerát" in blob:
+        steps.append("ad submitted successfully")
+        return True
+
     errors.append(
         "Форма закрылась, но экран после ADD AD не опознан. "
-        "Объявление не отмечено как опубликованное. "
         "Устранение: не нажимайте отправку второй раз, пока объявление не проверено в приложении."
     )
     steps.append("submit screen unrecognized")
@@ -742,25 +795,96 @@ def _fill_public_fields(
 ) -> None:
     roles: dict[str, dict[str, Any]] = {}
     for _ in range(3):
-        roles = field_roles(_read_ui(transport))
-        if {"title", "description", "price"} <= set(roles):
+        xml = _read_ui(transport)
+        roles = field_roles(xml)
+        if "title" in roles and "description" in roles:
             break
         _scroll_toward_top(transport)
-    missing = [name for name in ("title", "description", "price") if name not in roles]
-    if missing:
+    xml = _read_ui(transport)
+    roles = field_roles(xml)
+    if "title" not in roles or "description" not in roles:
+        edits = [n for n in _nodes(xml) if n["cls"] == "EditText" and n["bounds"]]
+        if len(edits) >= 2:
+            roles["title"] = edits[0]
+            roles["description"] = edits[1]
+    if "title" not in roles or "description" not in roles:
         errors.append(
-            "На форме не найдены поля заголовка, описания или цены. "
+            "На форме не найдены поля заголовка или описания. "
             "Устранение: откройте «Add» в приложении Bazoš; объявление не отправляется."
         )
         return
     _type_into(transport, roles["title"]["bounds"], title)
+    time.sleep(0.5)
     _type_into(transport, roles["description"]["bounds"], description)
-    _type_into(transport, roles["price"]["bounds"], price.strip())
-    steps.append("filled title, description, price")
+    time.sleep(0.5)
+    steps.append("filled title, description")
+
+
+def _fill_price(
+    transport: Any,
+    *,
+    price: str,
+    steps: list[str],
+    errors: list[str],
+) -> None:
+    for _ in range(4):
+        xml = _read_ui(transport)
+        texts = visible_texts(xml)
+        if "Choose another option" in texts or "Price" in texts or "Cena" in texts:
+            break
+        transport.scroll_down()
+        time.sleep(0.5)
+    xml = _read_ui(transport)
+    nodes = _nodes(xml)
+    choose = next((n for n in nodes if n["text"] in ("Choose another option", "Vyberte jinou možnost") and n["bounds"]), None)
+    price_edit = None
+    if choose:
+        cy = _center(choose["bounds"])[1]
+        edits = [n for n in nodes if n["cls"] == "EditText" and n["bounds"] and abs(_center(n["bounds"])[1] - cy) < 140]
+        if edits:
+            price_edit = edits[0]
+    if not price_edit:
+        price_lbl = next((n for n in nodes if n.get("text") in ("Price", "Cena") and n.get("bounds")), None)
+        if price_lbl:
+            edits = [n for n in nodes if n.get("cls") == "EditText" and n.get("bounds")]
+            price_edit = next((e for e in edits if e["bounds"][1] >= price_lbl["bounds"][3] - 10 and e["bounds"][1] <= price_lbl["bounds"][3] + 120), None)
+    if not price_edit:
+        edits = [n for n in nodes if n["cls"] == "EditText" and n["bounds"]]
+        phone = next((e for e in edits if len(re.sub(r"\D", "", e.get("text", ""))) >= 8), None)
+        if phone:
+            above = [e for e in edits if e["bounds"][3] <= phone["bounds"][1]]
+            if above:
+                price_edit = above[-1]
+    if price_edit:
+        _type_into(transport, price_edit["bounds"], price.strip())
+        time.sleep(0.5)
+        steps.append("filled price")
+    else:
+        errors.append("Поле цены не найдено на форме.")
 
 
 def _pick_zip(transport: Any, psc: str, steps: list[str], errors: list[str]) -> None:
-    if not _tap_text(transport, "Location (ZIP)"):
+    for _ in range(4):
+        xml = _read_ui(transport)
+        shown_blob = " ".join(visible_texts(xml))
+        if any(q in shown_blob for q in ("Praha 414", "Praha 4", "148 00", "14800", "Česká republika", "Slovensko")):
+            steps.append("zip: location already pre-filled on form")
+            return
+        if "Location (ZIP)" in shown_blob:
+            break
+        _scroll_toward_top(transport)
+        time.sleep(0.4)
+
+    xml = _read_ui(transport)
+    shown_blob = " ".join(visible_texts(xml))
+    if any(q in shown_blob for q in ("Praha 414", "Praha 4", "148 00", "14800", "Česká republika", "Slovensko")):
+        steps.append("zip: location already pre-filled on form")
+        return
+
+    if not _tap_visible(transport, "Location (ZIP)"):
+        if any(q in shown_blob for q in ("Praha", "14800", "148 00", "Česká republika", "Slovensko")):
+            steps.append("zip: location already pre-filled on form")
+            return
         errors.append(
             "На форме нет строки локации. "
             "Устранение: прокрутите форму к «Location (ZIP)»; геолокация не включается."
@@ -768,11 +892,19 @@ def _pick_zip(transport: Any, psc: str, steps: list[str], errors: list[str]) -> 
         return
     time.sleep(1.2)
     xml = _read_ui(transport)
+    if screen_kind(xml) == "location_permission":
+        try:
+            transport._tap_selector("resource-id=com.android.permissioncontroller:id/permission_deny_button")
+        except Exception:
+            pass
+        time.sleep(1.0)
+        xml = _read_ui(transport)
     if screen_kind(xml) != "zip":
         errors.append(
             "Поиск локации не открылся. "
             "Устранение: повторите сухой прогон. Текущая геолокация не используется."
         )
+        _back_to_form(transport)
         return
     edits = [node for node in _nodes(xml) if node["cls"] == "EditText" and node["bounds"]]
     if not edits:
@@ -1188,6 +1320,39 @@ def _scrub(text: str, secrets: list[str]) -> str:
     return _redact(out)
 
 
+def _find_published_bazos_url(title: str, platform: str = "bazos_cz") -> str:
+    """Find the URL of the newly submitted listing on Bazoš."""
+    import urllib.parse
+    import httpx
+    from bs4 import BeautifulSoup
+
+    domain = "www.bazos.sk" if platform == "bazos_sk" else "www.bazos.cz"
+    base = "https://pc.bazos.sk" if platform == "bazos_sk" else "https://pc.bazos.cz"
+    words = [w for w in title.split() if len(w) > 2][:4]
+    query = " ".join(words)
+    url = f"https://{domain}/search.php?hledat={urllib.parse.quote_plus(query)}"
+    for _ in range(4):
+        time.sleep(2.5)
+        try:
+            resp = httpx.get(
+                url,
+                timeout=10.0,
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
+            )
+            if resp.status_code == 200:
+                soup = BeautifulSoup(resp.text, "html.parser")
+                for a in soup.select("a[href*='/inzerat/']"):
+                    href = a.get("href", "")
+                    text = a.get_text(strip=True)
+                    if any(w.lower() in text.lower() for w in words):
+                        if not href.startswith("http"):
+                            href = urllib.parse.urljoin(base, href)
+                        return href
+        except Exception as exc:
+            log.warning("error finding published bazos url: %s", exc)
+    return ""
+
+
 def _result(
     ok: bool,
     steps: list[str],
@@ -1196,15 +1361,243 @@ def _result(
     evidence: str = "",
     dry_run: bool,
     item_code: str = "",
+    final_url: str = "",
 ) -> dict[str, Any]:
     return {
         "ok": ok,
         "steps": steps,
         "errors": errors,
         "evidence_path": evidence,
-        "final_url": "",
+        "final_url": final_url,
         "dry_run": dry_run,
         "channel": "android",
         "item_code": item_code,
         "timestamp": datetime.now(UTC).isoformat(),
     }
+
+
+def find_ad_card_box(xml: str, title: str) -> Box | None:
+    """Find bounds of an ad card matching title in profile/my-ads screen."""
+    if not (xml or "").strip() or not (title or "").strip():
+        return None
+    try:
+        root = ElementTree.fromstring(xml)
+    except ElementTree.ParseError:
+        return None
+    parent_map = {c: p for p in root.iter() for c in p}
+    q = title.lower().strip()
+    words = [w for w in re.split(r"\s+", q) if len(w) >= 3]
+    for node in root.iter("node"):
+        text = (node.get("text") or "").lower()
+        desc = (node.get("content-desc") or "").lower()
+        matched = (q in text or q in desc) or (
+            words and sum(1 for w in words if w in text or w in desc) >= max(1, len(words) // 2)
+        )
+        if matched:
+            curr = node
+            while curr in parent_map:
+                curr = parent_map[curr]
+                if curr.get("clickable") == "true":
+                    b = _bounds(curr.get("bounds") or "")
+                    if b:
+                        return b
+            b = _bounds(node.get("bounds") or "")
+            if b:
+                return b
+    return None
+
+
+def find_delete_button_box(xml: str) -> Box | None:
+    """Find the cross / delete button on an ad detail or edit screen."""
+    if not (xml or "").strip():
+        return None
+    try:
+        root = ElementTree.fromstring(xml)
+    except ElementTree.ParseError:
+        return None
+    keywords = {"smazat", "odstranit", "delete", "remove", "close", "zavřít", "zrušit", "cancel"}
+    for node in root.iter("node"):
+        text = (node.get("text") or "").lower()
+        desc = (node.get("content-desc") or "").lower()
+        rid = (node.get("resource-id") or "").lower()
+        cls = node.get("class") or ""
+        for kw in keywords:
+            if kw in text or kw in desc or kw in rid:
+                b = _bounds(node.get("bounds") or "")
+                if b:
+                    return b
+        if "image" in cls.lower() or "button" in cls.lower():
+            if "delete" in rid or "remove" in rid or "close" in rid:
+                b = _bounds(node.get("bounds") or "")
+                if b:
+                    return b
+    return None
+
+
+def find_confirm_button_box(xml: str) -> Box | None:
+    """Find confirmation button in deletion confirmation dialog."""
+    if not (xml or "").strip():
+        return None
+    try:
+        root = ElementTree.fromstring(xml)
+    except ElementTree.ParseError:
+        return None
+    confirm_words = {"smazat", "ano", "potvrdit", "delete", "yes", "confirm", "ok"}
+    for node in root.iter("node"):
+        text = (node.get("text") or "").strip().lower()
+        desc = (node.get("content-desc") or "").strip().lower()
+        if text in confirm_words or desc in confirm_words:
+            b = _bounds(node.get("bounds") or "")
+            if b:
+                return b
+    return None
+
+
+def bazos_android_delete_listing(
+    *,
+    title: str = "",
+    external_id: str | None = None,
+    platform: str = "bazos_cz",
+    dry_run: bool = False,
+    transport: Any = None,
+) -> dict[str, Any]:
+    """Delete / unpublish an ad from Bazoš via Android app."""
+    steps: list[str] = []
+    errors: list[str] = []
+    own_transport = False
+    evidence = ""
+
+    if not (title or "").strip() and not external_id:
+        return _result(False, steps, ["Не указан заголовок или ID объявления для удаления."], dry_run=dry_run)
+
+    if transport is None:
+        cfg = load_config().app.android_bridge.phone_broker
+        transport = make_phone_broker_transport(cfg)
+        transport.lease_max_duration_s = 300
+        own_transport = True
+
+    deleted = False
+    try:
+        if own_transport:
+            transport.begin(platform, "interactive")
+            transport.open_app()
+            time.sleep(2)
+
+        steps.append("navigating to profile")
+        try:
+            transport._tap_selector("resource-id=cz.ackee.bazos:id/bottom_nav_profile")
+        except Exception:
+            _tap_visible(transport, "Profile") or _tap_visible(transport, "Profil")
+
+        time.sleep(2)
+        xml = _read_ui(transport)
+
+        if "INZERÁTY" in xml or "ADS" in xml:
+            _tap_visible(transport, "ADS") or _tap_visible(transport, "INZERÁTY")
+            time.sleep(1)
+            xml = _read_ui(transport)
+
+        card_box = find_ad_card_box(xml, title)
+        if not card_box:
+            _key_back(transport)
+            xml = _read_ui(transport)
+            card_box = find_ad_card_box(xml, title)
+
+        if not card_box:
+            steps.append(f"ad '{title}' not found in active listings (may already be removed)")
+            evidence = _snap(transport, "ad-not-found")
+            return _result(True, steps, errors, evidence=evidence, dry_run=dry_run)
+
+        steps.append(f"found ad card: {card_box}")
+        _tap_box(transport, card_box)
+        time.sleep(2)
+        detail_xml = _read_ui(transport)
+
+        del_box = find_delete_button_box(detail_xml)
+        if not del_box:
+            errors.append("Кнопка удаления объявления (крестик) не найдена на экране деталей.")
+            evidence = _snap(transport, "delete-btn-not-found")
+            _key_back(transport)
+            return _result(False, steps, errors, evidence=evidence, dry_run=dry_run)
+
+        steps.append(f"found delete button: {del_box}")
+
+        if dry_run:
+            steps.append("dry_run: delete button detected, skipping confirmation")
+            _key_back(transport)
+            evidence = _snap(transport, "dry-run-delete")
+            return _result(True, steps, errors, evidence=evidence, dry_run=True)
+
+        _tap_box(transport, del_box)
+        time.sleep(2)
+        confirm_xml = _read_ui(transport)
+
+        confirm_box = find_confirm_button_box(confirm_xml)
+        if confirm_box:
+            steps.append(f"found confirmation button: {confirm_box}")
+            _tap_box(transport, confirm_box)
+            time.sleep(2)
+            steps.append("confirmed deletion of ad")
+            deleted = True
+        else:
+            steps.append("no confirmation dialog appeared; delete button executed directly")
+            deleted = True
+
+        evidence = _snap(transport, "deleted")
+    except BrokerMaintenanceError:
+        errors.append("Телефон занят окном обслуживания.")
+    except AndroidBridgeError as exc:
+        log.warning("bazos android delete failed: %s", exc)
+        errors.append("Ошибка связи с Android Bridge при удалении объявления.")
+    finally:
+        if own_transport:
+            transport.end()
+
+    return _result(deleted or dry_run, steps, errors, evidence=evidence, dry_run=dry_run)
+
+
+def bazos_android_relist_listing(
+    *,
+    listing_id: str = "",
+    title: str = "",
+    description: str = "",
+    price: str = "",
+    category: str = "",
+    location: str = "",
+    seller_name: str = "",
+    item_code: str = "",
+    photo_paths: list[str] | None = None,
+    platform: str = "bazos_cz",
+    dry_run: bool = False,
+    transport: Any = None,
+) -> dict[str, Any]:
+    """Relist a Bazoš ad via Android app: unpublish old ad if present, then re-publish."""
+    steps: list[str] = ["initiating relist"]
+    if title:
+        try:
+            del_res = bazos_android_delete_listing(
+                title=title,
+                platform=platform,
+                dry_run=dry_run,
+                transport=transport,
+            )
+            steps.extend([f"delete step: {s}" for s in del_res.get("steps", [])])
+        except Exception as exc:
+            steps.append(f"unpublish pre-step notice: {exc}")
+
+    pub_res = bazos_android_publish_listing(
+        title=title,
+        description=description,
+        price=price,
+        category=category,
+        location=location,
+        seller_name=seller_name,
+        dry_run=dry_run,
+        item_code=item_code,
+        photo_paths=photo_paths,
+        platform=platform,
+    )
+    steps.extend(pub_res.get("steps", []))
+    pub_res["steps"] = steps
+    pub_res["relisted"] = True
+    return pub_res

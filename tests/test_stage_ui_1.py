@@ -30,7 +30,6 @@ def test_listing_status_enums() -> None:
     assert ListingStatus.QUEUED == "QUEUED"
     assert ListingStatus.PUBLISHING == "PUBLISHING"
     assert ListingStatus.PUBLISHED == "PUBLISHED"
-    assert ListingStatus.ACTIVE == "ACTIVE"
     assert ListingStatus.UPDATING == "UPDATING"
     assert ListingStatus.EXPIRED == "EXPIRED"
     assert ListingStatus.FAILED == "FAILED"

@@ -68,22 +68,22 @@ def screen_thread_detail(
         except MessagesServiceError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
-    return templates.TemplateResponse(
-        request=request,
-        name="message_detail.html",
-        context={
-            "thread": data["thread"],
-            "item": data["item"],
-            "listing": data["listing"],
-            "caps": data["caps"],
-            "messages": data["messages"],
-            "suggestion": suggestion,
-            "view_mode": view_mode,
-            "notice": notice,
-            "reason": reason,
-            "active_tab": "messages",
-        },
-    )
+        return templates.TemplateResponse(
+            request=request,
+            name="message_detail.html",
+            context={
+                "thread": data["thread"],
+                "item": data["item"],
+                "listing": data["listing"],
+                "caps": data["caps"],
+                "messages": data["messages"],
+                "suggestion": suggestion,
+                "view_mode": view_mode,
+                "notice": notice,
+                "reason": reason,
+                "active_tab": "messages",
+            },
+        )
 
 
 @messages_router.post("/ui/messages/{thread_id}/send")

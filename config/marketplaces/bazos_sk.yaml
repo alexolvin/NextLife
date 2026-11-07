@@ -1,0 +1,45 @@
+key: bazos_sk
+title: "Bazoš.sk"
+country: SK
+currency: EUR
+access_mode: ANDROID
+search_mode: html
+base_url: "https://www.bazos.sk"
+canary_query: "notebook"
+auth:
+  type: none
+  secret_ref: "BAZOS_CZ_ACCOUNT_EMAIL"
+rate_limits:
+  requests_per_minute: 30
+  min_delay_seconds: 1
+capabilities:
+  search: true
+  post: true
+  edit: false
+  archive: true
+  relist: true
+  messaging: false
+  max_photos: 10
+  max_title_len: 60
+  max_body_len: 4000
+  allows_generative_photos: false
+  delivery_options:
+    - pickup
+    - post
+    - zasilkovna
+    - packeta
+  payment_options:
+    - cash
+    - bank_transfer
+    - cod
+selectors:
+  search_result: ".inzeraty"
+  price: ".inzeratycena"
+  date: "span.velikost10"
+routes:
+  search: "/search.php"
+  search_params:
+    query: "hledat"
+    min_price: "cenaod"
+    max_price: "cenado"
+    zip_code: "hlokalita"

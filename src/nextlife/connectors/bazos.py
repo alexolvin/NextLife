@@ -73,10 +73,28 @@ class BazosConnector(BaseConnector):
             "account (TZ M1 A.4). capabilities.edit is false."
         )
 
-    def unpublish(self, external_id: str) -> bool:
-        """Archive/remove Bazoš listing — not implemented (see publish)."""
+    def unpublish(self, external_id: str, title: str = "") -> bool:
+        """Archive/remove Bazoš listing via Android PhoneBroker."""
         self.check_capability("archive")
-        raise ConnectorError(
-            "Bazoš unpublish not implemented: requires the owner's Bazoš "
-            "account (TZ M1 A.4). capabilities.archive is false."
+        from nextlife.services.bazos_android_publish import bazos_android_delete_listing
+
+        platform = "bazos_sk" if getattr(self, "key", "bazos_cz") == "bazos_sk" else "bazos_cz"
+        res = bazos_android_delete_listing(
+            title=title, external_id=external_id, platform=platform, dry_run=False
+        )
+        return bool(res.get("ok"))
+
+    def relist(self, listing_data: dict[str, Any]) -> PublishResult:
+        """Relist Bazoš listing via Android PhoneBroker."""
+        self.check_capability("relist")
+        from nextlife.services.bazos_android_publish import bazos_android_relist_listing
+
+        platform = "bazos_sk" if getattr(self, "key", "bazos_cz") == "bazos_sk" else "bazos_cz"
+        res = bazos_android_relist_listing(platform=platform, **listing_data)
+        if not res.get("ok"):
+            raise ConnectorError(f"Bazoš relist failed: {res.get('errors')}")
+        return PublishResult(
+            external_id=res.get("external_id") or "",
+            url=res.get("final_url") or "",
+            evidence_path=res.get("evidence") or "",
         )

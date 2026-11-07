@@ -402,6 +402,13 @@ def oc_wizard_search(body: OcWizardSearchBody, auth: bool = _AUTH) -> dict[str, 
 
     def search_fn(query: str, mp_key: str) -> list[Any]:
         if mp_key == "vinted":
+            try:
+                connector = get_connector(mp_key, cfg)
+                items = connector.search(query, limit=body.limit)
+                if items:
+                    return items
+            except Exception:
+                pass
             return _search_vinted_android(query, cfg, body.limit)
         connector = get_connector(mp_key, cfg)
         return connector.search(query)

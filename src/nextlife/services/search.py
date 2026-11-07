@@ -8,6 +8,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from nextlife.core.text import normalize_search_text
+from nextlife.services.search_query_parser import matches_query_tags, parse_search_query
 from nextlife.storage.models import Item, Listing, Message, Thread
 
 
@@ -17,14 +18,13 @@ def search_unified(
     scope: str = "all",
     limit: int = 20,
 ) -> dict[str, Any]:
-    """Search items, listings, and messages with normalized query matching.
-
-    Matches each word of query with AND condition.
-    Ranks exact code match first, prefix match second, substring match third.
-    """
-    norm_q = normalize_search_text(query)
+    """Search items, listings, and messages with normalized query matching and +/- tags."""
+    parsed = parse_search_query(query)
+    effective_words = list(parsed.base_terms) + list(parsed.required_terms)
+    search_str = " ".join(effective_words) if effective_words else query
+    norm_q = normalize_search_text(search_str)
     words = [w for w in norm_q.split() if w]
-    if not words:
+    if not words and not parsed.has_tags:
         return {
             "query": query,
             "scope": scope,
@@ -53,6 +53,8 @@ def search_unified(
             )
         db_items = session.scalars(stmt.limit(50)).all()
         for item in db_items:
+            if parsed.has_tags and not matches_query_tags(item.title, f"{item.code} {item.search_text or ''}", parsed):
+                continue
             norm_code = normalize_search_text(item.code)
             norm_title = normalize_search_text(item.title)
             score = 10
@@ -93,6 +95,10 @@ def search_unified(
             )
         db_listings = session.scalars(stmt_l.limit(50)).all()
         for listing_item in db_listings:
+            if parsed.has_tags and not matches_query_tags(
+                listing_item.title or "", listing_item.description or "", parsed
+            ):
+                continue
             norm_title = normalize_search_text(listing_item.title or "")
             norm_code = normalize_search_text(listing_item.item_code)
             score = 10
@@ -130,6 +136,9 @@ def search_unified(
             )
         db_messages = session.scalars(stmt_m.limit(50)).all()
         for m in db_messages:
+            msg_text = f"{m.text_original or ''} {m.text_ru or ''}"
+            if parsed.has_tags and not matches_query_tags(msg_text, "", parsed):
+                continue
             preview = m.text_ru or m.text_original
             if len(preview) > 80:
                 preview = preview[:77] + "..."

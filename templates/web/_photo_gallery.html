@@ -84,18 +84,6 @@
     </div>
   </div>
   {% endif %}
-
-  <div class="row between wrap">
-    <span class="fs-xs text-muted">Предпросмотр на площадках:</span>
-    <div class="row tight wrap">
-      <a href="/ui/items/{{ item.code }}/preview/bazos_cz" class="btn btn-secondary btn-sm btn-inline" data-testid="btn-preview-bazos">Bazoš.cz</a>
-      <a href="/ui/items/{{ item.code }}/preview/sbazar_cz" class="btn btn-secondary btn-sm btn-inline" data-testid="btn-preview-sbazar">Sbazar.cz</a>
-      <a href="/ui/items/{{ item.code }}/preview/aukro_cz" class="btn btn-secondary btn-sm btn-inline" data-testid="btn-preview-aukro">Aukro.cz</a>
-      <form method="POST" action="/ui/items/{{ item.code }}/photos/regen-variants">
-        <button type="submit" class="btn btn-sm btn-secondary btn-inline" title="Догенерировать варианты под каждую площадку" data-testid="btn-regen-variants">↻ Догенерировать</button>
-      </form>
-    </div>
-  </div>
   {% else %}
   <div class="empty empty-sm">
     📷 Нет загруженных фотографий для этого предмета.<br>
@@ -190,63 +178,52 @@
       <button type="button" onclick="closePhotoEditor()" style="background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;" aria-label="Закрыть">✕</button>
     </div>
 
-    <!-- Before / After or Main Preview -->
+    <!-- Main Preview & Action Viewport -->
     <div id="editor-preview-container" class="photo-editor-viewport">
       <!-- Photo flipping navigation buttons inside editor -->
       <button type="button" onclick="editorChangePhoto(-1)"
-              style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); background: rgba(15, 23, 42, 0.75); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; z-index: 10; transition: background 0.2s;"
+              style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); background: rgba(15, 23, 42, 0.75); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; z-index: 20; transition: background 0.2s;"
               onmouseover="this.style.background='rgba(15, 23, 42, 0.95)'" onmouseout="this.style.background='rgba(15, 23, 42, 0.75)'"
               title="Предыдущее фото (Стрелка влево)" data-testid="btn-editor-prev-photo">
         ‹
       </button>
 
       <button type="button" onclick="editorChangePhoto(1)"
-              style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: rgba(15, 23, 42, 0.75); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; z-index: 10; transition: background 0.2s;"
+              style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: rgba(15, 23, 42, 0.75); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; z-index: 20; transition: background 0.2s;"
               onmouseover="this.style.background='rgba(15, 23, 42, 0.95)'" onmouseout="this.style.background='rgba(15, 23, 42, 0.75)'"
               title="Следующее фото (Стрелка вправо)" data-testid="btn-editor-next-photo">
         ›
       </button>
 
-      <div id="editor-single-view" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-        <img id="editor-main-img" src="" style="background: #0f172a;" data-testid="editor-preview-image">
-      </div>
-      <!-- AI Diff View (Shown after AI edit) -->
-      <div id="editor-diff-view" style="display: none; width: 100%;" data-testid="ai-diff-container">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; align-items: center;">
-          <div style="text-align: center;">
-            <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">До</div>
-            <img id="diff-img-before" src="" style="width: auto; max-width: 100%; max-height: calc(85vh - 280px); object-fit: contain; border-radius: 6px; background: #0f172a;">
+      <div id="editor-single-view" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+        <img id="editor-main-img" src="" style="background: #0f172a; transition: transform 0.2s ease; user-select: none;" draggable="false" data-testid="editor-preview-image">
+        
+        <!-- Interactive Crop Overlay -->
+        <div id="crop-overlay" style="display: none; position: absolute; inset: 0; z-index: 15;" data-testid="crop-overlay">
+          <div id="crop-box" style="position: absolute; border: 2px dashed #38bdf8; background: rgba(56, 189, 248, 0.12); cursor: move; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);" data-testid="crop-box">
+            <div class="crop-handle" data-dir="nw" style="position: absolute; left: -6px; top: -6px; width: 14px; height: 14px; background: #38bdf8; border: 1px solid #fff; border-radius: 3px; cursor: nwse-resize;"></div>
+            <div class="crop-handle" data-dir="ne" style="position: absolute; right: -6px; top: -6px; width: 14px; height: 14px; background: #38bdf8; border: 1px solid #fff; border-radius: 3px; cursor: nesw-resize;"></div>
+            <div class="crop-handle" data-dir="sw" style="position: absolute; left: -6px; bottom: -6px; width: 14px; height: 14px; background: #38bdf8; border: 1px solid #fff; border-radius: 3px; cursor: nesw-resize;"></div>
+            <div class="crop-handle" data-dir="se" style="position: absolute; right: -6px; bottom: -6px; width: 14px; height: 14px; background: #38bdf8; border: 1px solid #fff; border-radius: 3px; cursor: nwse-resize;"></div>
+            <div id="crop-dim-label" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 0.8rem; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.9); pointer-events: none; white-space: nowrap;">Кадрирование</div>
           </div>
-          <div style="text-align: center;">
-            <div style="font-size: 0.8rem; color: #38bdf8; margin-bottom: 4px;">После (ИИ)</div>
-            <img id="diff-img-after" src="" style="width: auto; max-width: 100%; max-height: calc(85vh - 280px); object-fit: contain; border-radius: 6px; background: #0f172a;">
-          </div>
-        </div>
-        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 14px;">
-          <button type="button" class="btn btn-primary" onclick="acceptAIResult()" data-testid="btn-accept-ai" style="padding: 8px 20px;">✓ Принять результат</button>
-          <button type="button" class="btn btn-secondary" onclick="rejectAIResult()" data-testid="btn-reject-ai" style="padding: 8px 20px;">✕ Отклонить</button>
         </div>
       </div>
     </div>
 
-    <!-- AI Endpoint Missing Warning -->
-    <div id="editor-ai-warning" style="display: none; background: #7c2d12; border: 1px solid #ea580c; color: #ffedd5; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; font-size: 0.85rem;" data-testid="ai-not-configured-notice">
-      Для инструментов ИИ настройте Image AI в <a href="/ui/settings" style="color: #fdba74; text-decoration: underline;">Настройках</a>.
-    </div>
-
-    <!-- AI Prompt Customization Input -->
-    <div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-        <label for="editor-ai-prompt" style="font-size: 0.8rem; font-weight: 600; color: #94a3b8;">Промпт для ИИ (необязательно, можно настроить под себя):</label>
-        <button type="button" onclick="document.getElementById('editor-ai-prompt').value=''" style="background: transparent; border: none; color: #64748b; font-size: 0.75rem; cursor: pointer;" title="Очистить поле">Очистить</button>
+    <!-- Action Confirmation Bar (for Rotate and Crop) -->
+    <div id="editor-action-bar" style="display: none; background: #0f172a; border: 1px solid #38bdf8; border-radius: 8px; padding: 10px 16px; margin-bottom: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;" data-testid="editor-action-bar">
+      <div id="editor-action-text" style="font-weight: 600; font-size: 0.92rem; color: #38bdf8;">Подтвердите действие</div>
+      <div style="display: flex; gap: 10px;">
+        <button type="button" class="btn btn-primary" id="btn-editor-apply" style="padding: 7px 18px; font-weight: 700;" data-testid="btn-editor-apply">✓ Применить</button>
+        <button type="button" class="btn btn-secondary" id="btn-editor-cancel" style="padding: 7px 16px;" data-testid="btn-editor-cancel">✕ Отмена</button>
       </div>
-      <input type="text" id="editor-ai-prompt" style="width: 100%; box-sizing: border-box; background: #1e293b; border: 1px solid #475569; color: #f8fafc; border-radius: 6px; padding: 7px 12px; font-size: 0.85rem;" placeholder="Оставьте пустым для авто-промпта или введите свои инструкции..." data-testid="input-editor-ai-prompt">
     </div>
 
     <!-- Toolbar (§5.4) -->
     <div style="display: flex; flex-direction: column; gap: 12px;">
       <!-- Transform Tools -->
-      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
         <button type="button" class="btn btn-secondary" onclick="editorRotate(-90)" data-testid="btn-editor-rotate-left">
           ⟲ Влево 90°
         </button>
@@ -262,20 +239,7 @@
         <button type="button" class="btn btn-secondary" onclick="editorCrop('4:3')" data-testid="btn-editor-crop-4-3">
           ✂ 4:3
         </button>
-      </div>
-
-      <!-- AI Tools -->
-      <div style="display: flex; gap: 8px; flex-wrap: wrap; border-top: 1px solid #334155; padding-top: 12px;">
-        <button type="button" class="btn btn-primary" onclick="editorRunAI('dust')" id="btn-ai-dust" data-testid="btn-editor-ai-dust">
-          ✦ Убрать пыль (ИИ)
-        </button>
-        <button type="button" class="btn btn-primary" onclick="editorRunAI('selling')" id="btn-ai-selling" data-testid="btn-editor-ai-selling">
-          🪄 Продающее фото (ИИ)
-        </button>
-        <button type="button" class="btn btn-primary" onclick="editorRunAI('bg')" id="btn-ai-bg" data-testid="btn-editor-ai-bg">
-          🖼 Замена фона (ИИ)
-        </button>
-        <button type="button" class="btn btn-secondary" onclick="editorUndo()" data-testid="btn-editor-undo">
+        <button type="button" class="btn btn-secondary" onclick="editorUndo()" data-testid="btn-editor-undo" style="margin-left: auto;">
           ↩ Отменить изменения
         </button>
       </div>
@@ -459,87 +423,303 @@
     }, {passive: true});
   }
 
-  window.editorRotate = async function(degrees = 90) {
+  let pendingDegrees = 0;
+  let cropState = { active: false, ratio: 'free', x: 0, y: 0, w: 100, h: 100 };
+  let isDraggingCrop = false;
+  let dragHandle = null;
+  let dragStartX = 0, dragStartY = 0;
+  let initialCrop = null;
+
+  function showActionBar(text, onApply, onCancel) {
+    const bar = document.getElementById('editor-action-bar');
+    const txt = document.getElementById('editor-action-text');
+    const btnApply = document.getElementById('btn-editor-apply');
+    const btnCancel = document.getElementById('btn-editor-cancel');
+    if (!bar) return;
+    txt.textContent = text;
+    btnApply.onclick = onApply;
+    btnCancel.onclick = onCancel;
+    btnApply.disabled = false;
+    btnApply.textContent = '✓ Применить';
+    bar.style.display = 'flex';
+  }
+
+  function hideActionBar() {
+    const bar = document.getElementById('editor-action-bar');
+    if (bar) bar.style.display = 'none';
+  }
+
+  window.editorRotate = function(degrees = 90) {
+    if (cropState.active) cancelCrop();
+    pendingDegrees = (pendingDegrees + degrees) % 360;
+    const img = document.getElementById('editor-main-img');
+    if (img) img.style.transform = pendingDegrees !== 0 ? `rotate(${pendingDegrees}deg)` : 'none';
+
+    if (pendingDegrees !== 0) {
+      showActionBar(
+        `Поворот на ${pendingDegrees > 0 ? '+' : ''}${pendingDegrees}°`,
+        confirmRotate,
+        cancelRotate
+      );
+    } else {
+      hideActionBar();
+    }
+  };
+
+  async function confirmRotate() {
     const cur = photos[currentIndex];
-    if (!cur) return;
+    if (!cur || pendingDegrees === 0) return;
+    const btn = document.getElementById('btn-editor-apply');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Поворот...'; }
     try {
       const res = await fetch(`/api/items/${itemCode}/photos/rotate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ degrees: degrees, photo_id: cur.display_id }),
+        body: JSON.stringify({ degrees: pendingDegrees, photo_id: cur.display_id }),
       });
-      if (res.ok) window.location.reload();
-    } catch (e) { alert('Ошибка поворота'); }
+      if (res.ok) {
+        const data = await res.json();
+        cur.url = data.url;
+        const img = document.getElementById('editor-main-img');
+        if (img) {
+          img.src = data.url;
+          img.style.transform = 'none';
+        }
+        pendingDegrees = 0;
+        hideActionBar();
+        updateSliderUI();
+      } else {
+        alert('Ошибка при повороте фото');
+      }
+    } catch (e) {
+      alert('Сетевая ошибка поворота');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = '✓ Применить'; }
+    }
+  }
+
+  function cancelRotate() {
+    pendingDegrees = 0;
+    const img = document.getElementById('editor-main-img');
+    if (img) img.style.transform = 'none';
+    hideActionBar();
+  }
+
+  // --- CROP FUNCTIONALITY ---
+  function getImageBoundsInViewport() {
+    const img = document.getElementById('editor-main-img');
+    const container = document.getElementById('editor-single-view');
+    if (!img || !container) return null;
+    const cRect = container.getBoundingClientRect();
+    const iRect = img.getBoundingClientRect();
+    return {
+      left: iRect.left - cRect.left,
+      top: iRect.top - cRect.top,
+      width: iRect.width,
+      height: iRect.height,
+      imgEl: img,
+      containerEl: container,
+    };
+  }
+
+  function renderCropBox() {
+    const boxEl = document.getElementById('crop-box');
+    const labelEl = document.getElementById('crop-dim-label');
+    if (!boxEl) return;
+    boxEl.style.left = cropState.x + 'px';
+    boxEl.style.top = cropState.y + 'px';
+    boxEl.style.width = cropState.w + 'px';
+    boxEl.style.height = cropState.h + 'px';
+    if (labelEl) {
+      labelEl.textContent = `${Math.round(cropState.w)} × ${Math.round(cropState.h)}`;
+    }
+  }
+
+  window.editorCrop = function(ratio = 'free') {
+    if (pendingDegrees !== 0) cancelRotate();
+    const bounds = getImageBoundsInViewport();
+    if (!bounds || bounds.width < 20 || bounds.height < 20) return;
+
+    let initW = bounds.width * 0.8;
+    let initH = bounds.height * 0.8;
+
+    if (ratio === '1:1') {
+      const side = Math.min(initW, initH);
+      initW = side;
+      initH = side;
+    } else if (ratio === '4:3') {
+      if (initW / initH > 4 / 3) {
+        initW = initH * (4 / 3);
+      } else {
+        initH = initW * (3 / 4);
+      }
+    }
+
+    const initX = bounds.left + (bounds.width - initW) / 2;
+    const initY = bounds.top + (bounds.height - initH) / 2;
+
+    cropState = {
+      active: true,
+      ratio: ratio,
+      x: initX,
+      y: initY,
+      w: initW,
+      h: initH,
+      bounds: bounds,
+    };
+
+    const overlay = document.getElementById('crop-overlay');
+    if (overlay) overlay.style.display = 'block';
+    renderCropBox();
+
+    const titleRatio = ratio === 'free' ? 'Свободное' : ratio;
+    showActionBar(`✂ Кадрирование (${titleRatio})`, confirmCrop, cancelCrop);
   };
 
-  window.editorCrop = async function(ratio) {
+  function cancelCrop() {
+    cropState.active = false;
+    const overlay = document.getElementById('crop-overlay');
+    if (overlay) overlay.style.display = 'none';
+    hideActionBar();
+  }
+
+  async function confirmCrop() {
     const cur = photos[currentIndex];
-    if (!cur) return;
-    // Compute default crop box based on ratio
-    const box = [50, 50, 450, 450];
+    const bounds = cropState.bounds;
+    if (!cur || !bounds) return;
+
+    const img = bounds.imgEl;
+    const natW = img.naturalWidth;
+    const natH = img.naturalHeight;
+
+    const relX1 = Math.max(0, (cropState.x - bounds.left) / bounds.width);
+    const relY1 = Math.max(0, (cropState.y - bounds.top) / bounds.height);
+    const relX2 = Math.min(1, (cropState.x + cropState.w - bounds.left) / bounds.width);
+    const relY2 = Math.min(1, (cropState.y + cropState.h - bounds.top) / bounds.height);
+
+    const x1 = Math.round(relX1 * natW);
+    const y1 = Math.round(relY1 * natH);
+    const x2 = Math.round(relX2 * natW);
+    const y2 = Math.round(relY2 * natH);
+
+    if (x2 <= x1 + 10 || y2 <= y1 + 10) {
+      alert('Слишком маленькая область кадрирования');
+      return;
+    }
+
+    const btn = document.getElementById('btn-editor-apply');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Кадрирование...'; }
+
     try {
       const res = await fetch(`/api/items/${itemCode}/photos/crop`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ box: box, photo_id: cur.display_id }),
+        body: JSON.stringify({ box: [x1, y1, x2, y2], photo_id: cur.display_id }),
       });
-      if (res.ok) window.location.reload();
-    } catch (e) { alert('Ошибка кадрирования'); }
-  };
-
-  window.editorRunAI = async function(mode) {
-    const cur = photos[currentIndex];
-    if (!cur) return;
-    const ep = mode === 'dust' ? 'ai-dust' : (mode === 'bg' ? 'ai-bg' : 'ai-selling');
-    const btnId = mode === 'dust' ? 'btn-ai-dust' : (mode === 'bg' ? 'btn-ai-bg' : 'btn-ai-selling');
-    const btn = document.getElementById(btnId);
-    const orig = btn ? btn.innerHTML : '';
-    if (btn) btn.innerHTML = '⏳ Обработка ИИ...';
-
-    const promptInput = document.getElementById('editor-ai-prompt');
-    const userPrompt = promptInput ? promptInput.value.trim() : '';
-
-    try {
-      const res = await fetch(`/api/items/${itemCode}/photos/${cur.display_id}/${ep}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: userPrompt || null }),
-      });
-      if (btn) btn.innerHTML = orig;
       if (res.ok) {
         const data = await res.json();
-        lastAIResult = data;
-        // Show diff view
-        document.getElementById('editor-single-view').style.display = 'none';
-        document.getElementById('editor-diff-view').style.display = 'block';
-        document.getElementById('diff-img-before').src = cur.url || MISSING_SRC;
-        document.getElementById('diff-img-after').src = data.url;
+        cur.url = data.url;
+        img.src = data.url;
+        cancelCrop();
+        updateSliderUI();
       } else {
-        const err = await res.json().catch(() => ({}));
-        alert(err.detail || 'Ошибка генерации ИИ');
+        alert('Ошибка при кадрировании фото');
       }
     } catch (e) {
-      if (btn) btn.innerHTML = orig;
-      alert('Ошибка соединения с ИИ');
+      alert('Сетевая ошибка кадрирования');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = '✓ Применить'; }
     }
-  };
+  }
 
-  window.acceptAIResult = function() {
-    window.location.reload();
-  };
-
-  window.rejectAIResult = async function() {
-    if (!lastAIResult || !lastAIResult.photo_id) {
-      window.location.reload();
-      return;
+  // Mouse & Touch Dragging for Crop Box and Handles
+  const cropOverlay = document.getElementById('crop-overlay');
+  if (cropOverlay) {
+    function startDrag(clientX, clientY, target) {
+      if (!cropState.active) return;
+      isDraggingCrop = true;
+      dragStartX = clientX;
+      dragStartY = clientY;
+      initialCrop = { ...cropState };
+      const handle = target.closest('.crop-handle');
+      dragHandle = handle ? handle.dataset.dir : null;
     }
-    try {
-      await fetch(`/api/items/${itemCode}/photos/${lastAIResult.photo_id}/undo`, {
-        method: 'POST',
-      });
-    } catch (e) {}
-    window.location.reload();
-  };
+
+    function doDrag(clientX, clientY) {
+      if (!isDraggingCrop || !cropState.active || !initialCrop) return;
+      const dx = clientX - dragStartX;
+      const dy = clientY - dragStartY;
+      const b = cropState.bounds;
+
+      if (!dragHandle) {
+        // Move box
+        let newX = Math.max(b.left, Math.min(b.left + b.width - initialCrop.w, initialCrop.x + dx));
+        let newY = Math.max(b.top, Math.min(b.top + b.height - initialCrop.h, initialCrop.y + dy));
+        cropState.x = newX;
+        cropState.y = newY;
+      } else {
+        // Resize box
+        let newX = initialCrop.x;
+        let newY = initialCrop.y;
+        let newW = initialCrop.w;
+        let newH = initialCrop.h;
+
+        if (dragHandle.includes('e')) newW = Math.max(40, Math.min(b.left + b.width - initialCrop.x, initialCrop.w + dx));
+        if (dragHandle.includes('s')) newH = Math.max(40, Math.min(b.top + b.height - initialCrop.y, initialCrop.h + dy));
+        if (dragHandle.includes('w')) {
+          const clampedDx = Math.min(initialCrop.w - 40, Math.max(b.left - initialCrop.x, dx));
+          newX = initialCrop.x + clampedDx;
+          newW = initialCrop.w - clampedDx;
+        }
+        if (dragHandle.includes('n')) {
+          const clampedDy = Math.min(initialCrop.h - 40, Math.max(b.top - initialCrop.y, dy));
+          newY = initialCrop.y + clampedDy;
+          newH = initialCrop.h - clampedDy;
+        }
+
+        if (cropState.ratio === '1:1') {
+          const side = Math.min(newW, newH);
+          newW = side;
+          newH = side;
+        } else if (cropState.ratio === '4:3') {
+          newH = newW * 0.75;
+        }
+
+        cropState.x = newX;
+        cropState.y = newY;
+        cropState.w = newW;
+        cropState.h = newH;
+      }
+      renderCropBox();
+    }
+
+    function endDrag() {
+      isDraggingCrop = false;
+      dragHandle = null;
+      initialCrop = null;
+    }
+
+    cropOverlay.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      startDrag(e.clientX, e.clientY, e.target);
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (isDraggingCrop) doDrag(e.clientX, e.clientY);
+    });
+    window.addEventListener('mouseup', endDrag);
+
+    cropOverlay.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        startDrag(e.touches[0].clientX, e.touches[0].clientY, e.target);
+      }
+    }, { passive: false });
+    window.addEventListener('touchmove', (e) => {
+      if (isDraggingCrop && e.touches.length === 1) {
+        doDrag(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: false });
+    window.addEventListener('touchend', endDrag);
+  }
 
   window.editorUndo = async function() {
     const cur = photos[currentIndex];
@@ -549,11 +729,18 @@
         method: 'POST',
       });
       if (res.ok) {
-        window.location.reload();
+        const data = await res.json();
+        cur.url = data.url;
+        cur.display_id = data.photo_id;
+        const img = document.getElementById('editor-main-img');
+        if (img) img.src = data.url;
+        updateSliderUI();
       } else {
         alert('Нет предыдущей версии для отмены');
       }
-    } catch (e) { alert('Ошибка отмены'); }
+    } catch (e) {
+      alert('Ошибка при отмене изменений');
+    }
   };
 })();
 </script>

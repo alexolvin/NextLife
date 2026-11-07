@@ -10,7 +10,7 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from nextlife.core.config import load_config
@@ -18,7 +18,7 @@ from nextlife.core.exceptions import NextLifeError
 from nextlife.core.status import ListingStatus
 from nextlife.jobs.manager import create_job, create_publish_batch
 from nextlife.obs.audit import record_audit_event
-from nextlife.storage.models import Item, ItemPhoto, Listing, OwnerNotification
+from nextlife.storage.models import Item, ItemPhoto, Listing, Marketplace, OwnerNotification
 
 
 class ListingValidationError(NextLifeError):
@@ -39,7 +39,7 @@ def get_marketplace_capabilities(key: str) -> dict[str, bool]:
         "search": bool(caps.get("search", False)),
         "publish": bool(caps.get("publish", False) or caps.get("post", False)),
         "update": bool(caps.get("update", False) or caps.get("edit", False)),
-        "unpublish": bool(caps.get("unpublish", False)),
+        "unpublish": bool(caps.get("unpublish", False) or caps.get("archive", False)),
         "relist": bool(caps.get("relist", False) or caps.get("bump", False)),
         "messages_read": bool(caps.get("messages_read", False)),
         "messages_send": bool(caps.get("messages_send", False)),
@@ -54,16 +54,7 @@ def prepare_item_listings(session: Session, item_code: str) -> list[Listing]:
         raise ListingValidationError(f"Предмет #{item_code} не найден")
 
     config = load_config()
-    # Recommended marketplaces: publish=True, sorted by analogues or default
-    recommended_keys = []
-    for k, _mp in config.marketplaces.items():
-        caps = get_marketplace_capabilities(k)
-        if caps.get("publish"):
-            recommended_keys.append(k)
-
-    # Preferred order: bazos_cz, sbazar_cz, aukro_cz first if present
-    priority_order = ["bazos_cz", "sbazar_cz", "aukro_cz"]
-    recommended_keys.sort(key=lambda x: priority_order.index(x) if x in priority_order else 99)
+    recommended_keys = list(config.marketplaces.keys())
 
     from nextlife.services.listing_categories import (
         get_marketplace_category_choice,
@@ -74,6 +65,10 @@ def prepare_item_listings(session: Session, item_code: str) -> list[Listing]:
         inferred = infer_item_category(item.title, item.description or "", item.category_key)
         if inferred != "general":
             item.category_key = inferred
+
+    from nextlife.services.category_gate import eligible_publish_keys
+
+    recommended_keys = eligible_publish_keys(config, item.category_key, recommended_keys)
 
     created_or_existing = []
     price_val = item.target_price or item.price_estimate_median or Decimal("0")
@@ -96,6 +91,15 @@ def prepare_item_listings(session: Session, item_code: str) -> list[Listing]:
             )
         )
         if existing:
+            if not existing.title:
+                existing.title = item.title[:60] if item.title else item_code
+            if not existing.description:
+                existing.description = item.description or ""
+            if not existing.price:
+                existing.price = price_val
+                existing.price_base = price_val
+            if not existing.photo_ids:
+                existing.photo_ids = photo_ids
             if not (existing.category_key or existing.category_path):
                 existing.category_key, existing.category_path = cat_key, cat_path
             created_or_existing.append(existing)
@@ -104,6 +108,59 @@ def prepare_item_listings(session: Session, item_code: str) -> list[Listing]:
         mp_cfg = config.marketplaces[mp_key]
         currency = getattr(mp_cfg, "currency", "CZK")
         lang = getattr(mp_cfg, "lang", item.description_lang or "cs")
+
+        item_currency = (item.target_currency or "CZK").strip().upper()
+        target_currency = currency.strip().upper()
+
+        item_price = price_val
+        if target_currency != item_currency and item_price:
+            from datetime import date
+
+            from nextlife.money.money import get_latest_rate_prior_or_on
+            today = date.today()
+            try:
+                if item_currency == "CZK" and target_currency == "EUR":
+                    rate, _ = get_latest_rate_prior_or_on(session, "CZK", today)
+                    item_price = (item_price / rate).quantize(Decimal("1.00"))
+                elif item_currency == "EUR" and target_currency == "CZK":
+                    rate, _ = get_latest_rate_prior_or_on(session, "CZK", today)
+                    item_price = (item_price * rate).quantize(Decimal("1.00"))
+                elif item_currency == "PLN" and target_currency == "EUR":
+                    rate, _ = get_latest_rate_prior_or_on(session, "PLN", today)
+                    item_price = (item_price / rate).quantize(Decimal("1.00"))
+                elif item_currency == "EUR" and target_currency == "PLN":
+                    rate, _ = get_latest_rate_prior_or_on(session, "PLN", today)
+                    item_price = (item_price * rate).quantize(Decimal("1.00"))
+            except Exception:
+                pass
+        elif target_currency == "EUR":
+            attrs = item.attrs or {}
+            eur = (
+                attrs.get("price_eur")
+                or (attrs.get("prices") or {}).get("EUR")
+                or (attrs.get("wizard_frames", {}).get(mp_key) or {}).get("price")
+            )
+            if eur:
+                item_price = Decimal(str(eur))
+
+        # Defensive ensure marketplace row exists in DB to prevent foreign key violation
+        mp_db = session.get(Marketplace, mp_key)
+        if not mp_db:
+            m_title = getattr(mp_cfg, "title", mp_key)
+            m_country = getattr(mp_cfg, "country", "CZ")
+            m_mode = getattr(mp_cfg, "access_mode", "DIRECT")
+            mp_db = Marketplace(
+                key=mp_key,
+                title=m_title,
+                country=m_country,
+                currency=currency,
+                access_mode=m_mode,
+                capabilities={},
+                enabled=False,
+                config_hash="runtime_sync",
+            )
+            session.add(mp_db)
+            session.flush()
 
         listing = Listing(
             id=str(uuid.uuid4()),
@@ -115,9 +172,9 @@ def prepare_item_listings(session: Session, item_code: str) -> list[Listing]:
             category_key=cat_key,
             category_path=cat_path,
             category_auto=True,
-            price=price_val,
+            price=item_price,
             currency=currency,
-            price_base=price_val,
+            price_base=item_price,
             lang=lang,
             photo_ids=photo_ids,
             is_free=False,
@@ -197,22 +254,41 @@ def update_listing(session: Session, listing_id: str, data: dict[str, Any]) -> L
     if not listing:
         raise ListingValidationError(f"Объявление {listing_id} не найдено")
 
+    marketplace_fields_changed = False
     if "title" in data:
-        listing.title = data["title"].strip()
+        new_title = data["title"].strip()
+        if new_title != (listing.title or "").strip():
+            listing.title = new_title
+            marketplace_fields_changed = True
     if "description" in data:
-        listing.description = data["description"].strip()
+        new_desc = data["description"].strip()
+        if new_desc != (listing.description or "").strip():
+            listing.description = new_desc
+            marketplace_fields_changed = True
     if "category_key" in data or "category_path" in data:
-        listing.category_key = data.get("category_key", listing.category_key)
-        listing.category_path = data.get("category_path", listing.category_path)
-        listing.category_auto = False
+        new_cat = data.get("category_key", listing.category_key)
+        new_path = data.get("category_path", listing.category_path)
+        if new_cat != listing.category_key or new_path != listing.category_path:
+            listing.category_key = new_cat
+            listing.category_path = new_path
+            listing.category_auto = False
+            marketplace_fields_changed = True
     if "price" in data and data["price"] is not None:
-        listing.price = Decimal(str(data["price"]))
-        listing.price_base = listing.price
+        new_price = Decimal(str(data["price"]))
+        if new_price != listing.price:
+            listing.price = new_price
+            listing.price_base = listing.price
+            marketplace_fields_changed = True
     if "photo_ids" in data:
-        listing.photo_ids = data["photo_ids"]
+        new_photos = list(data["photo_ids"])
+        if new_photos != list(listing.photo_ids or []):
+            listing.photo_ids = new_photos
+            marketplace_fields_changed = True
+    if "auto_relist" in data:
+        listing.auto_relist = bool(data["auto_relist"])
 
-    # If published, create background update job
-    if listing.status in (ListingStatus.PUBLISHED.value, "ACTIVE"):
+    # If marketplace-relevant attributes actually changed on a published listing, trigger sync
+    if listing.status in (ListingStatus.PUBLISHED.value, ListingStatus.UPDATING.value) and marketplace_fields_changed:
         listing.status = ListingStatus.UPDATING.value
         create_job(
             session=session,
@@ -245,7 +321,7 @@ def set_listing_free(session: Session, listing_id: str, is_free: bool = True) ->
         if notice not in (listing.description or ""):
             listing.description = (listing.description or "") + notice
 
-    if listing.status in (ListingStatus.PUBLISHED.value, "ACTIVE"):
+    if listing.status in (ListingStatus.PUBLISHED.value, ListingStatus.UPDATING.value):
         listing.status = ListingStatus.UPDATING.value
         create_job(
             session=session,
@@ -308,9 +384,12 @@ def relist_listing_now(session: Session, listing_id: str) -> dict[str, Any]:
 
 
 def delete_listing(session: Session, listing_id: str) -> None:
-    """Delete listing record from system."""
+    """Delete listing record from system safely, unlinking FKs."""
     listing = session.get(Listing, listing_id)
     if listing:
+        from nextlife.storage.models import Deal, Thread
+        session.execute(update(Deal).where(Deal.listing_id == listing_id).values(listing_id=None))
+        session.execute(update(Thread).where(Thread.listing_id == listing_id).values(listing_id=None))
         session.delete(listing)
         session.flush()
 
@@ -334,21 +413,30 @@ def publish_approved_listings(session: Session, item_code: str | None = None) ->
     return batch_id
 
 
-def get_listings_counts(session: Session) -> dict[str, int]:
-    """Calculate counts for listing chips (§6.1)."""
+def get_listings_counts(session: Session, item_code: str | None = None) -> dict[str, int]:
+    """Calculate counts for listing chips (§6.1). Excludes listings of deleted items."""
     now = datetime.now(UTC)
     three_days = now + timedelta(days=3)
 
     def _c(condition):
-        return session.scalar(select(func.count(Listing.id)).where(condition)) or 0
+        stmt = (
+            select(func.count(Listing.id))
+            .join(Item, Item.code == Listing.item_code)
+            .where(Item.status != "DELETED")
+            .where(condition)
+        )
+        if item_code:
+            stmt = stmt.where(Listing.item_code == item_code)
+        return session.scalar(stmt) or 0
 
     return {
-        "published": _c(Listing.status.in_([ListingStatus.PUBLISHED.value, "ACTIVE"])),
+        "all": _c(Listing.status.is_not(None)),
+        "published": _c(Listing.status.in_([ListingStatus.PUBLISHED.value, ListingStatus.UPDATING.value])),
         "errors": _c(Listing.status.in_([ListingStatus.FAILED.value, ListingStatus.UNPUBLISH_FAILED.value])),
         "approved": _c(Listing.status == ListingStatus.APPROVED.value),
         "drafts": _c(Listing.status == ListingStatus.DRAFT.value),
         "expiring": _c(
-            (Listing.status.in_([ListingStatus.PUBLISHED.value, "ACTIVE"]))
+            (Listing.status.in_([ListingStatus.PUBLISHED.value, ListingStatus.UPDATING.value]))
             & (Listing.expires_at.is_not(None))
             & (Listing.expires_at <= three_days)
         ),
@@ -361,7 +449,7 @@ def check_and_enqueue_expired_relistings(session: Session) -> dict[str, Any]:
     now = datetime.now(UTC)
     expired_listings = session.scalars(
         select(Listing).where(
-            Listing.status.in_([ListingStatus.PUBLISHED.value, "ACTIVE"]),
+            Listing.status.in_([ListingStatus.PUBLISHED.value, ListingStatus.UPDATING.value]),
             Listing.expires_at.is_not(None),
             Listing.expires_at <= now,
         )
@@ -372,7 +460,7 @@ def check_and_enqueue_expired_relistings(session: Session) -> dict[str, Any]:
 
     for listing in expired_listings:
         caps = get_marketplace_capabilities(listing.marketplace_key)
-        if caps.get("relist"):
+        if caps.get("relist") and getattr(listing, "auto_relist", False):
             create_job(
                 session=session,
                 kind="RELIST_LISTING",
@@ -381,15 +469,17 @@ def check_and_enqueue_expired_relistings(session: Session) -> dict[str, Any]:
             relisted_count += 1
         else:
             listing.status = ListingStatus.EXPIRED.value
+            body = (
+                f"Объявление предмета #{listing.item_code} завершило показ. Авто-перевыставление отключено."
+                if caps.get("relist")
+                else f"Объявление предмета #{listing.item_code} завершило показ. Площадка не поддерживает авто-перевыставление."
+            )
             notif = OwnerNotification(
                 id=str(uuid.uuid4()),
-                type="LISTING_EXPIRED",
-                severity="WARNING",
+                kind="LISTING_EXPIRED",
                 title=f"Истёк срок показа на {listing.marketplace_key}",
-                body=f"Объявление предмета #{listing.item_code} завершило показ. Площадка не поддерживает авто-перевыставление.",
-                link=f"/ui/listings/{listing.id}",
-                entity_type="listing",
-                entity_id=listing.id,
+                body=body,
+                url=f"/ui/listings/{listing.id}",
             )
             session.add(notif)
             expired_count += 1

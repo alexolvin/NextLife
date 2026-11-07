@@ -131,8 +131,9 @@
               {% endfor %}
             </div>
 
-            <div style="margin-top: 10px;">
+            <div style="margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
               <a href="/ui/stock/{{ it.code }}" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.8rem;">Открыть →</a>
+              <a href="/ui/listings?item_code={{ it.code }}" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.8rem;" data-testid="btn-item-listings">Объявления</a>
             </div>
           </div>
         </div>

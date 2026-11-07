@@ -9,6 +9,7 @@ Rule K-1: Module must strictly be <= 400 lines.
 from __future__ import annotations
 
 import re
+from functools import lru_cache
 from typing import Any
 
 from nextlife.core.categories import category_title, load_category_options
@@ -149,12 +150,10 @@ def get_marketplace_category_choice(
     return cat_clean, rus_title
 
 
-def get_listing_category_options(
+def _build_listing_category_options(
     mp_key: str,
-    config: ConfigBundle | None = None,
+    cfg: ConfigBundle,
 ) -> list[dict[str, Any]]:
-    """Формирует список групп категорий с опциями для HTML <select> / <optgroup>."""
-    cfg = config or load_config()
     mp_cfg = cfg.marketplaces.get(mp_key)
     groups: list[dict[str, Any]] = []
 
@@ -174,3 +173,18 @@ def get_listing_category_options(
         groups.append({"group": "Категории", "options": opts})
 
     return groups
+
+
+@lru_cache(maxsize=32)
+def _get_listing_category_options_cached(mp_key: str) -> list[dict[str, Any]]:
+    return _build_listing_category_options(mp_key, load_config())
+
+
+def get_listing_category_options(
+    mp_key: str,
+    config: ConfigBundle | None = None,
+) -> list[dict[str, Any]]:
+    """Формирует список групп категорий с опциями для HTML <select> / <optgroup>."""
+    if config is not None:
+        return _build_listing_category_options(mp_key, config)
+    return _get_listing_category_options_cached(mp_key)

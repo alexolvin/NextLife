@@ -105,13 +105,25 @@ def _handle_unpublish_listing(payload: dict[str, Any], session: Session) -> None
     listing.status = ListingStatus.ARCHIVED.value
     listing.archived_at = datetime.now(UTC)
 
+    if listing.marketplace_key in ("bazos_cz", "bazos_sk"):
+        from nextlife.services.bazos_android_publish import bazos_android_delete_listing
+        try:
+            bazos_android_delete_listing(
+                title=listing.title or "",
+                external_id=listing.external_id,
+                platform=listing.marketplace_key,
+                dry_run=False,
+            )
+        except Exception as exc:
+            logger.warning("Error unpublishing Bazoš listing %s: %s", listing.id, exc)
+
     # Check if item has remaining published listings
     item = session.get(Item, listing.item_code)
     if item and item.status == ItemStatus.PUBLISHED.value:
         active_cnt = session.scalar(
             select(Listing)
             .where(Listing.item_code == item.code)
-            .where(Listing.status.in_([ListingStatus.PUBLISHED.value, ListingStatus.ACTIVE.value]))
+            .where(Listing.status.in_([ListingStatus.PUBLISHED.value, ListingStatus.UPDATING.value]))
         )
         if not active_cnt:
             item.status = ItemStatus.READY_FOR_SALE.value
@@ -141,6 +153,7 @@ def _handle_relist_listing(payload: dict[str, Any], session: Session) -> None:
         lang=old_listing.lang,
         photo_ids=old_listing.photo_ids,
         category_auto=old_listing.category_auto,
+        auto_relist=getattr(old_listing, "auto_relist", False),
         previous_listing_id=old_listing.id,
         first_published_at=old_listing.first_published_at or old_listing.published_at,
     )
@@ -163,6 +176,30 @@ def _handle_warranty_expire(payload: dict[str, Any], session: Session) -> None:
         it.status = ItemStatus.ARCHIVED.value
 
 
+def _handle_update_listing(payload: dict[str, Any], session: Session) -> None:
+    """Execute UPDATE_LISTING job - sync changes to marketplace connector."""
+    lid = payload.get("listing_id")
+    listing = session.get(Listing, lid)
+    if not listing:
+        return
+
+    from nextlife.connectors.registry import get_connector
+    from nextlife.core.config import load_config
+    try:
+        cfg = load_config()
+        connector = get_connector(listing.marketplace_key, cfg)
+        if listing.external_id:
+            connector.update(listing.external_id, {
+                "title": listing.title,
+                "price": listing.price,
+                "description": listing.description,
+            })
+    except Exception as exc:
+        logger.warning(f"Connector update for {listing.id} warning: {exc}")
+
+    listing.status = ListingStatus.PUBLISHED.value
+
+
 def dispatch_job(job: Job, session: Session) -> None:
     """Dispatch job to its respective handler."""
     kind = job.kind
@@ -171,10 +208,7 @@ def dispatch_job(job: Job, session: Session) -> None:
     if kind == "PUBLISH_LISTING":
         _handle_publish_listing(payload, session)
     elif kind == "UPDATE_LISTING":
-        lid = payload.get("listing_id")
-        listing = session.get(Listing, lid)
-        if listing:
-            listing.status = ListingStatus.PUBLISHED.value
+        _handle_update_listing(payload, session)
     elif kind == "UNPUBLISH_LISTING":
         _handle_unpublish_listing(payload, session)
     elif kind == "RELIST_LISTING":
@@ -213,11 +247,11 @@ def process_one_job(session: Session) -> bool:
         lid = job.payload.get("listing_id")
         if lid:
             target_listing = session.get(Listing, lid)
-            if target_listing and job.kind == "PUBLISH_LISTING":
+            if target_listing and job.kind in ("PUBLISH_LISTING", "UPDATE_LISTING"):
                 target_listing.last_error_code = None
                 target_listing.last_error_text = None
                 target_listing.last_error_hint = None
-                if target_listing.status == ListingStatus.PUBLISHING.value:
+                if target_listing.status in (ListingStatus.PUBLISHING.value, ListingStatus.UPDATING.value):
                     target_listing.status = ListingStatus.PUBLISHED.value
 
     except Exception as exc:

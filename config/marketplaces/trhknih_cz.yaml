@@ -36,6 +36,8 @@ capabilities:
 # (проверяется тестом + мутация D.3-8).
 allowed_categories:
   - books
+filter_reason: "TrhKnih.cz принимает исключительно книги: «Na webových stránkách www.trhknih.cz je umístěno internetové tržiště, prostřednictvím kterého mohou jeho uživatelé nakupovat a prodávat knihy. Kniha znamená knihu v listinné originální podobě» (Obchodní podmínky čl. 1.2). Видеокарта в очередь публикации не ставится."
+rules_evidence: "evidence/trhknih_cz/rules/obchodni_podminky.html"
 selectors:
   # Live markup 2026-10-04 (.a/reports/m1/probes/2026-10-04/
   # trhknih_cz_search_python.html): 10 rows .serp-item; цена «639 Kč» в

@@ -403,7 +403,21 @@ class PhoneBrokerTransport:
 
     def open_app(self) -> None:
         # The broker launches the lease's platform package (set in begin()).
-        self._op("launch")
+        try:
+            self._op("launch")
+        except AndroidDeviceUnavailableError as exc:
+            if "permissioncontroller" in str(exc):
+                # An Android runtime permission dialog (notifications / camera) is on top
+                time.sleep(1)
+                for pt in ((540, 1765), (540, 1936)):
+                    try:
+                        self._op("tap", {"x": pt[0], "y": pt[1]})
+                        time.sleep(1)
+                    except Exception:
+                        pass
+                self._op("launch")
+            else:
+                raise
 
     def _dismiss_consent(self, consent_selector: str) -> None:
         """Tap a launch-time consent/onboarding button if it is present.

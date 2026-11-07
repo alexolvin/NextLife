@@ -15,8 +15,15 @@
     <div style="display: flex; gap: 8px; align-items: center;">
       <span class="badge" style="font-size: 0.85rem; padding: 4px 10px; border-radius: 6px;">{{ listing.status }}</span>
       {% if listing.external_url %}
-        <a href="{{ listing.external_url }}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" data-testid="btn-external-link">
-          На площадке ↗
+        <a href="{{ listing.external_url }}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm"
+           title="Открыть на площадке" aria-label="Открыть на площадке"
+           style="min-width: 36px; height: 36px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; color: #2563eb; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; text-decoration: none;"
+           data-testid="btn-external-link">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
         </a>
       {% endif %}
     </div>
@@ -113,9 +120,26 @@
       <textarea name="description" rows="6" class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit;" data-testid="textarea-listing-desc">{{ listing.description or '' }}</textarea>
     </div>
 
+    <!-- Auto-relist Option -->
+    <div style="margin-bottom: 16px; padding: 12px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+      <label for="input-auto-relist" style="font-size: 0.9rem; font-weight: 600; color: #1e293b; cursor: pointer; display: flex; align-items: center; gap: 8px; margin: 0;">
+        <input type="checkbox" id="input-auto-relist" name="auto_relist" value="true"
+               {% if listing.auto_relist %}checked{% endif %}
+               style="width: 18px; height: 18px; cursor: pointer;" data-testid="checkbox-auto-relist">
+        <span>Автоматически перевыставлять</span>
+      </label>
+      <div>
+        {% if caps.relist %}
+          <span class="badge" style="font-size: 0.75rem; background: #dcfce7; color: #166534; padding: 3px 8px;">✓ Поддерживается</span>
+        {% else %}
+          <span class="badge" style="font-size: 0.75rem; background: #f1f5f9; color: #64748b; padding: 3px 8px;">— Вручную</span>
+        {% endif %}
+      </div>
+    </div>
+
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
       <button type="submit" name="submit_action" value="save" class="btn btn-primary" style="padding: 10px 20px; font-weight: 600;" data-testid="btn-save-listing">
-        {% if listing.status in ('PUBLISHED', 'ACTIVE') %}
+        {% if listing.status in ('PUBLISHED', 'UPDATING') %}
           Сохранить на площадке
         {% else %}
           Сохранить изменения
@@ -189,16 +213,22 @@
       {% endif %}
 
       <!-- Unpublish action (§6.2, §2.4) -->
-      {% if caps.unpublish %}
-        <form method="post" action="/ui/listings/{{ listing.id }}/unpublish" onsubmit="return confirm('Снять объявление с площадки?');" style="margin: 0;">
-          <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
-          <button type="submit" class="btn btn-secondary" style="color: #b91c1c;" data-testid="btn-unpublish">
-            Снять с площадки
-          </button>
-        </form>
-      {% else %}
-        <div style="font-size: 0.85rem; color: #64748b; padding: 8px; background: #f8fafc; border-radius: 6px;" data-testid="notice-unpublish-unsupported">
-          Снятие не поддерживается площадкой: снимите вручную
+      {% if listing.status in ('PUBLISHED', 'UPDATING') %}
+        {% if caps.unpublish %}
+          <form method="post" action="/ui/listings/{{ listing.id }}/unpublish" onsubmit="return confirm('Вы действительно хотите удалить/снять объявление с площадки {{ listing.marketplace_key }}?');" style="margin: 0;">
+            <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
+            <button type="submit" class="btn btn-danger" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 8px; cursor: pointer;" data-testid="btn-unpublish">
+              <span>🗑️ Удалить объявление с площадки</span>
+            </button>
+          </form>
+        {% else %}
+          <div style="font-size: 0.85rem; color: #64748b; padding: 8px; background: #f8fafc; border-radius: 6px;" data-testid="notice-unpublish-unsupported">
+            Снятие не поддерживается площадкой: снимите вручную
+          </div>
+        {% endif %}
+      {% elif listing.status == 'ARCHIVED' %}
+        <div style="font-size: 0.85rem; color: #64748b; padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;" data-testid="notice-listing-archived">
+          Объявление уже снято с площадки (в архиве)
         </div>
       {% endif %}
 

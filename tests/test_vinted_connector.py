@@ -35,7 +35,6 @@ def test_vinted_publish_channel_is_web():
     config = load_config()
     mp_cfg = config.marketplaces["vinted"]
     assert mp_cfg.publish_channel == "web"
-    # The search channel stays on the phone (access_mode unchanged).
     assert mp_cfg.access_mode == "ANDROID"
     assert mp_cfg.android is not None
 
@@ -90,10 +89,25 @@ def test_vinted_publish_filters_internal_fields(vinted_connector):
         vinted_connector.publish(lot_data, dry_run=True)
 
 
-def test_vinted_search_raises_android_channel(vinted_connector):
-    """Web search is not implemented; search runs on the ANDROID channel."""
-    with pytest.raises(CapabilityNotSupported, match="ANDROID channel"):
-        vinted_connector.search("iphone")
+def test_vinted_search_web_catalog(vinted_connector):
+    """Web search parses catalog HTML into RawListing items."""
+    from decimal import Decimal
+    from nextlife.connectors.vinted import parse_vinted_catalog
+    sample_html = '''
+    <div data-testid="product-item-id-998877">
+      <img src="https://images1.vinted.net/photo.webp" alt="Apple iPhone 12 Pro 128GB, Značka: Apple, Stav: Velmi dobrý, 7500.00 Kč, 7800.00 Kč"/>
+      <a href="/items/998877-apple-iphone-12-pro?referrer=catalog">Link</a>
+    </div>
+    '''
+    items = parse_vinted_catalog(sample_html, base_url="https://www.vinted.cz")
+    assert len(items) == 1
+    assert items[0].title == "Apple iPhone 12 Pro 128GB"
+    assert items[0].price == Decimal("7500.00")
+    assert items[0].currency == "CZK"
+    assert items[0].external_url == "https://www.vinted.cz/items/998877-apple-iphone-12-pro"
+    assert items[0].condition_text == "Velmi dobrý"
+    assert items[0].raw["brand"] == "Apple"
+    assert items[0].raw["image_url"] == "https://images1.vinted.net/photo.webp"
 
 
 def test_vinted_not_excluded_as_android_channel_in_build_draft():

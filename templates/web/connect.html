@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="connect-hub-container" style="padding: 16px; max-width: 980px; margin: 0 auto; padding-bottom: 80px;" data-testid="connect-hub">
+  
+  <div style="margin-bottom: 20px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+      <div>
+        <h1 style="margin: 0; font-size: 1.6rem; font-weight: 700; color: #0f172a;">Центр авторизации площадок</h1>
+        <p style="margin: 4px 0 0; font-size: 0.9rem; color: #64748b;">
+          Удобный вход и сохранение сессий для автоматической публикации объявлений (ТЗ v2 §3.1)
+        </p>
+      </div>
+      <div>
+        <a href="/ui/connectors" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+          ← Карта коннекторов
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {% if notice == 'saved' %}
+    <div style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.92rem;" data-testid="notice-saved">
+      ✓ Сессия для <strong>{{ current_platform.title }}</strong> успешно сохранена и активирована!
+    </div>
+  {% elif notice == 'phone_opened' %}
+    <div style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.92rem;" data-testid="notice-phone-opened">
+      📱 Приложение запущено на телефоне. Экран разблокирован для выполнения входа.
+    </div>
+  {% elif notice == 'error_invalid_json' %}
+    <div style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.92rem;" data-testid="notice-error-json">
+      ⚠ Ошибка: Переданный текст не является корректным JSON. Убедитесь, что скопировали весь объект storage state или cookies.
+    </div>
+  {% elif notice == 'error_empty' %}
+    <div style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.92rem;">
+      ⚠ Ошибка: Данные сессии не указаны. Вставьте JSON или выберите файл.
+    </div>
+  {% endif %}
+
+  <!-- GRID: Platforms List + Active Platform Details -->
+  <div style="display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start;">
+    
+    <!-- LEFT: Platforms List -->
+    <div class="card" style="padding: 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+      <div style="font-weight: 700; font-size: 0.95rem; color: #334155; padding: 6px 8px 10px; border-bottom: 1px solid #f1f5f9;">
+        Торговые площадки
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 8px;">
+        {% for p in platforms %}
+          <a href="/ui/connect?platform={{ p.key }}" 
+             style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; transition: background 0.15s; {% if p.is_active %}background: #f1f5f9; font-weight: 700; color: #0f172a; border-left: 3px solid #2563eb;{% else %}color: #475569; border-left: 3px solid transparent;{% endif %}"
+             data-testid="platform-nav-{{ p.key }}">
+            <span>{{ p.title }}</span>
+            {% if p.has_storage %}
+              <span style="font-size: 0.72rem; background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Вход ✓</span>
+            {% else %}
+              <span style="font-size: 0.72rem; background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Нужен вход</span>
+            {% endif %}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- RIGHT: Active Platform Authorization Workspace -->
+    <div class="card" style="padding: 24px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);" data-testid="platform-card-{{ current_platform.key }}">
+      
+      <!-- Platform Header -->
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <h2 style="margin: 0; font-size: 1.35rem; font-weight: 700; color: #0f172a;">{{ current_platform.title }}</h2>
+            {% if current_platform.has_storage %}
+              <span class="badge" style="background: #d1fae5; color: #065f46; font-size: 0.8rem; padding: 4px 10px; border-radius: 6px; font-weight: 600;">
+                ✓ Активная сессия ({{ current_platform.mtime }})
+              </span>
+            {% else %}
+              <span class="badge" style="background: #fef3c7; color: #92400e; font-size: 0.8rem; padding: 4px 10px; border-radius: 6px; font-weight: 600;">
+                ⚠ Требуется авторизация
+              </span>
+            {% endif %}
+          </div>
+          <p style="margin: 6px 0 0; font-size: 0.88rem; color: #64748b;">
+            {{ current_platform.description }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Step 1: Open Login Page -->
+      <div style="margin-bottom: 24px; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <strong style="color: #0f172a; font-size: 0.98rem;">Шаг 1: Войдите в свой аккаунт</strong>
+            <p style="margin: 4px 0 0; font-size: 0.85rem; color: #64748b;">
+              Откройте официальную страницу входа в отдельной вкладке и выполните авторизацию.
+            </p>
+          </div>
+          <div>
+            <a href="{{ current_platform.login_url }}" target="_blank" rel="noopener" class="btn btn-primary" style="padding: 8px 18px; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;" data-testid="btn-open-site">
+              <span>🔗</span> Открыть сайт для входа ↗
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Step 2: Save Session in NextLife -->
+      <div style="margin-bottom: 24px; padding: 18px; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff;">
+        <strong style="color: #0f172a; font-size: 0.98rem; display: block; margin-bottom: 6px;">
+          Шаг 2: Передайте сессию в NextLife
+        </strong>
+        <p style="margin: 0 0 14px; font-size: 0.85rem; color: #64748b;">
+          NextLife сохраняет сессию (storage state или cookies) локально без ввода ваших паролей. Выберите удобный способ:
+        </p>
+
+        <form method="post" action="/ui/connect/{{ current_platform.key }}/storage" enctype="multipart/form-data">
+          <!-- Mode Tabs: Textarea or File -->
+          <div style="display: flex; gap: 16px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+            <label style="font-size: 0.88rem; font-weight: 600; color: #2563eb; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <input type="radio" name="input_mode" value="text" checked onchange="toggleInputMode('text')"> Вставить JSON текст
+            </label>
+            <label style="font-size: 0.88rem; font-weight: 600; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <input type="radio" name="input_mode" value="file" onchange="toggleInputMode('file')"> Загрузить файл .json
+            </label>
+          </div>
+
+          <!-- Option A: Textarea -->
+          <div id="box-text-input">
+            <textarea name="storage_json" id="storage_json" rows="6" 
+                      style="width: 100%; box-sizing: border-box; font-family: monospace; font-size: 0.82rem; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; resize: vertical;" 
+                      placeholder='Вставьте сюда JSON сессии (например, {"cookies": [...], "origins": [...]})'
+                      data-testid="input-storage-json"></textarea>
+          </div>
+
+          <!-- Option B: File input -->
+          <div id="box-file-input" style="display: none; padding: 14px 0;">
+            <input type="file" name="storage_file" id="storage_file" accept=".json,application/json" 
+                   style="font-size: 0.88rem;" data-testid="input-storage-file">
+          </div>
+
+          <div style="margin-top: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <button type="submit" class="btn btn-primary" style="padding: 9px 20px; font-weight: 700; font-size: 0.92rem; display: inline-flex; align-items: center; gap: 6px;" data-testid="btn-save-session">
+              <span>💾</span> Сохранить сессию
+            </button>
+            <span style="font-size: 0.8rem; color: #94a3b8;">
+              Файл сохраняется строго локально с правами 0600
+            </span>
+          </div>
+        </form>
+      </div>
+
+      <!-- Optional Step: Phone Launch (if mobile platform available) -->
+      {% if current_platform.phone_platform %}
+        <div style="padding: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <strong style="color: #166534; font-size: 0.95rem;">📱 Вход через приложение на телефоне</strong>
+              <p style="margin: 4px 0 0; font-size: 0.85rem; color: #15803d;">
+                Приложение установлено на подключенном телефоне. Нажмите кнопку, чтобы запустить приложение и разблокировать экран для входа.
+              </p>
+            </div>
+            <div>
+              <form method="post" action="/ui/connect/{{ current_platform.key }}/open-phone" style="margin: 0;">
+                <button type="submit" class="btn btn-secondary btn-sm" style="padding: 8px 16px; font-weight: 600; font-size: 0.88rem; background: #dcfce7; color: #166534; border-color: #86efac;" data-testid="btn-open-phone">
+                  📱 Открыть на телефоне
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleInputMode(mode) {
+    const boxText = document.getElementById("box-text-input");
+    const boxFile = document.getElementById("box-file-input");
+    if (mode === 'file') {
+      boxText.style.display = 'none';
+      boxFile.style.display = 'block';
+    } else {
+      boxText.style.display = 'block';
+      boxFile.style.display = 'none';
+    }
+  }
+</script>
+{% endblock %}

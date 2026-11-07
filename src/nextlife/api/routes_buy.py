@@ -5,6 +5,7 @@ Rule K-1: Module must strictly be <= 400 lines.
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Any
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
@@ -14,6 +15,7 @@ from sqlalchemy import desc, select
 from nextlife.api.routes import check_auth, templates
 from nextlife.services.buy import (
     BuyServiceError,
+    _parse_verdict,
     analyze_kit,
     create_buy_search,
     format_candidates,
@@ -35,9 +37,8 @@ def screen_buy_index(
 ) -> HTMLResponse:
     """Render Buy section with search, segments, past queries, and cards (§8.1)."""
     with get_db_session() as session:
-        # Fetch past requests
         past_requests = session.scalars(
-            select(BuyRequest).order_by(desc(BuyRequest.created_at)).limit(10)
+            select(BuyRequest).order_by(desc(BuyRequest.created_at)).limit(7)
         ).all()
 
         current_req = None
@@ -59,19 +60,19 @@ def screen_buy_index(
             sort=sort,
         )
 
-    return templates.TemplateResponse(
-        request=request,
-        name="buy.html",
-        context={
-            "requests": past_requests,
-            "current_request": current_req,
-            "candidates": formatted,
-            "condition": condition,
-            "offer_type": offer_type,
-            "sort": sort,
-            "active_tab": "buy",
-        },
-    )
+        return templates.TemplateResponse(
+            request=request,
+            name="buy.html",
+            context={
+                "requests": past_requests,
+                "current_request": current_req,
+                "candidates": formatted,
+                "condition": condition,
+                "offer_type": offer_type,
+                "sort": sort,
+                "active_tab": "buy",
+            },
+        )
 
 
 @router.post("/ui/buy/search")
@@ -79,6 +80,7 @@ def ui_create_buy_search(
     query: str = Form(""),
     currency: str = Form("CZK"),
     postal_code: str | None = Form(None),
+    budget: Decimal | None = Form(None),
     auth: bool = Depends(check_auth),
 ) -> RedirectResponse:
     """Trigger background buy search and redirect to results (§8.1)."""
@@ -89,6 +91,7 @@ def ui_create_buy_search(
                 query=query,
                 currency=currency,
                 postal_code=postal_code,
+                budget=budget,
             )
             session.commit()
             return RedirectResponse(
@@ -111,22 +114,22 @@ def screen_kit_analysis(
         if not candidate:
             raise HTTPException(status_code=404, detail="Кандидат не найден")
 
-        v = candidate.verdict or {}
+        v = _parse_verdict(candidate.verdict)
         analysis = v.get("kit_analysis")
         if not analysis:
             # Run analysis automatically on first visit
             analysis = analyze_kit(session, candidate_id)
             session.commit()
 
-    return templates.TemplateResponse(
-        request=request,
-        name="buy_kit.html",
-        context={
-            "candidate": candidate,
-            "analysis": analysis,
-            "active_tab": "buy",
-        },
-    )
+        return templates.TemplateResponse(
+            request=request,
+            name="buy_kit.html",
+            context={
+                "candidate": candidate,
+                "analysis": analysis,
+                "active_tab": "buy",
+            },
+        )
 
 
 @router.post("/ui/buy/kits/{candidate_id}/analyze")

@@ -27,21 +27,33 @@ settings_router = APIRouter(tags=["settings"])
 
 _DEFAULT_CAPS = {
     "search": False, "publish": False, "update": False, "unpublish": False,
-    "relist": False, "messages_read": False, "messages_send": False, "delivery_parse": False,
+    "relist": False, "auto_unpublish": False, "auto_relist": False,
+    "messages_read": False, "messages_send": False, "delivery_parse": False,
 }
 
 CAPABILITIES_MATRIX = {
-    "bazos_cz": {**_DEFAULT_CAPS, "search": True, "publish": True, "delivery_parse": True},
+    "bazos_cz": {**_DEFAULT_CAPS, "search": True, "publish": True, "unpublish": True, "relist": True, "auto_unpublish": True, "auto_relist": True, "delivery_parse": True},
+    "bazos_sk": {**_DEFAULT_CAPS, "search": True, "publish": True, "unpublish": True, "relist": True, "auto_unpublish": True, "auto_relist": True},
     "aukro_cz": {**_DEFAULT_CAPS, "search": True, "publish": True, "delivery_parse": True},
     "sbazar_cz": {**_DEFAULT_CAPS, "search": True, "publish": True},
-    "trhknih_cz": {**_DEFAULT_CAPS, "search": True},
-    "hyperinzerce_cz": {**_DEFAULT_CAPS, "search": True},
-    "annonce_cz": {**_DEFAULT_CAPS, "search": True},
-    "vinted": {**_DEFAULT_CAPS, "search": True},
-    "willhaben_at": {**_DEFAULT_CAPS, "search": True},
-    "kleinanzeigen_de": {**_DEFAULT_CAPS, "search": True},
-    "olx_pl": {**_DEFAULT_CAPS, "search": True},
+    "trhknih_cz": {**_DEFAULT_CAPS, "search": True}, "hyperinzerce_cz": {**_DEFAULT_CAPS, "search": True},
+    "annonce_cz": {**_DEFAULT_CAPS, "search": True}, "bazar_cz": {**_DEFAULT_CAPS, "search": True},
+    "mimibazar_cz": {**_DEFAULT_CAPS, "search": True}, "allegro_cz": {**_DEFAULT_CAPS},
+    "vinted": {**_DEFAULT_CAPS, "search": True}, "willhaben_at": {**_DEFAULT_CAPS, "search": True},
+    "kleinanzeigen_de": {**_DEFAULT_CAPS, "search": True}, "olx_pl": {**_DEFAULT_CAPS, "search": True},
     "facebook_marketplace": {**_DEFAULT_CAPS, "search": True},
+}
+
+MP_META: dict[str, dict[str, Any]] = {
+    "bazos_cz": {"login_url": "https://pc.bazos.cz/pridat.php", "phone_platform": "bazos_cz"},
+    "bazos_sk": {"login_url": "https://pc.bazos.sk/pridat.php", "phone_platform": "bazos_sk"},
+    "sbazar_cz": {"login_url": "https://login.szn.cz/?service=sbazar", "phone_platform": "sbazar_cz"},
+    "aukro_cz": {"login_url": "https://aukro.cz/uzivatel/prihlaseni", "phone_platform": None},
+    "bazar_cz": {"login_url": "https://www.bazar.cz/prihlaseni", "phone_platform": None},
+    "mimibazar_cz": {"login_url": "https://www.mimibazar.cz/prihlaseni", "phone_platform": None},
+    "trhknih_cz": {"login_url": "https://www.trhknih.cz/prihlasit", "phone_platform": None},
+    "vinted": {"login_url": "https://www.vinted.cz/member/general/login", "phone_platform": "vinted"},
+    "facebook_marketplace": {"login_url": "https://www.facebook.com/marketplace", "phone_platform": "facebook_marketplace"},
 }
 
 
@@ -83,10 +95,26 @@ def screen_settings(
         ov = overrides.get(key, {})
         reg_caps = _registry_capabilities(mp)
         base_caps = CAPABILITIES_MATRIX.get(key, _DEFAULT_CAPS)
-        caps = {**_DEFAULT_CAPS, **{k: bool(v) for k, v in reg_caps.items() if k in _DEFAULT_CAPS}, **base_caps}
+        caps = {**_DEFAULT_CAPS, **base_caps, **{k: bool(v) for k, v in reg_caps.items() if k in _DEFAULT_CAPS}}
         active_search = ov.get("search", caps.get("search", False))
         active_publish = ov.get("publish", caps.get("publish", False))
         caps["search"], caps["publish"] = active_search, active_publish
+
+        if active_search and active_publish:
+            status_level, status_label = "full", "Полный доступ"
+            status_bg, status_border, status_dot, badge_bg, badge_text, badge_border = (
+                "#f0fdf4", "#86efac", "#16a34a", "#dcfce7", "#166534", "#bbf7d0"
+            )
+        elif active_search:
+            status_level, status_label = "view_only", "Только просмотр"
+            status_bg, status_border, status_dot, badge_bg, badge_text, badge_border = (
+                "#fefce8", "#fde047", "#ca8a04", "#fef9c3", "#854d0e", "#fef08a"
+            )
+        else:
+            status_level, status_label = "disabled", "Недоступен"
+            status_bg, status_border, status_dot, badge_bg, badge_text, badge_border = (
+                "#fef2f2", "#fca5a5", "#dc2626", "#fee2e2", "#991b1b", "#fecaca"
+            )
 
         mp_secrets = [
             {"key": sk, "label": label, "type": itype, "placeholder": ph, "set": bool(secrets.get(sk))}
@@ -95,10 +123,18 @@ def screen_settings(
         mp_ttl = get_marketplace_listing_ttl(key, settings)
         allowed_c = set(get_marketplace_allowed_carriers(key, settings))
         carriers = [{**c, "checked": c["key"] in allowed_c} for c in ALL_CARRIERS]
+        meta = MP_META.get(key, {})
         marketplaces.append({
             "key": key, "title": mp.title, "search": active_search, "publish": active_publish,
+            "auto_unpublish": bool(caps.get("auto_unpublish", caps.get("unpublish", False))),
+            "auto_relist": bool(caps.get("auto_relist", caps.get("relist", False))),
             "access_mode": mp.access_mode, "secrets": mp_secrets, "caps": caps,
             "listing_ttl_days": mp_ttl, "carriers": carriers,
+            "login_url": meta.get("login_url"), "phone_platform": meta.get("phone_platform"),
+            "status_level": status_level, "status_label": status_label,
+            "status_bg": status_bg, "status_border": status_border,
+            "status_dot": status_dot, "badge_bg": badge_bg,
+            "badge_text": badge_text, "badge_border": badge_border,
         })
 
     llm_config = settings.get("llm", {})
@@ -110,24 +146,14 @@ def screen_settings(
     from nextlife.version import get_version_str
 
     return templates.TemplateResponse(
-        request=request,
-        name="settings.html",
+        request=request, name="settings.html",
         context={
-            "app_version": get_version_str(),
-            "tab": tab,
-            "notice": notice,
-            "err": err,
-            "seller_name": seller_name,
-            "seller_psc": seller_psc,
-            "seller_phone": seller_phone,
-            "default_meeting_place": default_meeting_place,
-            "marketplaces": marketplaces,
-            "listing_ttl_days": listing_ttl_days,
-            "llm_config": llm_config,
-            "image_ai_config": image_ai_config,
-            "notion_config": notion_config,
-            "buy_config": buy_config,
-            "active_tab": "settings",
+            "app_version": get_version_str(), "tab": tab, "notice": notice, "err": err,
+            "seller_name": seller_name, "seller_psc": seller_psc, "seller_phone": seller_phone,
+            "default_meeting_place": default_meeting_place, "marketplaces": marketplaces,
+            "listing_ttl_days": listing_ttl_days, "llm_config": llm_config,
+            "image_ai_config": image_ai_config, "notion_config": notion_config,
+            "buy_config": buy_config, "active_tab": "settings",
         },
     )
 
@@ -214,6 +240,28 @@ async def save_settings_marketplaces(
     return RedirectResponse(url="/ui/settings?tab=marketplaces&notice=marketplaces_saved", status_code=status.HTTP_303_SEE_OTHER)
 
 
+@settings_router.post("/ui/settings/marketplaces/{platform}/open-phone", response_class=RedirectResponse)
+def open_marketplace_on_phone(platform: str, auth: bool = Depends(check_auth)) -> RedirectResponse:
+    from nextlife.android.transport import make_phone_broker_transport
+
+    meta = MP_META.get(platform, {})
+    phone_key = meta.get("phone_platform") or platform
+    try:
+        cfg = load_config().app.android_bridge.phone_broker
+        transport = make_phone_broker_transport(cfg)
+        transport.begin(phone_key, "interactive")
+        transport.open_app()
+        transport.end()
+        notice = "phone_opened"
+    except Exception as exc:
+        notice = f"phone_error_{exc}"
+
+    return RedirectResponse(
+        url=f"/ui/settings?tab=marketplaces&notice={notice}",
+        status_code=status.HTTP_303_SEE_OTHER,
+    )
+
+
 @settings_router.post("/ui/settings/ai")
 async def save_settings_ai(request: Request, auth: bool = Depends(check_auth)) -> RedirectResponse:
     """Save Text LLM and Image AI settings (TZ §11 item 3)."""
@@ -282,52 +330,34 @@ def save_settings_buy(
 @settings_router.post("/ui/settings/test-llm")
 def test_llm_endpoint(auth: bool = Depends(check_auth)) -> RedirectResponse:
     """Test Text LLM connection."""
-    settings = load_settings()
-    cfg = settings.get("llm", {})
+    cfg = load_settings().get("llm", {})
     provider = (cfg.get("provider") or "openai").strip().lower()
-    endpoint = (cfg.get("endpoint") or "").strip()
-    api_key = (cfg.get("api_key") or "").strip()
-    if provider == "gemini":
-        if not endpoint and not api_key:
-            return RedirectResponse(
-                url="/ui/settings?tab=ai&err=" + quote("API Key или URL эндпоинта Gemini Text LLM не задан"),
-                status_code=status.HTTP_303_SEE_OTHER,
-            )
-    else:
-        if not endpoint:
-            return RedirectResponse(
-                url="/ui/settings?tab=ai&err=" + quote("URL эндпоинта LLM не задан"),
-                status_code=status.HTTP_303_SEE_OTHER,
-            )
+    endpoint, api_key = (cfg.get("endpoint") or "").strip(), (cfg.get("api_key") or "").strip()
+    err = None
+    if provider == "gemini" and not endpoint and not api_key:
+        err = "API Key или URL эндпоинта Gemini Text LLM не задан"
+    elif provider != "gemini" and not endpoint:
+        err = "URL эндпоинта LLM не задан"
+    if err:
+        return RedirectResponse(url=f"/ui/settings?tab=ai&err={quote(err)}", status_code=status.HTTP_303_SEE_OTHER)
     return RedirectResponse(url="/ui/settings?tab=ai&notice=llm_test_ok", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @settings_router.post("/ui/settings/test-image-ai")
 def test_image_ai_endpoint(auth: bool = Depends(check_auth)) -> RedirectResponse:
     """Test Image AI connection."""
-    settings = load_settings()
-    cfg = settings.get("image_ai", {})
+    cfg = load_settings().get("image_ai", {})
     provider = (cfg.get("provider") or "openai").strip().lower()
-    endpoint = cfg.get("endpoint")
-    api_key = cfg.get("api_key")
-    if provider == "gemini":
-        if not endpoint and not api_key:
-            return RedirectResponse(
-                url="/ui/settings?tab=ai&err=" + quote("API Key или URL эндпоинта Gemini Image AI не задан"),
-                status_code=status.HTTP_303_SEE_OTHER,
-            )
-    elif provider == "cloudflare":
-        if not api_key:
-            return RedirectResponse(
-                url="/ui/settings?tab=ai&err=" + quote("API Token для Cloudflare Workers AI не задан"),
-                status_code=status.HTTP_303_SEE_OTHER,
-            )
-    else:
-        if not endpoint:
-            return RedirectResponse(
-                url="/ui/settings?tab=ai&err=" + quote("URL эндпоинта Image AI не задан"),
-                status_code=status.HTTP_303_SEE_OTHER,
-            )
+    endpoint, api_key = cfg.get("endpoint"), cfg.get("api_key")
+    err = None
+    if provider == "gemini" and not endpoint and not api_key:
+        err = "API Key или URL эндпоинта Gemini Image AI не задан"
+    elif provider == "cloudflare" and not api_key:
+        err = "API Token для Cloudflare Workers AI не задан"
+    elif provider not in ("gemini", "cloudflare") and not endpoint:
+        err = "URL эндпоинта Image AI не задан"
+    if err:
+        return RedirectResponse(url=f"/ui/settings?tab=ai&err={quote(err)}", status_code=status.HTTP_303_SEE_OTHER)
     return RedirectResponse(url="/ui/settings?tab=ai&notice=image_ai_test_ok", status_code=status.HTTP_303_SEE_OTHER)
 
 

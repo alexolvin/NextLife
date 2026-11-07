@@ -12,7 +12,9 @@ import time
 from typing import Any
 
 import httpx
-from PIL import Image
+import numpy as np
+from PIL import Image, ImageFilter
+from scipy import ndimage
 
 log = logging.getLogger("nextlife.media.ai_providers")
 
@@ -109,6 +111,34 @@ def _generate_default_mask_bytes(image_bytes: bytes) -> bytes:
         return b""
 
 
+def remove_dust_specks(image_bytes: bytes) -> bytes:
+    """High-precision dust/scratch removal preserving text, fan blades, logos, and geometry."""
+    try:
+        with Image.open(io.BytesIO(image_bytes)) as pil_img:
+            orig = pil_img.convert("RGB")
+            blur = orig.filter(ImageFilter.GaussianBlur(radius=1.5))
+            arr_orig = np.array(orig, dtype=np.int16)
+            arr_blur = np.array(blur, dtype=np.int16)
+            diff = np.abs(arr_orig - arr_blur).max(axis=-1)
+            speck_candidates = diff > 20
+            labeled, _ = ndimage.label(speck_candidates)
+            counts = np.bincount(labeled.ravel())
+            small_mask = (counts >= 1) & (counts <= 40)
+            small_mask[0] = False
+            dust_mask = small_mask[labeled]
+            dust_mask = ndimage.binary_dilation(dust_mask)
+            arr_cleaned = np.array(orig)
+            arr_rep = np.array(orig.filter(ImageFilter.MedianFilter(size=3)))
+            for c in range(3):
+                arr_cleaned[..., c] = np.where(dust_mask, arr_rep[..., c], arr_cleaned[..., c])
+            buf_out = io.BytesIO()
+            Image.fromarray(arr_cleaned).save(buf_out, format="JPEG", quality=95)
+            return buf_out.getvalue()
+    except Exception as exc:
+        log.warning("Smart dust speck removal error, returning original: %s", exc)
+        return image_bytes
+
+
 def call_cloudflare_image(prompt: str, image_bytes: bytes, cfg: dict[str, str], model: str | None = None) -> bytes:
     """Call Cloudflare Workers AI image run endpoint."""
     endpoint = (cfg.get("endpoint") or "").strip()
@@ -137,10 +167,15 @@ def call_cloudflare_image(prompt: str, image_bytes: bytes, cfg: dict[str, str], 
         url = f"{url}/{target_model}"
 
     headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+    is_dust = "dust" in prompt.lower() or "scratch" in prompt.lower()
+    if is_dust and image_bytes:
+        return remove_dust_specks(image_bytes)
+
     target_lower = target_model.lower()
     is_t2i = any(m in target_lower for m in ["flux", "stable-diffusion-xl", "dreamshaper"])
     is_remove_bg = "remove-background" in target_lower or "bria" in target_lower or "rmbg" in target_lower
 
+    orig_size: tuple[int, int] | None = None
     if is_remove_bg:
         b64_img = base64.b64encode(image_bytes).decode("ascii") if image_bytes else ""
         payload: dict[str, Any] = {
@@ -151,15 +186,51 @@ def call_cloudflare_image(prompt: str, image_bytes: bytes, cfg: dict[str, str], 
         # Pure text-to-image models reject image_b64 with error 400
         payload = {"prompt": prompt}
     elif "inpainting" in target_lower and image_bytes:
-        mask_bytes = _generate_default_mask_bytes(image_bytes)
-        payload = {
-            "prompt": prompt,
-            "image_b64": base64.b64encode(image_bytes).decode("ascii"),
-        }
-        if mask_bytes:
-            payload["mask_b64"] = base64.b64encode(mask_bytes).decode("ascii")
-            payload["mask"] = list(mask_bytes)
-            payload["image"] = list(image_bytes)
+        try:
+            with Image.open(io.BytesIO(image_bytes)) as pil_in:
+                orig_size = pil_in.size
+                im_512 = pil_in.resize((512, 512), Image.Resampling.LANCZOS)
+                buf_in = io.BytesIO()
+                im_512.save(buf_in, format="PNG")
+                img_512_bytes = buf_in.getvalue()
+            # Mask generation (512x512)
+            is_dust = "dust" in prompt.lower() or "scratch" in prompt.lower()
+            mask_img = Image.new("L", (512, 512), 0)
+            if is_dust:
+                # Scatter mask across surface for fine dust/speck removal
+                for y in range(0, 512, 16):
+                    for x in range(512):
+                        mask_img.putpixel((x, y), 255)
+                for x in range(0, 512, 16):
+                    for y in range(512):
+                        mask_img.putpixel((x, y), 255)
+                strength = 0.4
+            else:
+                # Margin mask around border for clean studio background
+                m = int(512 * 0.12)
+                for y in range(512):
+                    for x in range(512):
+                        if x < m or x >= 512 - m or y < m or y >= 512 - m:
+                            mask_img.putpixel((x, y), 255)
+                strength = 0.75
+            buf_m = io.BytesIO()
+            mask_img.save(buf_m, format="PNG")
+            mask_512_bytes = buf_m.getvalue()
+            payload = {
+                "prompt": prompt,
+                "image": list(img_512_bytes),
+                "mask": list(mask_512_bytes),
+                "num_steps": 20,
+                "strength": strength,
+            }
+        except Exception as exc:
+            log.warning("Cloudflare inpainting prep fallback: %s", exc)
+            mask_bytes = _generate_default_mask_bytes(image_bytes)
+            payload = {
+                "prompt": prompt,
+                "image": list(image_bytes),
+                "mask": list(mask_bytes) if mask_bytes else [],
+            }
     else:
         payload = {
             "prompt": prompt,
@@ -185,22 +256,37 @@ def call_cloudflare_image(prompt: str, image_bytes: bytes, cfg: dict[str, str], 
     if resp.status_code != 200:
         raise ImageAIError(f"Cloudflare Workers AI вернул ошибку {resp.status_code}: {resp.text[:300]}")
 
+    out_bytes = b""
     c_type = resp.headers.get("content-type", "")
     if c_type.startswith("image/") or resp.content.startswith((b"\x89PNG", b"\xff\xd8")):
-        return resp.content
+        out_bytes = resp.content
+    else:
+        try:
+            data = resp.json()
+            b64_val = data.get("result", {}).get("image") or data.get("result") or data.get("image") or data.get("b64_json")
+            if isinstance(b64_val, str):
+                if b64_val.startswith("http://") or b64_val.startswith("https://"):
+                    r_img = httpx.get(b64_val, timeout=30.0)
+                    out_bytes = r_img.content
+                else:
+                    out_bytes = base64.b64decode(b64_val)
+            else:
+                out_bytes = resp.content
+        except Exception as exc:
+            raise ImageAIError(f"Не удалось распознать ответ Cloudflare Workers AI: {exc}") from exc
 
-    try:
-        data = resp.json()
-        b64_val = data.get("result", {}).get("image") or data.get("result") or data.get("image") or data.get("b64_json")
-        if isinstance(b64_val, str):
-            if b64_val.startswith("http://") or b64_val.startswith("https://"):
-                r_img = httpx.get(b64_val, timeout=30.0)
-                return r_img.content
-            return base64.b64decode(b64_val)
-    except Exception as exc:
-        raise ImageAIError(f"Не удалось распознать ответ Cloudflare Workers AI: {exc}") from exc
+    if orig_size and out_bytes:
+        try:
+            with Image.open(io.BytesIO(out_bytes)) as res_img:
+                if res_img.size != orig_size:
+                    res_restored = res_img.resize(orig_size, Image.Resampling.LANCZOS)
+                    buf_out = io.BytesIO()
+                    res_restored.save(buf_out, format="JPEG", quality=95)
+                    out_bytes = buf_out.getvalue()
+        except Exception as exc:
+            log.warning("Could not restore original image dimensions: %s", exc)
 
-    return resp.content
+    return out_bytes
 
 
 def call_openai_image(prompt: str, image_bytes: bytes, cfg: dict[str, str], model: str | None = None) -> bytes:
