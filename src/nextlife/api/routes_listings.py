@@ -178,18 +178,43 @@ def screen_listing_detail(
 
         from nextlife.storage.models import DeliveryOption
         from nextlife.services.marketplace_shipping import filter_compatible_delivery_options
+        from nextlife.services.listings import get_marketplace_base_url
+        from datetime import date
+        from decimal import Decimal
+        from nextlife.money.money import convert_amount
+
         all_delivs = session.scalars(select(DeliveryOption).where(DeliveryOption.item_code == listing.item_code).order_by(DeliveryOption.price.asc())).all()
         comp_delivs_raw, incomp_delivs_raw = filter_compatible_delivery_options(all_delivs, listing.marketplace_key)
 
+        item_currency = (getattr(item, "target_currency", None) or "CZK").strip().upper() if item else "CZK"
+        target_currency = (listing.currency or "CZK").strip().upper()
+
         def _to_deliv(d: Any) -> SimpleNamespace:
-            return SimpleNamespace(id=str(getattr(d, "id", "")), service_name=str(getattr(d, "service_name", "")), carrier_key=str(getattr(d, "carrier_key", "")), price=str(getattr(d, "price", "0")), currency=str(getattr(d, "currency", "CZK")))
+            raw_p = getattr(d, "price", Decimal("0"))
+            if not isinstance(raw_p, Decimal):
+                raw_p = Decimal(str(raw_p or 0))
+            conv_p = raw_p
+            if target_currency != item_currency and raw_p:
+                try:
+                    conv_p = convert_amount(session, raw_p, item_currency, target_currency, date.today())
+                except Exception:
+                    conv_p = raw_p
+            price_display = f"{conv_p:.2f}" if (target_currency in ("EUR", "USD") or conv_p % 1 != 0) else str(int(conv_p))
+            return SimpleNamespace(
+                id=str(getattr(d, "id", "")),
+                service_name=str(getattr(d, "service_name", "")),
+                carrier_key=str(getattr(d, "carrier_key", "")),
+                price=price_display,
+                currency=target_currency,
+            )
 
         comp_delivs = [_to_deliv(d) for d in comp_delivs_raw]
         incomp_delivs = [_to_deliv(d) for d in incomp_delivs_raw]
 
         listing_data = SimpleNamespace(
             id=str(listing.id), item_code=str(listing.item_code), marketplace_key=str(listing.marketplace_key),
-            external_id=listing.external_id, external_url=listing.external_url,
+            external_id=listing.external_id,
+            external_url=listing.external_url or (get_marketplace_base_url(listing.marketplace_key) if listing.status in ("PUBLISHED", "UPDATING") else None),
             price=str(listing.price) if listing.price is not None else "0",
             currency=str(listing.currency or "CZK"), status=str(listing.status or "DRAFT"),
             title=listing.title or "", description=listing.description or "",

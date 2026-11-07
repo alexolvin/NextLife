@@ -171,10 +171,25 @@ def map_lot_terms_to_marketplace(
         select(DeliveryOption).where(DeliveryOption.item_code == item.code)
     ).all()
 
-    delivery_options = [
-        {"carrier_key": opt.carrier_key, "price": float(opt.price)}
-        for opt in db_opts
-    ]
+    cfg = load_config()
+    mp_cfg = cfg.marketplaces.get(marketplace_key.lower().strip())
+    target_curr = getattr(mp_cfg, "currency", "CZK") if mp_cfg else "CZK"
+    item_curr = item.target_currency or "CZK"
+
+    from datetime import date
+    from decimal import Decimal
+    from nextlife.money.money import convert_amount
+    today = date.today()
+
+    delivery_options = []
+    for opt in db_opts:
+        opt_price = opt.price
+        if target_curr != item_curr and opt_price:
+            try:
+                opt_price = convert_amount(session, Decimal(str(opt_price)), item_curr, target_curr, today)
+            except Exception:
+                pass
+        delivery_options.append({"carrier_key": opt.carrier_key, "price": float(opt_price)})
     if not delivery_options:
         # Default fallback to pickup
         delivery_options = [{"carrier_key": "pickup", "price": 0.0}]

@@ -27,6 +27,7 @@ from nextlife.media.ops import delete_photo_and_derived
 from nextlife.obs.audit import record_audit_event
 from nextlife.services.lot_creation import create_item_and_lot
 from nextlife.services.lot_delete import LotDeletionBlockedError, can_delete_lot
+from nextlife.services.listings import get_marketplace_base_url
 from nextlife.services.unpublish import unpublish_listings_now
 from nextlife.storage.models import Deal, Item, ItemPhoto, Listing, Lot
 
@@ -200,7 +201,7 @@ def get_stock_item(session: Session, code: str) -> dict[str, Any]:
                 "currency": listing_row.currency,
                 "lang": listing_row.lang,
                 "is_approved": listing_row.status == ListingStatus.APPROVED.value,
-                "external_url": listing_row.external_url,
+                "external_url": listing_row.external_url or (get_marketplace_base_url(listing_row.marketplace_key) if listing_row.status in (ListingStatus.PUBLISHED.value, ListingStatus.UPDATING.value) else None),
                 "last_error_text": listing_row.last_error_text,
                 "last_error_hint": listing_row.last_error_hint,
                 "published_at": listing_row.published_at.isoformat() if listing_row.published_at else None,

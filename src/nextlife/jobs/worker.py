@@ -90,6 +90,10 @@ def _handle_publish_listing(payload: dict[str, Any], session: Session) -> None:
         ttl = get_marketplace_listing_ttl(listing.marketplace_key)
         listing.expires_at = listing.published_at + timedelta(days=ttl)
 
+    from nextlife.services.listings import get_marketplace_base_url
+    if not listing.external_url:
+        listing.external_url = get_marketplace_base_url(listing.marketplace_key)
+
     # Recalculate item status: if has published listing, item -> PUBLISHED
     item = session.get(Item, listing.item_code)
     if item and item.status not in (ItemStatus.SOLD.value, ItemStatus.RESERVED.value, ItemStatus.DELETED.value):

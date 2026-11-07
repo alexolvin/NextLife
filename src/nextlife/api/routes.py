@@ -87,6 +87,24 @@ def listing_card_class(listing: Any) -> str:
 
 templates.env.filters["listing_card_class"] = listing_card_class
 
+
+def marketplace_url(listing: Any) -> str:
+    """Resolve external or marketplace base URL for a listing."""
+    if not listing:
+        return ""
+    ext = getattr(listing, "external_url", None) if not isinstance(listing, dict) else listing.get("external_url")
+    if ext:
+        return str(ext)
+    mp_key = getattr(listing, "marketplace_key", None) if not isinstance(listing, dict) else listing.get("marketplace_key")
+    if not mp_key:
+        return ""
+    from nextlife.services.listings import get_marketplace_base_url
+    return get_marketplace_base_url(mp_key) or ""
+
+
+templates.env.filters["marketplace_url"] = marketplace_url
+
+
 def resolve_photo_url(path: str | None) -> str:
     """Resolve photo file path to a valid web URL under /media/."""
     if not path:

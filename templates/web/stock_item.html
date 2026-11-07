@@ -686,9 +686,10 @@
                   </svg>
                 </a>
 
-                <!-- Внешняя ссылка на площадку (если есть) -->
-                {% if l.external_url %}
-                  <a href="{{ l.external_url }}" target="_blank" rel="noopener"
+                <!-- Внешняя ссылка на площадку (если есть или если статус PUBLISHED/UPDATING) -->
+                {% set open_url = l.external_url or (l | marketplace_url) if (l.status in ('PUBLISHED', 'UPDATING') or l.external_url) else None %}
+                {% if open_url %}
+                  <a href="{{ open_url }}" target="_blank" rel="noopener"
                      class="card-action-btn action-primary"
                      title="Открыть на площадке" aria-label="Открыть на площадке"
                      data-testid="btn-open-marketplace">

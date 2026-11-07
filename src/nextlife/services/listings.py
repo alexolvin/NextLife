@@ -30,6 +30,11 @@ def _get_marketplace_cfg(key: str) -> Any | None:
     return cfg.marketplaces.get(key)
 
 
+def get_marketplace_base_url(key: str) -> str | None:
+    mp = _get_marketplace_cfg(key)
+    return str(mp.base_url).strip() if (mp and getattr(mp, "base_url", None)) else None
+
+
 def get_marketplace_capabilities(key: str) -> dict[str, bool]:
     mp = _get_marketplace_cfg(key)
     caps = getattr(mp, "capabilities", {}) if mp else {}
