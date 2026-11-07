@@ -196,6 +196,16 @@
     <h3 style="font-size: 1rem; font-weight: 700; margin-top: 0; margin-bottom: 12px;">Управление объявлением</h3>
 
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <!-- Publish single listing -->
+      {% if listing.status in ('APPROVED', 'FAILED') %}
+        <form method="post" action="/ui/listings/{{ listing.id }}/publish" style="margin: 0;">
+          <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
+          <button type="submit" class="btn btn-primary" data-testid="btn-publish-listing" style="font-weight: 600;">
+            🚀 Опубликовать на площадке
+          </button>
+        </form>
+      {% endif %}
+
       <!-- Approval Toggle (§2.3) -->
       {% if listing.status == 'APPROVED' %}
         <form method="post" action="/ui/listings/{{ listing.id }}/unapprove" style="margin: 0;">

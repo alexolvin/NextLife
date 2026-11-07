@@ -386,6 +386,30 @@ def unpublish_listing(session: Session, listing_id: str) -> dict[str, Any]:
     return {"supported": True, "job_id": job.id, "status": "QUEUED"}
 
 
+def publish_listing_now(session: Session, listing_id: str) -> dict[str, Any]:
+    """Publish single listing immediately (§6.3)."""
+    listing = session.get(Listing, listing_id)
+    if not listing:
+        raise ListingValidationError(f"Объявление {listing_id} не найдено")
+
+    listing.status = ListingStatus.QUEUED.value
+    listing.last_error_code = None
+    listing.last_error_text = None
+    listing.last_error_hint = None
+    job = create_job(
+        session=session,
+        kind="PUBLISH_LISTING",
+        payload={
+            "listing_id": listing.id,
+            "item_code": listing.item_code,
+            "marketplace_key": listing.marketplace_key,
+        },
+        idempotency_key=f"publish:{listing.id}:{uuid.uuid4()}",
+    )
+    session.flush()
+    return {"supported": True, "job_id": job.id, "status": "QUEUED"}
+
+
 def relist_listing_now(session: Session, listing_id: str) -> dict[str, Any]:
     """Manually relist listing (§6.2)."""
     listing = session.get(Listing, listing_id)

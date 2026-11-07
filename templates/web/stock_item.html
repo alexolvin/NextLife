@@ -741,6 +741,19 @@
                     </button>
                   </form>
                 {% elif l.is_approved %}
+                  <!-- Опубликовать -->
+                  <form method="post" action="/ui/listings/{{ l.id }}/publish" style="margin: 0;">
+                    <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
+                    <button type="submit" class="card-action-btn action-primary"
+                            title="Опубликовать" aria-label="Опубликовать"
+                            data-testid="btn-publish-listing">
+                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                      </svg>
+                    </button>
+                  </form>
                   <!-- Утверждено (нажмите для отмены) -->
                   <form method="post" action="/ui/listings/{{ l.id }}/unapprove" style="margin: 0;">
                     <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
@@ -749,6 +762,20 @@
                             data-testid="btn-toggle-unapprove">
                       <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
                         <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </button>
+                  </form>
+                {% elif l.status in ('FAILED', 'UNPUBLISH_FAILED', 'ERROR') %}
+                  <!-- Опубликовать (повторить попытку) -->
+                  <form method="post" action="/ui/listings/{{ l.id }}/publish" style="margin: 0;">
+                    <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
+                    <button type="submit" class="card-action-btn action-primary"
+                            title="Опубликовать" aria-label="Опубликовать"
+                            data-testid="btn-publish-listing">
+                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
                       </svg>
                     </button>
                   </form>

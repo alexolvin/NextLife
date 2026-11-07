@@ -235,6 +235,98 @@
                 </svg>
               </a>
             {% endif %}
+
+            <!-- Действия в зависимости от статуса -->
+            {% if l.status in ('PUBLISHED', 'UPDATING') %}
+              <!-- Снять с площадки -->
+              <form method="post" action="/ui/listings/{{ l.id }}/unpublish" style="margin: 0;">
+                <input type="hidden" name="return_to" value="/ui/listings?filter={{ filter_group }}{% if item_code %}&item_code={{ item_code }}{% endif %}{% if q %}&q={{ q }}{% endif %}">
+                <button type="submit" class="card-action-btn action-danger"
+                        title="Снять объявление с площадки" aria-label="Снять объявление с площадки"
+                        data-testid="btn-unpublish-listing" onclick="return confirm('Снять объявление с площадки?')">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </form>
+              <!-- Опубликовать снова -->
+              <form method="post" action="/ui/listings/{{ l.id }}/relist" style="margin: 0;">
+                <input type="hidden" name="return_to" value="/ui/listings?filter={{ filter_group }}{% if item_code %}&item_code={{ item_code }}{% endif %}{% if q %}&q={{ q }}{% endif %}">
+                <button type="submit" class="card-action-btn action-primary"
+                        title="Опубликовать снова" aria-label="Опубликовать снова"
+                        data-testid="btn-republish-listing">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                  </svg>
+                </button>
+              </form>
+            {% elif l.status == 'ARCHIVED' %}
+              <!-- Опубликовать снова -->
+              <form method="post" action="/ui/listings/{{ l.id }}/relist" style="margin: 0;">
+                <input type="hidden" name="return_to" value="/ui/listings?filter={{ filter_group }}{% if item_code %}&item_code={{ item_code }}{% endif %}{% if q %}&q={{ q }}{% endif %}">
+                <button type="submit" class="card-action-btn action-primary"
+                        title="Опубликовать снова" aria-label="Опубликовать снова"
+                        data-testid="btn-republish-listing">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                  </svg>
+                </button>
+              </form>
+            {% elif l.status == 'APPROVED' %}
+              <!-- Опубликовать -->
+              <form method="post" action="/ui/listings/{{ l.id }}/publish" style="margin: 0;">
+                <input type="hidden" name="return_to" value="/ui/listings?filter={{ filter_group }}{% if item_code %}&item_code={{ item_code }}{% endif %}{% if q %}&q={{ q }}{% endif %}">
+                <button type="submit" class="card-action-btn action-primary"
+                        title="Опубликовать" aria-label="Опубликовать"
+                        data-testid="btn-publish-listing">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                </button>
+              </form>
+              <!-- Утверждено (нажмите для отмены) -->
+              <form method="post" action="/ui/listings/{{ l.id }}/unapprove" style="margin: 0;">
+                <input type="hidden" name="return_to" value="/ui/listings?filter={{ filter_group }}{% if item_code %}&item_code={{ item_code }}{% endif %}{% if q %}&q={{ q }}{% endif %}">
+                <button type="submit" class="card-action-btn action-success"
+                        title="Утверждено (нажмите для отмены)" aria-label="Утверждено (нажмите для отмены)"
+                        data-testid="btn-toggle-unapprove">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </button>
+              </form>
+            {% elif l.status in ('FAILED', 'UNPUBLISH_FAILED', 'ERROR') %}
+              <!-- Опубликовать (повторить попытку) -->
+              <form method="post" action="/ui/listings/{{ l.id }}/publish" style="margin: 0;">
+                <input type="hidden" name="return_to" value="/ui/listings?filter={{ filter_group }}{% if item_code %}&item_code={{ item_code }}{% endif %}{% if q %}&q={{ q }}{% endif %}">
+                <button type="submit" class="card-action-btn action-primary"
+                        title="Опубликовать" aria-label="Опубликовать"
+                        data-testid="btn-publish-listing">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                </button>
+              </form>
+            {% elif l.status == 'DRAFT' %}
+              <!-- Утвердить объявление -->
+              <form method="post" action="/ui/listings/{{ l.id }}/approve" style="margin: 0;">
+                <input type="hidden" name="return_to" value="/ui/listings?filter={{ filter_group }}{% if item_code %}&item_code={{ item_code }}{% endif %}{% if q %}&q={{ q }}{% endif %}">
+                <button type="submit" class="card-action-btn action-primary"
+                        title="Утвердить объявление" aria-label="Утвердить объявление"
+                        data-testid="btn-toggle-approve">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </button>
+              </form>
+            {% endif %}
           </div>
         </div>
       {% endfor %}
