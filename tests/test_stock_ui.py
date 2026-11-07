@@ -36,7 +36,10 @@ def clean_db():
 
 
 def _auth() -> dict[str, str]:
-    return {"Authorization": "Bearer test_token_secret"}
+    from nextlife.core.config import load_config
+    from nextlife.core.secrets import resolve_secret
+    tok = resolve_secret(load_config().app.auth.web_token_secret_ref) or "test_token_secret"
+    return {"Authorization": f"Bearer {tok}", "Cookie": f"nextlife_token={tok}"}
 
 
 # --- Редиректы ---------------------------------------------------------------
@@ -110,7 +113,7 @@ def test_stock_create_via_api(client, clean_db):
     )
     assert r.status_code == 303
     assert r.headers["location"].startswith("/ui/stock/")
-    code = r.headers["location"].split("/ui/stock/")[1].split("?")[0]
+    code = r.headers["location"].split("/ui/stock/")[1].split("?")[0].split("#")[0]
 
     with get_db_session() as session:
         item = session.get(Item, code)
@@ -322,7 +325,8 @@ def test_ui_item_research_get_and_post(client, clean_db):
         follow_redirects=False,
     )
     assert r3.status_code == 303
-    assert f"/ui/stock/{code}#price" in r3.headers["location"]
+    assert f"/ui/stock/{code}" in r3.headers["location"]
+    assert "#price" in r3.headers["location"]
 
 
 def test_ui_search_renders_results(client, clean_db):

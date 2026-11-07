@@ -10,11 +10,11 @@
     </div>
   {% endif %}
 
-  <form method="post" action="/api/stock" id="stock-new-form" class="card" style="padding: 20px; background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 16px;">
+  <form method="post" action="/api/stock" id="stock-new-form" class="card" data-testid="stock-form" style="padding: 20px; background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 16px;">
     <div>
       <label for="input-title" style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.95rem;">Название предмета *</label>
       <input type="text" id="input-title" name="title" required autofocus placeholder="Например, Клавиатура Apple Magic Keyboard"
-             class="input-field" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem;" data-testid="input-stock-title">
+             class="input-field" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem;" data-testid="input-stock-title" data-testid="stock-title">
     </div>
 
     <div>

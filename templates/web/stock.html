@@ -93,54 +93,67 @@
   <!-- Items Feed List/Grid -->
   <div id="stock-items-container" class="item-feed-grid">
     {% for it in items %}
-      <div class="card stock-card" data-code="{{ it.code }}" data-title="{{ it.title }}" data-loc="{{ it.storage_location or '' }}" data-testid="stock-card-{{ it.code }}" style="position: relative; transition: all 0.2s ease;">
+      <div class="card stock-card" data-code="{{ it.code }}" data-title="{{ it.title }}" data-loc="{{ it.storage_location or '' }}" data-testid="stock-card-{{ it.code }}" style="position: relative; transition: all 0.2s ease; display: flex; flex-direction: column; padding: 0; overflow: hidden;">
         <!-- Checkbox for bulk mode -->
         <div style="position: absolute; top: 12px; left: 12px; z-index: 2;">
           <input type="checkbox" class="stock-item-checkbox" value="{{ it.code }}" onchange="onItemSelectionChange()" style="width: 18px; height: 18px; cursor: pointer;">
         </div>
 
-        <div class="row between" style="margin-left: 28px;">
-          <span class="badge">#{{ it.code }}</span>
-          <span class="{{ it.status_badge_cls }}">{{ it.status | status_ru }}</span>
-        </div>
+        <div style="padding: 14px; flex: 1; display: flex; flex-direction: column;">
+          <div class="row between" style="margin-left: 28px;">
+            <span class="badge">#{{ it.code }}</span>
+            <span class="{{ it.status_badge_cls }}">{{ it.status | status_ru }}</span>
+          </div>
 
-        <div class="feed-card-body" style="margin-top: 10px;">
-          {% if it.thumb_url %}
-            <img src="{{ it.thumb_url }}" class="feed-thumb feed-card-thumb" alt="Миниатюра #{{ it.code }}" onclick="openLightbox('{{ it.thumb_url }}')">
-          {% else %}
-            <div class="feed-thumb feed-card-thumb feed-thumb-placeholder">📦</div>
-          {% endif %}
+          <div class="feed-card-body" style="margin-top: 10px; flex: 1;">
+            {% if it.thumb_url %}
+              <img src="{{ it.thumb_url }}" class="feed-thumb feed-card-thumb" alt="Миниатюра #{{ it.code }}" onclick="openLightbox('{{ it.thumb_url }}')">
+            {% else %}
+              <div class="feed-thumb feed-card-thumb feed-thumb-placeholder">📦</div>
+            {% endif %}
 
-          <div class="feed-card-content" style="flex: 1;">
-            <div class="card-title">
-              <a href="/ui/stock/{{ it.code }}" style="font-weight: 600; text-decoration: none; color: #1e293b;">{{ it.title }}</a>
-            </div>
+            <div class="feed-card-content" style="flex: 1;">
+              <div class="card-title">
+                <a href="/ui/stock/{{ it.code }}" style="font-weight: 600; text-decoration: none; color: #1e293b;">{{ it.title }}</a>
+              </div>
 
-            <div class="price" style="font-weight: 600; color: #16a34a; margin-top: 2px;">
-              {{ it.price_display or 'цена не задана' }}
-            </div>
+              <div class="price" style="font-weight: 600; color: #16a34a; margin-top: 2px;">
+                {{ it.price_display or 'цена не задана' }}
+              </div>
 
-            <div class="fs-xs text-muted" style="margin-top: 4px;">
-              📍 {{ it.storage_location or 'место не задано' }}
-            </div>
+              <div class="fs-xs text-muted" style="margin-top: 4px;">
+                📍 {{ it.storage_location or 'место не задано' }}
+              </div>
 
-            <!-- 6-Stage Dots Indicator (§5.1) -->
-            <div class="stage-dots" style="display: flex; gap: 4px; align-items: center; margin-top: 8px;" title="Этапы 1–6: Оценка, Фото, Описание, Объявления, Продажа, Гарантия">
-              {% for s in it.stages %}
-                <span style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; {{ 'background: #22c55e;' if s else 'background: #cbd5e1;' }}"></span>
-              {% endfor %}
-            </div>
-
-            <div style="margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-              <a href="/ui/stock/{{ it.code }}" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.8rem;">Открыть →</a>
-              <a href="/ui/listings?item_code={{ it.code }}" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.8rem;" data-testid="btn-item-listings">Объявления</a>
+              <!-- 6-Stage Dots Indicator (§5.1) -->
+              <div class="stage-dots" style="display: flex; gap: 4px; align-items: center; margin-top: 8px;" title="Этапы 1–6: Оценка, Фото, Описание, Объявления, Продажа, Гарантия">
+                {% for s in it.stages %}
+                  <span style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; {{ 'background: #22c55e;' if s else 'background: #cbd5e1;' }}"></span>
+                {% endfor %}
+              </div>
             </div>
           </div>
+        </div>
+
+        <!-- Horizontal Action Frame at Card Bottom (50% / 50%) -->
+        <div class="card-actions-bar" data-testid="stock-card-actions">
+          <a href="/ui/stock/{{ it.code }}" class="card-action-btn action-primary" title="Открыть карточку товара" aria-label="Открыть карточку товара" data-testid="btn-item-open">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </a>
+          <a href="/ui/listings?item_code={{ it.code }}" class="card-action-btn" title="Объявления товара" aria-label="Объявления товара" data-testid="btn-item-listings">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+              <line x1="7" y1="7" x2="7.01" y2="7"></line>
+            </svg>
+          </a>
         </div>
       </div>
     {% else %}
       <div class="card" style="padding: 32px; text-align: center; color: #64748b; background: #fff; border-radius: 8px; grid-column: 1 / -1;">
-        Предметы не найдены.<br><br>
+        Склад пуст. Предметы не найдены.<br><br>
         <a href="/ui/stock/new" class="btn btn-primary" data-testid="btn-stock-empty-add">Добавить предмет</a>
       </div>
     {% endfor %}

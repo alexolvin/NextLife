@@ -163,6 +163,28 @@ def get_latest_rate_prior_or_on(
     )
 
 
+def convert_amount(
+    session: Session,
+    amount: Decimal,
+    from_currency: str,
+    to_currency: str,
+    target_date: date | None = None,
+) -> Decimal:
+    """Convert amount from one currency to another using recorded ECB rates (EUR base)."""
+    from_curr = from_currency.strip().upper()
+    to_curr = to_currency.strip().upper()
+    if from_curr == to_curr or not amount:
+        return amount
+
+    t_date = target_date or date.today()
+    rate_from, _ = get_latest_rate_prior_or_on(session, from_curr, t_date)
+    rate_to, _ = get_latest_rate_prior_or_on(session, to_curr, t_date)
+
+    eur_amount = amount / rate_from
+    target_amount = (eur_amount * rate_to).quantize(Decimal("1.00"), rounding=ROUND_HALF_UP)
+    return target_amount
+
+
 def convert_price(
     session: Session,
     amount: Decimal,

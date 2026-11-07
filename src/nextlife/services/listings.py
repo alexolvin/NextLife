@@ -96,6 +96,9 @@ def prepare_item_listings(session: Session, item_code: str) -> list[Listing]:
         target_lang = getattr(mp_cfg, "language", None) or get_marketplace_language(mp_cfg, mp_key)
         source_lang = (item.description_lang or "cs").strip().lower()
 
+        item_currency = (item.target_currency or "CZK").strip().upper()
+        target_currency = currency.strip().upper()
+
         if existing:
             if existing.status == ListingStatus.DRAFT.value and existing.lang != target_lang:
                 e_title, e_desc = translate_listing_content(
@@ -111,6 +114,20 @@ def prepare_item_listings(session: Session, item_code: str) -> list[Listing]:
                     existing.description = item.description or ""
                 if not existing.lang:
                     existing.lang = target_lang
+
+            # Fix currency conversion for DRAFT/APPROVED listings if mismatched or uncalculated
+            if existing.status in (ListingStatus.DRAFT.value, "APPROVED"):
+                from nextlife.money.money import convert_amount
+                from datetime import date
+                today = date.today()
+                if existing.currency != target_currency or (target_currency != item_currency and existing.price == item.target_price):
+                    try:
+                        existing.price = convert_amount(session, price_val, item_currency, target_currency, today)
+                        existing.price_base = price_val
+                        existing.currency = target_currency
+                    except Exception:
+                        pass
+
             if not existing.price:
                 existing.price = price_val
                 existing.price_base = price_val
@@ -121,28 +138,13 @@ def prepare_item_listings(session: Session, item_code: str) -> list[Listing]:
             created_or_existing.append(existing)
             continue
 
-        item_currency = (item.target_currency or "CZK").strip().upper()
-        target_currency = currency.strip().upper()
-
         item_price = price_val
         if target_currency != item_currency and item_price:
             from datetime import date
-
-            from nextlife.money.money import get_latest_rate_prior_or_on
+            from nextlife.money.money import convert_amount
             today = date.today()
             try:
-                if item_currency == "CZK" and target_currency == "EUR":
-                    rate, _ = get_latest_rate_prior_or_on(session, "CZK", today)
-                    item_price = (item_price / rate).quantize(Decimal("1.00"))
-                elif item_currency == "EUR" and target_currency == "CZK":
-                    rate, _ = get_latest_rate_prior_or_on(session, "CZK", today)
-                    item_price = (item_price * rate).quantize(Decimal("1.00"))
-                elif item_currency == "PLN" and target_currency == "EUR":
-                    rate, _ = get_latest_rate_prior_or_on(session, "PLN", today)
-                    item_price = (item_price / rate).quantize(Decimal("1.00"))
-                elif item_currency == "EUR" and target_currency == "PLN":
-                    rate, _ = get_latest_rate_prior_or_on(session, "PLN", today)
-                    item_price = (item_price * rate).quantize(Decimal("1.00"))
+                item_price = convert_amount(session, item_price, item_currency, target_currency, today)
             except Exception:
                 pass
         elif target_currency == "EUR":
