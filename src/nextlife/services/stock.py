@@ -28,6 +28,7 @@ from nextlife.obs.audit import record_audit_event
 from nextlife.services.lot_creation import create_item_and_lot
 from nextlife.services.lot_delete import LotDeletionBlockedError, can_delete_lot
 from nextlife.services.listings import get_marketplace_base_url
+from nextlife.services.listings_sort import sort_listings_by_status
 from nextlife.services.unpublish import unpublish_listings_now
 from nextlife.storage.models import Deal, Item, ItemPhoto, Listing, Lot
 
@@ -188,7 +189,7 @@ def get_stock_item(session: Session, code: str) -> dict[str, Any]:
         "dim_h_mm": item.dim_h_mm,
         "shipping_policy": lot.shipping_policy if lot else "BUYER_PAYS",
         "photos": _photo_entries(session, code),
-        "listings": [
+        "listings": sort_listings_by_status([
             {
                 "id": listing_row.id,
                 "marketplace_key": listing_row.marketplace_key,
@@ -207,7 +208,7 @@ def get_stock_item(session: Session, code: str) -> dict[str, Any]:
                 "published_at": listing_row.published_at.isoformat() if listing_row.published_at else None,
             }
             for listing_row in listings
-        ],
+        ]),
         "listings_count": _listings_count(session, code),
     }
 

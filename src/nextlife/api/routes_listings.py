@@ -17,6 +17,7 @@ from sqlalchemy import desc, select
 from nextlife.api.routes import check_auth, resolve_photo_url, templates
 from nextlife.core.status import ListingStatus
 from nextlife.services.listings_reconcile import reconcile_listings_with_marketplaces
+from nextlife.services.listings_sort import sort_listings_by_status
 from nextlife.services.listings import (
     ListingValidationError, approve_listing, delete_listing, get_listings_counts,
     get_marketplace_capabilities, prepare_item_listings, publish_approved_listings,
@@ -34,7 +35,7 @@ def screen_listings_list(
     request: Request,
     filter_group: str = Query(default="all", alias="filter"),
     marketplace: str | None = Query(default=None),
-    sort: str = Query(default="first_published_asc"),
+    sort: str = Query(default="status"),
     q: str | None = Query(default=None),
     item_code: str | None = Query(default=None),
     auth: bool = Depends(check_auth),
@@ -121,6 +122,9 @@ def screen_listings_list(
                 "expires_at": row.expires_at,
                 "messages_count": 0,
             })
+
+        if not sort or sort == "status":
+            formatted = sort_listings_by_status(formatted)
 
         return templates.TemplateResponse(
             request=request,

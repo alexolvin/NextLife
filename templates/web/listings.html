@@ -88,6 +88,7 @@
       {% if item_code %}<input type="hidden" name="item_code" value="{{ item_code }}">{% endif %}
       {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
       <select name="sort" onchange="this.form.submit()" class="input-field" style="padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;" data-testid="sort-selector">
+        <option value="status" {% if not sort or sort == 'status' %}selected{% endif %}>По статусу (размещенные → готовые → ошибки → неразмещаемые)</option>
         <option value="first_published_asc" {% if sort == 'first_published_asc' %}selected{% endif %}>Дата размещения ↑ (старые)</option>
         <option value="first_published_desc" {% if sort == 'first_published_desc' %}selected{% endif %}>Дата размещения ↓ (новые)</option>
         <option value="price" {% if sort == 'price' %}selected{% endif %}>По цене</option>
