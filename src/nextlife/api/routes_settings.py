@@ -22,6 +22,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from nextlife.api.routes import check_auth, templates
 from nextlife.core.config import load_config
 from nextlife.services.llm_filter import MP_SECRETS, load_settings, save_settings
+from nextlife.services.settings_probe import probe_image_ai_connection, probe_llm_connection
 
 settings_router = APIRouter(tags=["settings"])
 
@@ -331,34 +332,20 @@ def save_settings_buy(
 def test_llm_endpoint(auth: bool = Depends(check_auth)) -> RedirectResponse:
     """Test Text LLM connection."""
     cfg = load_settings().get("llm", {})
-    provider = (cfg.get("provider") or "openai").strip().lower()
-    endpoint, api_key = (cfg.get("endpoint") or "").strip(), (cfg.get("api_key") or "").strip()
-    err = None
-    if provider == "gemini" and not endpoint and not api_key:
-        err = "API Key или URL эндпоинта Gemini Text LLM не задан"
-    elif provider != "gemini" and not endpoint:
-        err = "URL эндпоинта LLM не задан"
-    if err:
-        return RedirectResponse(url=f"/ui/settings?tab=ai&err={quote(err)}", status_code=status.HTTP_303_SEE_OTHER)
-    return RedirectResponse(url="/ui/settings?tab=ai&notice=llm_test_ok", status_code=status.HTTP_303_SEE_OTHER)
+    ok, msg = probe_llm_connection(cfg)
+    if not ok:
+        return RedirectResponse(url=f"/ui/settings?tab=ai&err={quote(msg)}", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url=f"/ui/settings?tab=ai&notice={msg}", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @settings_router.post("/ui/settings/test-image-ai")
 def test_image_ai_endpoint(auth: bool = Depends(check_auth)) -> RedirectResponse:
     """Test Image AI connection."""
     cfg = load_settings().get("image_ai", {})
-    provider = (cfg.get("provider") or "openai").strip().lower()
-    endpoint, api_key = cfg.get("endpoint"), cfg.get("api_key")
-    err = None
-    if provider == "gemini" and not endpoint and not api_key:
-        err = "API Key или URL эндпоинта Gemini Image AI не задан"
-    elif provider == "cloudflare" and not api_key:
-        err = "API Token для Cloudflare Workers AI не задан"
-    elif provider not in ("gemini", "cloudflare") and not endpoint:
-        err = "URL эндпоинта Image AI не задан"
-    if err:
-        return RedirectResponse(url=f"/ui/settings?tab=ai&err={quote(err)}", status_code=status.HTTP_303_SEE_OTHER)
-    return RedirectResponse(url="/ui/settings?tab=ai&notice=image_ai_test_ok", status_code=status.HTTP_303_SEE_OTHER)
+    ok, msg = probe_image_ai_connection(cfg)
+    if not ok:
+        return RedirectResponse(url=f"/ui/settings?tab=ai&err={quote(msg)}", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url=f"/ui/settings?tab=ai&notice={msg}", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @settings_router.post("/ui/settings/test-notion")

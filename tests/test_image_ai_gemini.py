@@ -185,14 +185,18 @@ def test_settings_gemini_save_and_ui(tmp_path: Path, monkeypatch: pytest.MonkeyP
 
     assert is_llm_configured(saved["llm"])
 
-    # Test connection buttons for both
-    test_llm_resp = client.post("/ui/settings/test-llm", follow_redirects=False)
-    assert test_llm_resp.status_code == 303
-    assert "notice=llm_test_ok" in test_llm_resp.headers["location"]
+    # Test connection buttons for both (mocked success)
+    mock_ok = MagicMock()
+    mock_ok.status_code = 200
+    mock_ok.json.return_value = {"candidates": [{"content": {"parts": [{"text": "ok"}]}}], "models": []}
+    with patch("httpx.post", return_value=mock_ok), patch("httpx.get", return_value=mock_ok):
+        test_llm_resp = client.post("/ui/settings/test-llm", follow_redirects=False)
+        assert test_llm_resp.status_code == 303
+        assert "notice=llm_test_ok" in test_llm_resp.headers["location"]
 
-    test_img_resp = client.post("/ui/settings/test-image-ai", follow_redirects=False)
-    assert test_img_resp.status_code == 303
-    assert "notice=image_ai_test_ok" in test_img_resp.headers["location"]
+        test_img_resp = client.post("/ui/settings/test-image-ai", follow_redirects=False)
+        assert test_img_resp.status_code == 303
+        assert "notice=image_ai_test_ok" in test_img_resp.headers["location"]
 
     # Verify UI page renders with both Gemini selected and controls present
     get_resp = client.get("/ui/settings?tab=ai")
