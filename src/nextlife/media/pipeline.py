@@ -206,6 +206,18 @@ def logical_photo_chains(session: Session, item_code: str) -> list[list[ItemPhot
             chain.append(node)
             queue.extend(children.get(node.id, []))
         chains.append(chain)
+
+    try:
+        from nextlife.storage.models.core import Item
+        item = session.get(Item, item_code)
+        cover_id = (item.attrs or {}).get("cover_photo_id") if item else None
+        if cover_id:
+            cover_idx = next((i for i, ch in enumerate(chains) if any(p.id == cover_id for p in ch)), None)
+            if cover_idx is not None and cover_idx > 0:
+                chains.insert(0, chains.pop(cover_idx))
+    except Exception:
+        pass
+
     return chains
 
 

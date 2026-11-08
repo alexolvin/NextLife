@@ -19,6 +19,11 @@ from nextlife.core.config import load_config
 from nextlife.core.exceptions import NextLifeError
 from nextlife.jobs.manager import create_job
 from nextlife.obs.audit import record_audit_event
+from nextlife.services.buy_legacy import (
+    contact_seller,
+    create_buy_request,
+    execute_buy_search,
+)
 from nextlife.services.listings import get_marketplace_capabilities
 from nextlife.services.search_query_parser import (
     fetch_listing_description,

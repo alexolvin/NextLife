@@ -1,24 +1,32 @@
-"""Background job worker for NextLife (TZ §6.3)."""
+"""Background job worker for NextLife (TZ §6.3).
+
+Rule K-1: Module must strictly be <= 400 lines.
+"""
 
 from __future__ import annotations
 
+import logging
 import signal
 import sys
 import time
-import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from types import FrameType
 from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from nextlife.core.config import load_config
-from nextlife.core.status import ItemStatus, ListingStatus
 from nextlife.jobs.catalog import classify_error
+from nextlife.jobs.worker_handlers import (
+    handle_publish_listing,
+    handle_relist_listing,
+    handle_unpublish_listing,
+    handle_update_listing,
+    handle_warranty_expire,
+)
 from nextlife.obs.logger import setup_logger
 from nextlife.storage.db import get_db_session
-from nextlife.storage.models import Item, Job, Listing, OwnerNotification
+from nextlife.storage.models import Job, OwnerNotification
 
 logger = setup_logger("nextlife.worker")
 _running = True
@@ -32,193 +40,21 @@ def _signal_handler(signum: int, frame: FrameType | None) -> None:
     _running = False
 
 
-def _handle_publish_listing(payload: dict[str, Any], session: Session) -> None:
-    """Execute PUBLISH_LISTING job."""
-    listing_id = payload.get("listing_id")
-    listing = session.get(Listing, listing_id)
-    if not listing:
-        raise ValueError(f"Listing {listing_id} not found")
-
-    listing.status = ListingStatus.PUBLISHING.value
-    session.flush()
-
-    # Delegate to connector/publish service
-    # Honesty rule: verify actual publication capability or real execution
-    from nextlife.connectors.registry import get_connector
-    from nextlife.core.config import load_config
-
-    cfg = load_config()
-    _ = get_connector(listing.marketplace_key, cfg)
-    mp_cfg = cfg.marketplaces.get(listing.marketplace_key)
-    can_publish = mp_cfg and (mp_cfg.capabilities.get("publish") or mp_cfg.capabilities.get("post"))
-
-    if not can_publish:
-        from nextlife.connectors.base import CapabilityNotSupported
-        raise CapabilityNotSupported(f"Marketplace {listing.marketplace_key} does not support live publishing")
-
-    # If marketplace is bazos_cz or aukro_cz, perform publication
-    if listing.marketplace_key == "bazos_cz":
-        from nextlife.services.bazos_publish import bazos_publish_listing
-        try:
-            res = bazos_publish_listing(
-                title=listing.title or "",
-                description=listing.description or "",
-                price=str(listing.price or 0),
-                category=listing.category_key or "",
-                dry_run=False,
-                item_code=listing.item_code or "",
-            )
-            if res.get("ok"):
-                listing.status = ListingStatus.PUBLISHED.value
-                listing.published_at = datetime.now(UTC)
-                if not listing.first_published_at:
-                    listing.first_published_at = listing.published_at
-                from nextlife.services.marketplace_shipping import get_marketplace_listing_ttl
-                ttl = get_marketplace_listing_ttl(listing.marketplace_key)
-                listing.expires_at = listing.published_at + timedelta(days=ttl)
-            else:
-                raise RuntimeError(str(res.get("errors") or "Bazoš publication failed"))
-        except Exception as exc:
-            raise exc
-    else:
-        # Default publish flow
-        listing.status = ListingStatus.PUBLISHED.value
-        listing.published_at = datetime.now(UTC)
-        if not listing.first_published_at:
-            listing.first_published_at = listing.published_at
-        from nextlife.services.marketplace_shipping import get_marketplace_listing_ttl
-        ttl = get_marketplace_listing_ttl(listing.marketplace_key)
-        listing.expires_at = listing.published_at + timedelta(days=ttl)
-
-    from nextlife.services.listings import get_marketplace_base_url
-    if not listing.external_url:
-        listing.external_url = get_marketplace_base_url(listing.marketplace_key)
-
-    # Recalculate item status: if has published listing, item -> PUBLISHED
-    item = session.get(Item, listing.item_code)
-    if item and item.status not in (ItemStatus.SOLD.value, ItemStatus.RESERVED.value, ItemStatus.DELETED.value):
-        item.status = ItemStatus.PUBLISHED.value
-
-
-def _handle_unpublish_listing(payload: dict[str, Any], session: Session) -> None:
-    """Execute UNPUBLISH_LISTING job."""
-    listing_id = payload.get("listing_id")
-    listing = session.get(Listing, listing_id)
-    if not listing:
-        return
-    listing.status = ListingStatus.ARCHIVED.value
-    listing.archived_at = datetime.now(UTC)
-
-    if listing.marketplace_key in ("bazos_cz", "bazos_sk"):
-        from nextlife.services.bazos_android_publish import bazos_android_delete_listing
-        try:
-            bazos_android_delete_listing(
-                title=listing.title or "",
-                external_id=listing.external_id,
-                platform=listing.marketplace_key,
-                dry_run=False,
-            )
-        except Exception as exc:
-            logger.warning("Error unpublishing Bazoš listing %s: %s", listing.id, exc)
-
-    # Check if item has remaining published listings
-    item = session.get(Item, listing.item_code)
-    if item and item.status == ItemStatus.PUBLISHED.value:
-        active_cnt = session.scalar(
-            select(Listing)
-            .where(Listing.item_code == item.code)
-            .where(Listing.status.in_([ListingStatus.PUBLISHED.value, ListingStatus.UPDATING.value]))
-        )
-        if not active_cnt:
-            item.status = ItemStatus.READY_FOR_SALE.value
-
-
-def _handle_relist_listing(payload: dict[str, Any], session: Session) -> None:
-    """Execute RELIST_LISTING job."""
-    old_id = payload.get("listing_id")
-    old_listing = session.get(Listing, old_id)
-    if not old_listing:
-        return
-    old_listing.status = ListingStatus.ARCHIVED.value
-
-    # Create new listing record in chain
-    new_listing = Listing(
-        id=str(uuid.uuid4()),
-        item_code=old_listing.item_code,
-        marketplace_key=old_listing.marketplace_key,
-        price=old_listing.price,
-        currency=old_listing.currency,
-        price_base=old_listing.price_base,
-        status=ListingStatus.APPROVED.value,
-        title=old_listing.title,
-        description=old_listing.description,
-        category_path=old_listing.category_path,
-        category_key=old_listing.category_key,
-        lang=old_listing.lang,
-        photo_ids=old_listing.photo_ids,
-        category_auto=old_listing.category_auto,
-        auto_relist=getattr(old_listing, "auto_relist", False),
-        previous_listing_id=old_listing.id,
-        first_published_at=old_listing.first_published_at or old_listing.published_at,
-    )
-    session.add(new_listing)
-    session.flush()
-
-    _handle_publish_listing({"listing_id": new_listing.id}, session)
-
-
-def _handle_warranty_expire(payload: dict[str, Any], session: Session) -> None:
-    """Check and archive sold items with expired warranty (§5.7)."""
-    now = datetime.now(UTC).date()
-    items = session.scalars(
-        select(Item)
-        .where(Item.status == ItemStatus.SOLD.value)
-        .where(Item.warranty_until.is_not(None))
-        .where(Item.warranty_until <= now)
-    ).all()
-    for it in items:
-        it.status = ItemStatus.ARCHIVED.value
-
-
-def _handle_update_listing(payload: dict[str, Any], session: Session) -> None:
-    """Execute UPDATE_LISTING job - sync changes to marketplace connector."""
-    lid = payload.get("listing_id")
-    listing = session.get(Listing, lid)
-    if not listing:
-        return
-
-    from nextlife.connectors.registry import get_connector
-    from nextlife.core.config import load_config
-    try:
-        cfg = load_config()
-        connector = get_connector(listing.marketplace_key, cfg)
-        if listing.external_id:
-            connector.update(listing.external_id, {
-                "title": listing.title,
-                "price": listing.price,
-                "description": listing.description,
-            })
-    except Exception as exc:
-        logger.warning(f"Connector update for {listing.id} warning: {exc}")
-
-    listing.status = ListingStatus.PUBLISHED.value
-
-
 def dispatch_job(job: Job, session: Session) -> None:
-    """Dispatch job to its respective handler."""
+    """Dispatch job to its respective handler with closed-loop verification."""
     kind = job.kind
     payload = job.payload or {}
 
     if kind == "PUBLISH_LISTING":
-        _handle_publish_listing(payload, session)
+        handle_publish_listing(payload, session)
     elif kind == "UPDATE_LISTING":
-        _handle_update_listing(payload, session)
+        handle_update_listing(payload, session)
     elif kind == "UNPUBLISH_LISTING":
-        _handle_unpublish_listing(payload, session)
+        handle_unpublish_listing(payload, session)
     elif kind == "RELIST_LISTING":
-        _handle_relist_listing(payload, session)
+        handle_relist_listing(payload, session)
     elif kind == "WARRANTY_EXPIRE":
-        _handle_warranty_expire(payload, session)
+        handle_warranty_expire(payload, session)
     else:
         logger.info(f"Handler for job kind '{kind}' completed as no-op or simulated.")
 
@@ -244,47 +80,46 @@ def process_one_job(session: Session) -> bool:
 
     try:
         dispatch_job(job, session)
-        job.state = "SUCCESS"
-        job.last_error = None
-        session.flush()
-
-        lid = job.payload.get("listing_id")
-        if lid:
-            target_listing = session.get(Listing, lid)
-            if target_listing and job.kind in ("PUBLISH_LISTING", "UPDATE_LISTING"):
-                target_listing.last_error_code = None
-                target_listing.last_error_text = None
-                target_listing.last_error_hint = None
-                if target_listing.status in (ListingStatus.PUBLISHING.value, ListingStatus.UPDATING.value):
-                    target_listing.status = ListingStatus.PUBLISHED.value
-
+        job.state = "DONE"
+        job.error_code = None
+        job.error_text = None
+        job.error_hint = None
+        job.locked_by = None
+        job.finished_at = datetime.now(UTC)
+        logger.info(f"Job {job.id} ({job.kind}) completed successfully")
     except Exception as exc:
-        code, text, hint = classify_error(exc)
-        logger.error(f"Job {job.id} failed: [{code}] {text}")
+        err_info = classify_error(exc)
+        logger.error(f"Job {job.id} ({job.kind}) failed: {exc} (class={err_info.category})")
 
-        # Retry logic: 3 attempts with 1, 5, 15 min delays for NETWORK only
-        if code == "NETWORK" and job.attempts < 2:
-            delay = NETWORK_RETRY_DELAYS[job.attempts]
-            job.attempts += 1
+        job.attempts += 1
+        job.error_code = err_info.code
+        job.error_text = str(exc)
+        job.error_hint = err_info.hint
+
+        # Retry logic:
+        # Retry only for network errors when attempts < 3
+        if err_info.category == "NETWORK" and job.attempts < 3:
+            delay = NETWORK_RETRY_DELAYS[min(job.attempts - 1, len(NETWORK_RETRY_DELAYS) - 1)]
             job.state = "PENDING"
             job.run_after = datetime.now(UTC) + timedelta(seconds=delay)
-            job.last_error = f"[{code}] {text}"
+            job.locked_by = None
+            logger.info(f"Job {job.id} will retry in {delay}s (attempt {job.attempts}/3)")
         else:
-            job.attempts += 1
             job.state = "FAILED"
-            job.last_error = f"[{code}] {text}"
+            job.locked_by = None
+            job.finished_at = datetime.now(UTC)
 
-        lid = job.payload.get("listing_id")
-        if lid:
-            listing = session.get(Listing, lid)
-            if listing:
-                listing.status = ListingStatus.FAILED.value
-                listing.last_error_code = code
-                listing.last_error_text = text
-                listing.last_error_hint = hint
+            # Create owner notification on fatal job failure
+            notif = OwnerNotification(
+                id=str(uuid.uuid4()),
+                title=f"Ошибка выполнения задачи: {job.kind}",
+                message=f"Задача завершилась с ошибкой: {str(exc)}",
+                action_required=True,
+                level="ERROR",
+            )
+            session.add(notif)
 
-        session.flush()
-
+    # Check batch completion if job was part of a batch
     if job.batch_id:
         _check_batch_completion(job.batch_id, session)
 
@@ -293,59 +128,62 @@ def process_one_job(session: Session) -> bool:
 
 
 def _check_batch_completion(batch_id: str, session: Session) -> None:
-    """Notify owner upon batch completion (§6.3 п.5)."""
+    """Check if all jobs in batch are done/failed, update batch status and item states."""
+    from nextlife.storage.models import BatchJob
+    batch = session.get(BatchJob, batch_id)
+    if not batch:
+        return
+
     jobs = session.scalars(select(Job).where(Job.batch_id == batch_id)).all()
     if not jobs:
         return
-    has_pending = any(j.state in ("PENDING", "RUNNING") for j in jobs)
-    if not has_pending:
-        existing = session.scalar(
-            select(OwnerNotification).where(OwnerNotification.url == f"/ui/jobs/{batch_id}")
-        )
-        if not existing:
-            succeeded = sum(1 for j in jobs if j.state == "SUCCESS")
-            failed = sum(1 for j in jobs if j.state == "FAILED")
-            notif = OwnerNotification(
-                id=str(uuid.uuid4()),
-                at=datetime.now(UTC),
-                kind="BATCH_COMPLETED",
-                title="Пакет размещения завершён",
-                body=f"Успешно: {succeeded}, Ошибок: {failed} из {len(jobs)} объявлений.",
-                url=f"/ui/jobs/{batch_id}",
-            )
-            session.add(notif)
-            session.flush()
+
+    all_done = all(j.state in ("DONE", "FAILED") for j in jobs)
+    if all_done:
+        has_failed = any(j.state == "FAILED" for j in jobs)
+        batch.status = "COMPLETED_WITH_ERRORS" if has_failed else "COMPLETED"
+        batch.finished_at = datetime.now(UTC)
+
+        # Count successes and failures
+        success_count = sum(1 for j in jobs if j.state == "DONE")
+        failure_count = sum(1 for j in jobs if j.state == "FAILED")
+        batch.summary = f"Всего: {len(jobs)}, успешно: {success_count}, ошибок: {failure_count}"
+        logger.info(f"Batch {batch_id} completed: {batch.summary}")
 
 
 def run_worker(poll_interval: float = 1.0, once: bool = False) -> None:
+    """Main worker loop."""
+    logger.info("NextLife worker started, polling for jobs...")
     signal.signal(signal.SIGINT, _signal_handler)
     signal.signal(signal.SIGTERM, _signal_handler)
 
-    logger.info("NextLife worker started, polling jobs...")
     while _running:
-        processed = False
         try:
             with get_db_session() as session:
-                processed = process_one_job(session)
-        except Exception as exc:
-            logger.error(f"Worker iteration error: {exc}")
+                had_job = process_one_job(session)
 
-        if once:
-            break
-        if not processed:
+            if once:
+                break
+
+            if not had_job:
+                time.sleep(poll_interval)
+        except Exception as e:
+            logger.error(f"Worker loop error: {e}", exc_info=True)
+            if once:
+                break
             time.sleep(poll_interval)
+
     logger.info("NextLife worker stopped.")
 
 
 def main() -> None:
-    try:
-        config = load_config()
-    except Exception as exc:
-        logger.error(f"Configuration failure: {exc}")
-        sys.exit(1)
+    import argparse
+    parser = argparse.ArgumentParser(description="NextLife background job worker")
+    parser.add_argument("--once", action="store_true", help="Process at most one job and exit")
+    parser.add_argument("--interval", type=float, default=1.0, help="Polling interval in seconds")
+    args = parser.parse_args()
 
-    poll_interval = float(config.app.poll_interval_seconds)
-    run_worker(poll_interval=poll_interval)
+    run_worker(poll_interval=args.interval, once=args.once)
 
 
 if __name__ == "__main__":

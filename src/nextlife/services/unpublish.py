@@ -1,12 +1,6 @@
 """Unpublish service for multi-marketplace listings upon sale (TZ v2.0 Section I.3).
 
-DoD:
-- When a sale is confirmed on one marketplace, tasks are created to unpublish from all other marketplaces within unpublish_deadline_minutes.
-- While at least one unpublish is not confirmed, lot remains in RESERVED, NOT in SOLD.
-- Owner clearly sees which marketplace unpublishing failed on.
-- When all unpublish tasks succeed, lot transitions to SOLD.
-- Truth log and Audit events recorded.
-- Module length <= 400 lines.
+Rule K-1: Module length <= 400 lines.
 """
 
 import uuid
@@ -50,17 +44,7 @@ def unpublish_listings_now(
     *,
     actor: str = "OWNER",
 ) -> list[dict[str, Any]]:
-    """ТЗ «Склад» §2.1: синхронное снятие всех объявлений предмета.
-
-    Обрабатывает все listing предмета в статусах PUBLISHED,
-    PARTIALLY_PUBLISHED, ACTIVE, UNPUBLISH_FAILED. Коннектор берётся из
-    реестра (CONNECTOR_MAP). Успех = connector.unpublish без исключения →
-    ARCHIVED. Любое исключение (включая CapabilityNotSupported /
-    ConnectorError) → UNPUBLISH_FAILED + audit. Локальная установка
-    ARCHIVED без вызова площадки запрещена.
-
-    Возврат: [{marketplace_key, external_url, result: archived|failed, error}].
-    """
+    """ТЗ «Склад» §2.1: синхронное снятие всех объявлений предмета."""
     from nextlife.connectors.registry import get_connector
     from nextlife.core.config import load_config
 
@@ -69,7 +53,7 @@ def unpublish_listings_now(
         select(Listing).where(
             Listing.item_code == item_code,
             Listing.status.in_(
-                ["PUBLISHED", "PARTIALLY_PUBLISHED", "UPDATING", "UNPUBLISH_FAILED"]
+                ["PUBLISHED", "PARTIALLY_PUBLISHED", "UPDATING", "UNPUBLISH_FAILED", "ACTIVE"]
             ),
         )
     ).all()

@@ -193,9 +193,9 @@ def run_research(
 
     for mp_key, raw_item in raw_items:
         raw_dict = dict(raw_item.raw or {}) if isinstance(raw_item.raw, dict) else {}
-        is_auction = (
-            mp_key == "aukro_cz" and not raw_dict.get("buy_now_active")
-        ) or bool(raw_dict.get("auction") and not raw_dict.get("buy_now_active"))
+        is_auction = bool(raw_dict.get("auction") and not raw_dict.get("buy_now_active")) or (
+            mp_key == "aukro_cz" and raw_dict.get("buy_now_active") is False
+        )
 
         if is_auction:
             item_price = Decimal("0.00")
@@ -329,7 +329,7 @@ def build_research_panel(
 
     def _is_auction(r: ResearchResult) -> bool:
         raw_dict = r.raw if isinstance(r.raw, dict) else {}
-        if r.marketplace_key == "aukro_cz" and not raw_dict.get("buy_now_active"):
+        if r.marketplace_key == "aukro_cz" and raw_dict.get("buy_now_active") is False:
             return True
         if raw_dict.get("is_auction") or (raw_dict.get("auction") and not raw_dict.get("buy_now_active")):
             return True

@@ -43,6 +43,7 @@ CAPABILITIES_MATRIX = {
     "vinted": {**_DEFAULT_CAPS, "search": True}, "willhaben_at": {**_DEFAULT_CAPS, "search": True},
     "kleinanzeigen_de": {**_DEFAULT_CAPS, "search": True}, "olx_pl": {**_DEFAULT_CAPS, "search": True},
     "facebook_marketplace": {**_DEFAULT_CAPS, "search": True},
+    "ebay": {**_DEFAULT_CAPS, "search": True, "publish": True},
 }
 
 MP_META: dict[str, dict[str, Any]] = {
@@ -51,10 +52,17 @@ MP_META: dict[str, dict[str, Any]] = {
     "sbazar_cz": {"login_url": "https://login.szn.cz/?service=sbazar", "phone_platform": "sbazar_cz"},
     "aukro_cz": {"login_url": "https://aukro.cz/uzivatel/prihlaseni", "phone_platform": None},
     "bazar_cz": {"login_url": "https://www.bazar.cz/prihlaseni", "phone_platform": None},
+    "hyperinzerce_cz": {"login_url": "https://hyperinzerce.cz/prihlaseni", "phone_platform": None},
+    "annonce_cz": {"login_url": "https://www.annonce.cz/prihlasit", "phone_platform": None},
     "mimibazar_cz": {"login_url": "https://www.mimibazar.cz/prihlaseni", "phone_platform": None},
     "trhknih_cz": {"login_url": "https://www.trhknih.cz/prihlasit", "phone_platform": None},
+    "allegro_cz": {"login_url": "https://allegro.cz/login", "phone_platform": None},
+    "willhaben_at": {"login_url": "https://www.willhaben.at/iad/login", "phone_platform": None},
+    "kleinanzeigen_de": {"login_url": "https://www.kleinanzeigen.de/m-einloggen.html", "phone_platform": None},
+    "olx_pl": {"login_url": "https://www.olx.pl/konto/", "phone_platform": None},
     "vinted": {"login_url": "https://www.vinted.cz/member/general/login", "phone_platform": "vinted"},
     "facebook_marketplace": {"login_url": "https://www.facebook.com/marketplace", "phone_platform": "facebook_marketplace"},
+    "ebay": {"login_url": "https://signin.ebay.com", "phone_platform": None},
 }
 
 

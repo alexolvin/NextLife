@@ -92,46 +92,14 @@ def api_set_item_photo_cover(
     auth: bool = Depends(check_auth),
 ) -> dict[str, Any]:
     """Set specified photo as cover photo for the item."""
+    from nextlife.services.listings_photos import set_item_cover_photo
     with get_db_session() as session:
-        item = session.get(Item, code)
-        if not item:
-            raise HTTPException(status_code=404, detail=f"Item {code} not found")
-
-        photo = session.get(ItemPhoto, photo_id)
-        if not photo or photo.item_code != code:
-            raise HTTPException(status_code=404, detail=f"Photo {photo_id} not found for item {code}")
-
-        attrs = dict(item.attrs or {})
-        attrs["cover_photo_id"] = photo_id
-
-        existing_order = [p for p in (attrs.get("photo_order") or []) if p != photo_id]
-        attrs["photo_order"] = [photo_id] + existing_order
-        item.attrs = attrs
-
-        if isinstance(photo.transform_log, list):
-            photo.transform_log = list(photo.transform_log) + [{"step": "set_cover"}]
-        elif isinstance(photo.transform_log, dict):
-            t_log = dict(photo.transform_log)
-            t_log["is_cover"] = True
-            photo.transform_log = t_log
-        else:
-            photo.transform_log = [{"step": "set_cover"}]
-
-        record_audit_event(
-            session=session,
-            actor="USER",
-            action="PHOTO_SET_COVER",
-            entity="ITEM",
-            entity_id=code,
-            data={"photo_id": photo_id},
-        )
-        session.commit()
-
-        return {
-            "status": "ok",
-            "item_code": code,
-            "cover_photo_id": photo_id,
-        }
+        try:
+            res = set_item_cover_photo(session, code, photo_id, actor="USER")
+            session.commit()
+            return res
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc))
 
 
 @photos_ops_router.post("/ui/items/{code}/photos/{photo_id}/cover")

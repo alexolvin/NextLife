@@ -3,18 +3,7 @@
 from pathlib import Path
 from typing import Any
 
-from fastapi import (
-    APIRouter,
-    Cookie,
-    Depends,
-    Form,
-    Header,
-    HTTPException,
-    Query,
-    Request,
-    Response,
-    status,
-)
+from fastapi import APIRouter, Cookie, Depends, Form, Header, HTTPException, Query, Request, Response, status
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
@@ -154,7 +143,7 @@ def logical_photo_entries(session: Session, item_code: str) -> list[dict[str, An
             "url": "" if broken else url + ver,
             "broken": broken,
             "ai": bool(photo.ai_generated),
-            "is_cover": cover_id == photo.id,
+            "is_cover": bool(cover_id and any(p.id == cover_id for p in chain)),
             "hints": hints,
         })
     return entries

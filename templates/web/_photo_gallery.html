@@ -239,6 +239,9 @@
         <button type="button" class="btn btn-secondary" onclick="editorCrop('4:3')" data-testid="btn-editor-crop-4-3">
           ✂ 4:3
         </button>
+        <button type="button" class="btn btn-secondary" onclick="editorSetCover()" data-testid="btn-editor-cover" style="color: #f59e0b; font-weight: 600;">
+          ★ Сделать обложкой
+        </button>
         <button type="button" class="btn btn-secondary" onclick="editorUndo()" data-testid="btn-editor-undo" style="margin-left: auto;">
           ↩ Отменить изменения
         </button>
@@ -720,6 +723,24 @@
     }, { passive: false });
     window.addEventListener('touchend', endDrag);
   }
+
+  window.editorSetCover = async function() {
+    const cur = photos[currentIndex];
+    if (!cur) return;
+    try {
+      const res = await fetch(`/api/items/${itemCode}/photos/${cur.display_id}/cover`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.detail || 'Не удалось установить обложку');
+      }
+    } catch (e) {
+      alert('Ошибка при установке обложки');
+    }
+  };
 
   window.editorUndo = async function() {
     const cur = photos[currentIndex];

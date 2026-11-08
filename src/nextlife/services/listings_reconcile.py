@@ -22,6 +22,12 @@ def check_url_is_live(url: str) -> bool:
     if not url or not url.startswith("http"):
         return False
     try:
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        # Base marketplace root URL is not a listing page
+        if not parsed.path or parsed.path.strip("/") in ("", "inzerat", "inzeraty"):
+            return False
+
         req = urllib.request.Request(
             url,
             headers={
@@ -39,19 +45,26 @@ def check_url_is_live(url: str) -> bool:
 
             # Marketplace-specific checks
             if "bazos." in url:
-                if "inzerát byl vymazán" in html or "inzerat byl vymazan" in html or "bazar - pc" in html:
+                if any(x in html for x in [
+                    "inzerát byl vymazán", "inzerat byl vymazan",
+                    "inzerát bol vymazaný", "inzerat bol vymazany",
+                    "požadovaný inzerát neexistuje", "inzerát neexistuje",
+                    "požadovaný inzerát sa nenašiel", "hledaný inzerát nebyl nalezen",
+                    "tento inzerát už nie je aktívny", "inzerát je zmazaný",
+                    "chyba 404", "bazar - pc",
+                ]):
                     return False
-                if "inzeratydet" in html or "cena:" in html or "popis:" in html or "id inzerátu" in html:
+                if any(x in html for x in ["inzeratydet", "cena:", "popis:", "id inzerátu", "telefón:", "kontaktovať inzerenta", "všetky inzeráty"]):
                     return True
                 return False
 
             if "sbazar.cz" in url:
-                if "inzerát byl odstraněn" in html or "neexistuje" in html or "nenalezen" in html:
+                if any(x in html for x in ["inzerát byl odstraněn", "neexistuje", "nenalezen", "nabídka již není aktivní"]):
                     return False
                 return True
 
             if "aukro.cz" in url:
-                if "tato nabídka skončila" in html or "stránka nebyla nalezena" in html:
+                if any(x in html for x in ["tato nabídka skončila", "stránka nebyla nalezena", "nabídka byla ukončena"]):
                     return False
                 return True
 
