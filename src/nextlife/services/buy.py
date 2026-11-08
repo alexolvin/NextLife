@@ -48,7 +48,7 @@ def _parse_verdict(raw: Any) -> dict[str, Any]:
             if isinstance(val, dict):
                 return val
         except Exception:
-            pass
+            return {"title_original": raw.strip()}
     return {}
 
 
@@ -335,6 +335,8 @@ def analyze_kit(
     except Exception:
         pass
     from nextlife.services.kit_analyzer import decompose_kit_items
+    from nextlife.services.kit_pc_profile import is_pc_build_candidate
+    is_pc = is_pc_build_candidate(title, desc)
     components = decompose_kit_items(title=title, description=desc, total_cost=total_cost, connector=connector)
 
     parts_sum = sum(c["median_price"] * c["qty"] for c in components if c["status"] == "ok")
@@ -346,6 +348,8 @@ def analyze_kit(
     analysis_data = {
         "candidate_id": candidate_id,
         "title": title,
+        "profile": "pc_build" if is_pc else "generic",
+        "profile_label": "Компьютерная сборка (PC Build)" if is_pc else "Стандартный комплект",
         "components": components,
         "parts_sum": parts_sum,
         "total_cost": str(total_cost),

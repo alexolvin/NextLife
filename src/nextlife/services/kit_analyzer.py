@@ -182,6 +182,11 @@ def decompose_kit_items(
     connector: Any | None = None,
 ) -> list[dict[str, Any]]:
     """Decompose kit text into named components with estimated median prices."""
+    from nextlife.services.kit_pc_profile import decompose_pc_build, is_pc_build_candidate
+
+    if is_pc_build_candidate(title, description):
+        return decompose_pc_build(title, description, total_cost=total_cost, connector=connector)
+
     text = f"{title}\n{description}".strip()
     comps: list[dict[str, Any]] = []
     seen_names: set[str] = set()
