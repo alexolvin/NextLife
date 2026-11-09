@@ -210,11 +210,21 @@ def logical_photo_chains(session: Session, item_code: str) -> list[list[ItemPhot
     try:
         from nextlife.storage.models.core import Item
         item = session.get(Item, item_code)
-        cover_id = (item.attrs or {}).get("cover_photo_id") if item else None
-        if cover_id:
-            cover_idx = next((i for i, ch in enumerate(chains) if any(p.id == cover_id for p in ch)), None)
-            if cover_idx is not None and cover_idx > 0:
-                chains.insert(0, chains.pop(cover_idx))
+        if item and item.attrs:
+            photo_order = item.attrs.get("photo_order") or []
+            if photo_order:
+                def chain_rank(ch: list[ItemPhoto]) -> int:
+                    ch_ids = {p.id for p in ch}
+                    for rank, pid in enumerate(photo_order):
+                        if pid in ch_ids:
+                            return rank
+                    return 999999
+                chains.sort(key=chain_rank)
+            elif item.attrs.get("cover_photo_id"):
+                cover_id = item.attrs["cover_photo_id"]
+                cover_idx = next((i for i, ch in enumerate(chains) if any(p.id == cover_id for p in ch)), None)
+                if cover_idx is not None and cover_idx > 0:
+                    chains.insert(0, chains.pop(cover_idx))
     except Exception:
         pass
 

@@ -1,6 +1,33 @@
-{# ТЗ «Склад» §3.3, §5.3, §5.4: фото, слайдер, редактор фото, Image AI. #}
+{# ТЗ «Склад» §3.3, §5.3, §5.4: фото, слайдер, Image AI, управление порядком #}
 {% set missing_src = "data:image/svg+xml;utf8," ~ "<svg xmlns='http://www.w3.org/2000/svg' width='480' height='360'><rect width='100%25' height='100%25' fill='%23e9ecef'/><text x='50%25' y='54%25' font-size='24' text-anchor='middle' fill='%236c757d'>файл не найден</text></svg>" %}
 {% set role_labels = {'PUBLISH': 'Обработано', 'PROCESSED': 'Обработано', 'DEFECT': 'Дефект', 'ORIGINAL': 'Оригинал'} %}
+
+<style>
+  .btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    line-height: 1;
+  }
+  .btn-icon svg {
+    display: block;
+  }
+  .thumb-card[draggable="true"] {
+    cursor: grab;
+    user-select: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .thumb-card.dragging {
+    opacity: 0.45;
+    cursor: grabbing;
+  }
+  .thumb-card.drag-over {
+    border: 2px dashed #0284c7 !important;
+    transform: scale(1.05);
+  }
+</style>
+
 <div class="card" id="gallery-card">
   <div class="stack-3">
   <div class="row between">
@@ -11,16 +38,16 @@
   {% if photos and photos|length > 0 %}
   <div class="slider-container" id="main-slider" data-testid="photo-slider">
     <button type="button" class="slider-arrow slider-prev" id="btn-slider-prev" onclick="changeSlide(-1)" aria-label="Предыдущее фото" data-testid="slider-prev">‹</button>
-    <img id="slider-main-img" class="slider-img" src="{{ photos[0].url or missing_src }}" alt="Предпросмотр фото" onclick="openPhotoEditor()" data-testid="slider-current-image" style="cursor: pointer;" title="Нажмите для открытия редактора фото">
+    <img id="slider-main-img" class="slider-img" src="{{ photos[0].url or missing_src }}" alt="Предпросмотр фото" data-testid="slider-current-image">
     <button type="button" class="slider-arrow slider-next" id="btn-slider-next" onclick="changeSlide(1)" aria-label="Следующее фото" data-testid="slider-next">›</button>
     <span class="slider-counter" id="slider-counter" data-testid="slider-counter">1 / {{ photos|length }}</span>
     <span class="slider-role-tag badge badge-active" id="slider-role-tag" data-testid="slider-role">{{ role_labels.get(photos[0].role, 'Фото') }}</span>
   </div>
 
-  <!-- Thumbnails strip -->
+  <!-- Thumbnails strip with drag-and-drop -->
   <div class="thumb-strip" id="thumb-strip" data-testid="slider-thumbnails">
     {% for photo in photos %}
-    <div class="thumb-card {% if loop.first %}active{% endif %}" id="thumb-item-{{ loop.index0 }}" onclick="selectSlide({{ loop.index0 }})" data-url="{{ photo.url }}" data-role="{{ photo.role }}" data-testid="thumb-item-{{ loop.index0 }}">
+    <div class="thumb-card {% if loop.first %}active{% endif %}" id="thumb-item-{{ loop.index0 }}" onclick="selectSlide({{ loop.index0 }})" data-url="{{ photo.url }}" data-role="{{ photo.role }}" data-id="{{ photo.display_id or photo.id }}" data-testid="thumb-item-{{ loop.index0 }}" draggable="true" ondragstart="handleThumbDragStart(event, {{ loop.index0 }})" ondragover="handleThumbDragOver(event)" ondrop="handleThumbDrop(event, {{ loop.index0 }})" ondragend="handleThumbDragEnd(event)" title="Перетащите для изменения порядка">
       {% if photo.broken %}
       <div class="thumb-broken" data-testid="photo-broken-mark" title="Файл фото не найден"
            style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#e9ecef;color:#6c757d;font-size:10px;text-align:center;padding:2px;">🚫 файл не найден</div>
@@ -51,23 +78,63 @@
   {# Действия над активным фото (§5.4) #}
   <div class="stack-1" data-testid="photo-ops" data-code="{{ item.code }}">
     <div class="row tight wrap" id="photo-ops-buttons">
-      <button type="button" class="btn btn-sm btn-primary btn-inline" onclick="openPhotoEditor()" data-testid="btn-open-editor">✎ Редактор фото</button>
+      <!-- Rotate Left (⟲ 90°) -->
       <form method="POST" data-op="rotate" data-degrees="-90">
         <input type="hidden" name="degrees" value="-90">
-        <button type="submit" class="btn btn-sm btn-secondary btn-inline" title="Поворот кадра влево на 90°" data-testid="btn-op-rotate-left">⟲ Влево 90°</button>
+        <button type="submit" class="btn btn-sm btn-secondary btn-inline btn-icon" title="Повернуть влево 90°" aria-label="Повернуть влево 90°" data-testid="btn-op-rotate-left">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <polyline points="3 3 3 8 8 8"></polyline>
+          </svg>
+        </button>
       </form>
+
+      <!-- Rotate Right (⟳ 90°) -->
       <form method="POST" data-op="rotate" data-degrees="90">
         <input type="hidden" name="degrees" value="90">
-        <button type="submit" class="btn btn-sm btn-secondary btn-inline" title="Поворот кадра вправо на 90°" data-testid="btn-op-rotate">⟳ Вправо 90°</button>
+        <button type="submit" class="btn btn-sm btn-secondary btn-inline btn-icon" title="Повернуть вправо 90°" aria-label="Повернуть вправо 90°" data-testid="btn-op-rotate">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+            <polyline points="21 3 21 8 16 8"></polyline>
+          </svg>
+        </button>
       </form>
+
+      <!-- Move Left in order (←) -->
+      <form method="POST" data-op="move" data-dir="prev">
+        <input type="hidden" name="dir" value="prev">
+        <button type="button" class="btn btn-sm btn-secondary btn-inline btn-icon" onclick="moveCurrentSlide(-1)" title="Сдвинуть фото левее" aria-label="Сдвинуть фото влево" data-testid="btn-op-move-left">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </button>
+      </form>
+
+      <!-- Move Right in order (→) -->
+      <form method="POST" data-op="move" data-dir="next">
+        <input type="hidden" name="dir" value="next">
+        <button type="button" class="btn btn-sm btn-secondary btn-inline btn-icon" onclick="moveCurrentSlide(1)" title="Сдвинуть фото правее" aria-label="Сдвинуть фото вправо" data-testid="btn-op-move-right">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </form>
+
+      <!-- Cover (★ Обложка) -->
       <form method="POST" data-op="cover">
-        <button type="submit" class="btn btn-sm btn-secondary btn-inline" title="Сделать обложкой предмета" data-testid="btn-op-cover">★ Обложка</button>
+        <button type="submit" class="btn btn-sm btn-secondary btn-inline" title="Сделать обложкой" data-testid="btn-op-cover">★ Обложка</button>
       </form>
-      <form method="POST" data-op="defect">
-        <button type="submit" class="btn btn-sm btn-secondary btn-inline" title="Пометить как фото дефекта" data-testid="btn-op-defect">⚑ Дефект</button>
-      </form>
+
+      <!-- Undo / Revert (↩ Вернуть) -->
       <form method="POST" data-op="undo">
-        <button type="submit" class="btn btn-sm btn-secondary btn-inline" title="Вернуть предыдущую версию" data-testid="btn-op-undo">↩ Отменить</button>
+        <button type="submit" class="btn btn-sm btn-secondary btn-inline btn-icon" title="Вернуть исходную версию" aria-label="Вернуть" data-testid="btn-op-undo">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1 4 1 10 7 10"></polyline>
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+          </svg>
+        </button>
       </form>
     </div>
   </div>
@@ -105,162 +172,36 @@
       🖼 Загрузить из галереи
       <input type="file" accept="image/*" multiple style="display: none;" onchange="handleDirectUpload(this.files, 'ORIGINAL')">
     </label>
-    <label class="btn btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" data-testid="btn-upload-defect">
-      ⚑ Снять дефект
-      <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handleDirectUpload(this.files, 'DEFECT')">
-    </label>
   </div>
-  <div id="upload-status" style="font-size: 0.85rem; color: #64748b; margin-top: 4px;"></div>
-</div>
 
-<!-- ================= PHOTO EDITOR MODAL (§5.4) ================= -->
-<style>
-  .photo-editor-modal-container {
-    width: 96vw;
-    max-width: 1400px;
-    margin: 12px auto;
-    background: #1e293b;
-    color: #f8fafc;
-    border-radius: 12px;
-    padding: 16px 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-    display: flex;
-    flex-direction: column;
-    min-height: calc(100vh - 24px);
-    box-sizing: border-box;
-  }
-  .photo-editor-viewport {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    background: #090d16;
-    border-radius: 8px;
-    padding: 10px;
-    margin-bottom: 12px;
-    min-height: 55vh;
-  }
-  .photo-editor-viewport img#editor-main-img {
-    max-height: calc(85vh - 240px);
-    max-width: 100%;
-    width: auto;
-    height: auto;
-    object-fit: contain;
-    border-radius: 6px;
-    display: block;
-    margin: 0 auto;
-  }
-  @media (max-width: 768px) {
-    .photo-editor-modal-container {
-      width: 98vw;
-      margin: 6px auto;
-      padding: 10px;
-      min-height: auto;
-    }
-    .photo-editor-viewport {
-      min-height: 40vh;
-    }
-    .photo-editor-viewport img#editor-main-img {
-      max-height: 50vh;
-    }
-  }
-</style>
-
-<div id="photo-editor-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; overflow-y: auto;" data-testid="photo-editor-modal">
-  <div class="photo-editor-modal-container">
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 16px;">
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <h3 style="margin: 0; font-size: 1.2rem; color: #38bdf8;">Редактор фото</h3>
-        <span class="badge" id="editor-counter" style="background: #334155; color: #94a3b8; font-size: 0.8rem; padding: 2px 8px; border-radius: 12px;" data-testid="editor-photo-counter">1 / 1</span>
-        <span class="badge" id="editor-role-tag" style="background: #0284c7; color: #fff; font-size: 0.75rem; padding: 2px 8px; border-radius: 12px;">Фото</span>
-      </div>
-      <button type="button" onclick="closePhotoEditor()" style="background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;" aria-label="Закрыть">✕</button>
+  <!-- Animated Progress Bar Container -->
+  <div id="upload-progress-box" style="display: none; margin-top: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;" data-testid="upload-progress-box">
+    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; margin-bottom: 6px;">
+      <span id="upload-progress-text" style="font-weight: 600; color: #1e293b;">Загружено 0 из 0</span>
+      <span id="upload-progress-percent" style="font-weight: 700; color: #0284c7;">0%</span>
     </div>
-
-    <!-- Main Preview & Action Viewport -->
-    <div id="editor-preview-container" class="photo-editor-viewport">
-      <!-- Photo flipping navigation buttons inside editor -->
-      <button type="button" onclick="editorChangePhoto(-1)"
-              style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); background: rgba(15, 23, 42, 0.75); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; z-index: 20; transition: background 0.2s;"
-              onmouseover="this.style.background='rgba(15, 23, 42, 0.95)'" onmouseout="this.style.background='rgba(15, 23, 42, 0.75)'"
-              title="Предыдущее фото (Стрелка влево)" data-testid="btn-editor-prev-photo">
-        ‹
-      </button>
-
-      <button type="button" onclick="editorChangePhoto(1)"
-              style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: rgba(15, 23, 42, 0.75); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; z-index: 20; transition: background 0.2s;"
-              onmouseover="this.style.background='rgba(15, 23, 42, 0.95)'" onmouseout="this.style.background='rgba(15, 23, 42, 0.75)'"
-              title="Следующее фото (Стрелка вправо)" data-testid="btn-editor-next-photo">
-        ›
-      </button>
-
-      <div id="editor-single-view" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
-        <img id="editor-main-img" src="" style="background: #0f172a; transition: transform 0.2s ease; user-select: none;" draggable="false" data-testid="editor-preview-image">
-        
-        <!-- Interactive Crop Overlay -->
-        <div id="crop-overlay" style="display: none; position: absolute; inset: 0; z-index: 15;" data-testid="crop-overlay">
-          <div id="crop-box" style="position: absolute; border: 2px dashed #38bdf8; background: rgba(56, 189, 248, 0.12); cursor: move; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);" data-testid="crop-box">
-            <div class="crop-handle" data-dir="nw" style="position: absolute; left: -6px; top: -6px; width: 14px; height: 14px; background: #38bdf8; border: 1px solid #fff; border-radius: 3px; cursor: nwse-resize;"></div>
-            <div class="crop-handle" data-dir="ne" style="position: absolute; right: -6px; top: -6px; width: 14px; height: 14px; background: #38bdf8; border: 1px solid #fff; border-radius: 3px; cursor: nesw-resize;"></div>
-            <div class="crop-handle" data-dir="sw" style="position: absolute; left: -6px; bottom: -6px; width: 14px; height: 14px; background: #38bdf8; border: 1px solid #fff; border-radius: 3px; cursor: nesw-resize;"></div>
-            <div class="crop-handle" data-dir="se" style="position: absolute; right: -6px; bottom: -6px; width: 14px; height: 14px; background: #38bdf8; border: 1px solid #fff; border-radius: 3px; cursor: nwse-resize;"></div>
-            <div id="crop-dim-label" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 0.8rem; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.9); pointer-events: none; white-space: nowrap;">Кадрирование</div>
-          </div>
-        </div>
-      </div>
+    <div style="background: #e2e8f0; border-radius: 999px; height: 10px; overflow: hidden; width: 100%;">
+      <div id="upload-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #2563eb, #38bdf8); transition: width 0.25s ease; border-radius: 999px;"></div>
     </div>
+  </div>
 
-    <!-- Action Confirmation Bar (for Rotate and Crop) -->
-    <div id="editor-action-bar" style="display: none; background: #0f172a; border: 1px solid #38bdf8; border-radius: 8px; padding: 10px 16px; margin-bottom: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;" data-testid="editor-action-bar">
-      <div id="editor-action-text" style="font-weight: 600; font-size: 0.92rem; color: #38bdf8;">Подтвердите действие</div>
-      <div style="display: flex; gap: 10px;">
-        <button type="button" class="btn btn-primary" id="btn-editor-apply" style="padding: 7px 18px; font-weight: 700;" data-testid="btn-editor-apply">✓ Применить</button>
-        <button type="button" class="btn btn-secondary" id="btn-editor-cancel" style="padding: 7px 16px;" data-testid="btn-editor-cancel">✕ Отмена</button>
-      </div>
-    </div>
-
-    <!-- Toolbar (§5.4) -->
-    <div style="display: flex; flex-direction: column; gap: 12px;">
-      <!-- Transform Tools -->
-      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-        <button type="button" class="btn btn-secondary" onclick="editorRotate(-90)" data-testid="btn-editor-rotate-left">
-          ⟲ Влево 90°
-        </button>
-        <button type="button" class="btn btn-secondary" onclick="editorRotate(90)" data-testid="btn-editor-rotate">
-          ⟳ Вправо 90°
-        </button>
-        <button type="button" class="btn btn-secondary" onclick="editorCrop('free')" data-testid="btn-editor-crop">
-          ✂ Кадрировать (Свободно)
-        </button>
-        <button type="button" class="btn btn-secondary" onclick="editorCrop('1:1')" data-testid="btn-editor-crop-1-1">
-          ✂ 1:1
-        </button>
-        <button type="button" class="btn btn-secondary" onclick="editorCrop('4:3')" data-testid="btn-editor-crop-4-3">
-          ✂ 4:3
-        </button>
-        <button type="button" class="btn btn-secondary" onclick="editorSetCover()" data-testid="btn-editor-cover" style="color: #f59e0b; font-weight: 600;">
-          ★ Сделать обложкой
-        </button>
-        <button type="button" class="btn btn-secondary" onclick="editorUndo()" data-testid="btn-editor-undo" style="margin-left: auto;">
-          ↩ Отменить изменения
-        </button>
-      </div>
-    </div>
+  <!-- Error Message Banner -->
+  <div id="upload-error-box" style="display: none; margin-top: 10px; padding: 10px 14px; border-radius: 8px; background: #fee2e2; border: 1px solid #ef4444; color: #991b1b; font-size: 0.88rem;" data-testid="upload-error-box">
+    <strong>Ошибка загрузки:</strong> <span id="upload-error-message"></span>
   </div>
 </div>
 
 <script>
 (function() {
   const MISSING_SRC = "{{ missing_src }}";
-  const photos = [
+  let photos = [
     {% for photo in photos %}
-    { url: "{{ photo.url }}", role: "{{ photo.role }}", label: "{{ role_labels.get(photo.role, 'Фото') }}", display_id: "{{ photo.display_id }}", broken: {{ 'true' if photo.broken else 'false' }} },
+    { url: "{{ photo.url }}", role: "{{ photo.role }}", label: "{{ role_labels.get(photo.role, 'Фото') }}", display_id: "{{ photo.display_id or photo.id }}", broken: {{ 'true' if photo.broken else 'false' }} },
     {% endfor %}
   ];
   const itemCode = "{{ item.code }}";
   let currentIndex = 0;
-  let lastAIResult = null;
+  let draggedIndex = null;
 
   function updateOpButtons() {
     const cur = photos[currentIndex];
@@ -271,9 +212,10 @@
       if (form.dataset.degrees) {
         action += '?degrees=' + encodeURIComponent(form.dataset.degrees);
       }
+      if (form.dataset.dir) {
+        action += '?dir=' + encodeURIComponent(form.dataset.dir);
+      }
       form.action = action;
-      const hiddenForDefect = form.dataset.defectHidden === '1';
-      form.style.display = (hiddenForDefect && cur.role === 'DEFECT') ? 'none' : '';
       const btn = form.querySelector('button');
       if (btn) btn.disabled = cur.broken;
     });
@@ -324,444 +266,135 @@
 
   updateOpButtons();
 
-  window.handleDirectUpload = async function(files, role) {
-    if (!files || files.length === 0) return;
-    const formData = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      formData.append('files', files[i]);
+  // Move slide in order (buttons)
+  window.moveCurrentSlide = async function(dir) {
+    if (photos.length <= 1) return;
+    const newIdx = currentIndex + dir;
+    if (newIdx < 0 || newIdx >= photos.length) return;
+
+    // Swap in array
+    const temp = photos[currentIndex];
+    photos[currentIndex] = photos[newIdx];
+    photos[newIdx] = temp;
+    currentIndex = newIdx;
+
+    await savePhotoOrder();
+  };
+
+  // Drag and Drop for Thumbnails
+  window.handleThumbDragStart = function(e, idx) {
+    draggedIndex = idx;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', idx);
+    const card = document.getElementById('thumb-item-' + idx);
+    if (card) card.classList.add('dragging');
+  };
+
+  window.handleThumbDragOver = function(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const card = e.currentTarget;
+    if (card && !card.classList.contains('drag-over')) {
+      card.classList.add('drag-over');
     }
-    formData.append('role', role || 'ORIGINAL');
+  };
 
-    const statusEl = document.getElementById('upload-status');
-    statusEl.textContent = '⏳ Загрузка фото...';
+  window.handleThumbDrop = async function(e, targetIdx) {
+    e.preventDefault();
+    document.querySelectorAll('.thumb-card').forEach(el => el.classList.remove('drag-over', 'dragging'));
+    if (draggedIndex === null || draggedIndex === targetIdx) return;
 
+    const movedItem = photos.splice(draggedIndex, 1)[0];
+    photos.splice(targetIdx, 0, movedItem);
+    currentIndex = targetIdx;
+    draggedIndex = null;
+
+    await savePhotoOrder();
+  };
+
+  window.handleThumbDragEnd = function(e) {
+    document.querySelectorAll('.thumb-card').forEach(el => el.classList.remove('drag-over', 'dragging'));
+    draggedIndex = null;
+  };
+
+  async function savePhotoOrder() {
+    const order = photos.map(p => p.display_id).filter(Boolean);
     try {
-      const res = await fetch(`/api/items/${itemCode}/photos`, {
+      const res = await fetch(`/api/items/${itemCode}/photos/reorder`, {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order: order })
       });
       if (res.ok) {
         window.location.reload();
       } else {
-        statusEl.textContent = '❌ Ошибка при загрузке';
+        alert('Не удалось сохранить новый порядок фотографий');
       }
     } catch (err) {
       console.error(err);
-      statusEl.textContent = '❌ Ошибка соединения';
+      alert('Ошибка соединения при изменении порядка');
     }
-  };
-
-  // Photo Editor Modal Controls
-  window.updateEditorUI = function() {
-    if (photos.length === 0) return;
-    const cur = photos[currentIndex];
-    const img = document.getElementById('editor-main-img');
-    if (img) img.src = cur.url || MISSING_SRC;
-    const counter = document.getElementById('editor-counter');
-    if (counter) counter.textContent = (currentIndex + 1) + ' / ' + photos.length;
-    const roleTag = document.getElementById('editor-role-tag');
-    if (roleTag) {
-      roleTag.textContent = cur.label;
-      roleTag.style.background = cur.role === 'DEFECT' ? '#dc2626' : (cur.role === 'PUBLISH' ? '#16a34a' : '#0284c7');
-    }
-    const diff = document.getElementById('editor-diff-view');
-    const single = document.getElementById('editor-single-view');
-    if (diff) diff.style.display = 'none';
-    if (single) single.style.display = 'block';
-  };
-
-  window.editorChangePhoto = function(delta) {
-    if (photos.length === 0) return;
-    currentIndex = (currentIndex + delta + photos.length) % photos.length;
-    updateSliderUI();
-    updateEditorUI();
-  };
-
-  window.openPhotoEditor = async function() {
-    if (photos.length === 0) return;
-    updateEditorUI();
-    const modal = document.getElementById('photo-editor-modal');
-    modal.style.display = 'block';
-
-    // Check AI status
-    try {
-      const res = await fetch('/api/photos/ai-status');
-      if (res.ok) {
-        const data = await res.json();
-        const warn = document.getElementById('editor-ai-warning');
-        if (warn) warn.style.display = data.configured ? 'none' : 'block';
-      }
-    } catch (e) {}
-  };
-
-  window.closePhotoEditor = function() {
-    document.getElementById('photo-editor-modal').style.display = 'none';
-    document.getElementById('editor-single-view').style.display = 'block';
-    document.getElementById('editor-diff-view').style.display = 'none';
-  };
-
-  // Keyboard navigation inside modal
-  document.addEventListener('keydown', function(e) {
-    const modal = document.getElementById('photo-editor-modal');
-    if (modal && modal.style.display !== 'none') {
-      if (e.key === 'ArrowLeft') {
-        editorChangePhoto(-1);
-      } else if (e.key === 'ArrowRight') {
-        editorChangePhoto(1);
-      } else if (e.key === 'Escape') {
-        closePhotoEditor();
-      }
-    }
-  });
-
-  // Touch swipe support inside editor
-  let edTouchX = 0;
-  const edContainer = document.getElementById('editor-preview-container');
-  if (edContainer) {
-    edContainer.addEventListener('touchstart', (e) => { edTouchX = e.touches[0].clientX; }, {passive: true});
-    edContainer.addEventListener('touchend', (e) => {
-      const dx = e.changedTouches[0].clientX - edTouchX;
-      if (dx > 45) editorChangePhoto(-1);
-      else if (dx < -45) editorChangePhoto(1);
-    }, {passive: true});
   }
 
-  let pendingDegrees = 0;
-  let cropState = { active: false, ratio: 'free', x: 0, y: 0, w: 100, h: 100 };
-  let isDraggingCrop = false;
-  let dragHandle = null;
-  let dragStartX = 0, dragStartY = 0;
-  let initialCrop = null;
+  // Upload handler with live animated progress bar and descriptive error handling
+  window.handleDirectUpload = async function(files, role) {
+    if (!files || files.length === 0) return;
+    const total = files.length;
+    const progressBox = document.getElementById('upload-progress-box');
+    const progressText = document.getElementById('upload-progress-text');
+    const progressPercent = document.getElementById('upload-progress-percent');
+    const progressBar = document.getElementById('upload-progress-bar');
+    const errorBox = document.getElementById('upload-error-box');
+    const errorMsg = document.getElementById('upload-error-message');
 
-  function showActionBar(text, onApply, onCancel) {
-    const bar = document.getElementById('editor-action-bar');
-    const txt = document.getElementById('editor-action-text');
-    const btnApply = document.getElementById('btn-editor-apply');
-    const btnCancel = document.getElementById('btn-editor-cancel');
-    if (!bar) return;
-    txt.textContent = text;
-    btnApply.onclick = onApply;
-    btnCancel.onclick = onCancel;
-    btnApply.disabled = false;
-    btnApply.textContent = '✓ Применить';
-    bar.style.display = 'flex';
-  }
+    if (errorBox) errorBox.style.display = 'none';
+    if (progressBox) progressBox.style.display = 'block';
 
-  function hideActionBar() {
-    const bar = document.getElementById('editor-action-bar');
-    if (bar) bar.style.display = 'none';
-  }
-
-  window.editorRotate = function(degrees = 90) {
-    if (cropState.active) cancelCrop();
-    pendingDegrees = (pendingDegrees + degrees) % 360;
-    const img = document.getElementById('editor-main-img');
-    if (img) img.style.transform = pendingDegrees !== 0 ? `rotate(${pendingDegrees}deg)` : 'none';
-
-    if (pendingDegrees !== 0) {
-      showActionBar(
-        `Поворот на ${pendingDegrees > 0 ? '+' : ''}${pendingDegrees}°`,
-        confirmRotate,
-        cancelRotate
-      );
-    } else {
-      hideActionBar();
+    function setProgress(done, total) {
+      const pct = Math.round((done / total) * 100);
+      if (progressText) progressText.textContent = `Загружено ${done} из ${total}`;
+      if (progressPercent) progressPercent.textContent = `${pct}%`;
+      if (progressBar) progressBar.style.width = `${pct}%`;
     }
-  };
 
-  async function confirmRotate() {
-    const cur = photos[currentIndex];
-    if (!cur || pendingDegrees === 0) return;
-    const btn = document.getElementById('btn-editor-apply');
-    if (btn) { btn.disabled = true; btn.textContent = '⏳ Поворот...'; }
-    try {
-      const res = await fetch(`/api/items/${itemCode}/photos/rotate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ degrees: pendingDegrees, photo_id: cur.display_id }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        cur.url = data.url;
-        const img = document.getElementById('editor-main-img');
-        if (img) {
-          img.src = data.url;
-          img.style.transform = 'none';
+    setProgress(0, total);
+
+    let uploaded = 0;
+    for (let i = 0; i < total; i++) {
+      const file = files[i];
+      const formData = new FormData();
+      formData.append('files', file);
+      formData.append('role', role || 'ORIGINAL');
+
+      try {
+        const res = await fetch(`/api/items/${itemCode}/photos`, {
+          method: 'POST',
+          body: formData,
+        });
+        if (!res.ok) {
+          let reason = res.statusText;
+          try {
+            const data = await res.json();
+            if (data && data.detail) reason = data.detail;
+          } catch (_) {}
+          throw new Error(`Файл "${file.name}": ${reason} (код ${res.status})`);
         }
-        pendingDegrees = 0;
-        hideActionBar();
-        updateSliderUI();
-      } else {
-        alert('Ошибка при повороте фото');
-      }
-    } catch (e) {
-      alert('Сетевая ошибка поворота');
-    } finally {
-      if (btn) { btn.disabled = false; btn.textContent = '✓ Применить'; }
-    }
-  }
-
-  function cancelRotate() {
-    pendingDegrees = 0;
-    const img = document.getElementById('editor-main-img');
-    if (img) img.style.transform = 'none';
-    hideActionBar();
-  }
-
-  // --- CROP FUNCTIONALITY ---
-  function getImageBoundsInViewport() {
-    const img = document.getElementById('editor-main-img');
-    const container = document.getElementById('editor-single-view');
-    if (!img || !container) return null;
-    const cRect = container.getBoundingClientRect();
-    const iRect = img.getBoundingClientRect();
-    return {
-      left: iRect.left - cRect.left,
-      top: iRect.top - cRect.top,
-      width: iRect.width,
-      height: iRect.height,
-      imgEl: img,
-      containerEl: container,
-    };
-  }
-
-  function renderCropBox() {
-    const boxEl = document.getElementById('crop-box');
-    const labelEl = document.getElementById('crop-dim-label');
-    if (!boxEl) return;
-    boxEl.style.left = cropState.x + 'px';
-    boxEl.style.top = cropState.y + 'px';
-    boxEl.style.width = cropState.w + 'px';
-    boxEl.style.height = cropState.h + 'px';
-    if (labelEl) {
-      labelEl.textContent = `${Math.round(cropState.w)} × ${Math.round(cropState.h)}`;
-    }
-  }
-
-  window.editorCrop = function(ratio = 'free') {
-    if (pendingDegrees !== 0) cancelRotate();
-    const bounds = getImageBoundsInViewport();
-    if (!bounds || bounds.width < 20 || bounds.height < 20) return;
-
-    let initW = bounds.width * 0.8;
-    let initH = bounds.height * 0.8;
-
-    if (ratio === '1:1') {
-      const side = Math.min(initW, initH);
-      initW = side;
-      initH = side;
-    } else if (ratio === '4:3') {
-      if (initW / initH > 4 / 3) {
-        initW = initH * (4 / 3);
-      } else {
-        initH = initW * (3 / 4);
-      }
-    }
-
-    const initX = bounds.left + (bounds.width - initW) / 2;
-    const initY = bounds.top + (bounds.height - initH) / 2;
-
-    cropState = {
-      active: true,
-      ratio: ratio,
-      x: initX,
-      y: initY,
-      w: initW,
-      h: initH,
-      bounds: bounds,
-    };
-
-    const overlay = document.getElementById('crop-overlay');
-    if (overlay) overlay.style.display = 'block';
-    renderCropBox();
-
-    const titleRatio = ratio === 'free' ? 'Свободное' : ratio;
-    showActionBar(`✂ Кадрирование (${titleRatio})`, confirmCrop, cancelCrop);
-  };
-
-  function cancelCrop() {
-    cropState.active = false;
-    const overlay = document.getElementById('crop-overlay');
-    if (overlay) overlay.style.display = 'none';
-    hideActionBar();
-  }
-
-  async function confirmCrop() {
-    const cur = photos[currentIndex];
-    const bounds = cropState.bounds;
-    if (!cur || !bounds) return;
-
-    const img = bounds.imgEl;
-    const natW = img.naturalWidth;
-    const natH = img.naturalHeight;
-
-    const relX1 = Math.max(0, (cropState.x - bounds.left) / bounds.width);
-    const relY1 = Math.max(0, (cropState.y - bounds.top) / bounds.height);
-    const relX2 = Math.min(1, (cropState.x + cropState.w - bounds.left) / bounds.width);
-    const relY2 = Math.min(1, (cropState.y + cropState.h - bounds.top) / bounds.height);
-
-    const x1 = Math.round(relX1 * natW);
-    const y1 = Math.round(relY1 * natH);
-    const x2 = Math.round(relX2 * natW);
-    const y2 = Math.round(relY2 * natH);
-
-    if (x2 <= x1 + 10 || y2 <= y1 + 10) {
-      alert('Слишком маленькая область кадрирования');
-      return;
-    }
-
-    const btn = document.getElementById('btn-editor-apply');
-    if (btn) { btn.disabled = true; btn.textContent = '⏳ Кадрирование...'; }
-
-    try {
-      const res = await fetch(`/api/items/${itemCode}/photos/crop`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ box: [x1, y1, x2, y2], photo_id: cur.display_id }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        cur.url = data.url;
-        img.src = data.url;
-        cancelCrop();
-        updateSliderUI();
-      } else {
-        alert('Ошибка при кадрировании фото');
-      }
-    } catch (e) {
-      alert('Сетевая ошибка кадрирования');
-    } finally {
-      if (btn) { btn.disabled = false; btn.textContent = '✓ Применить'; }
-    }
-  }
-
-  // Mouse & Touch Dragging for Crop Box and Handles
-  const cropOverlay = document.getElementById('crop-overlay');
-  if (cropOverlay) {
-    function startDrag(clientX, clientY, target) {
-      if (!cropState.active) return;
-      isDraggingCrop = true;
-      dragStartX = clientX;
-      dragStartY = clientY;
-      initialCrop = { ...cropState };
-      const handle = target.closest('.crop-handle');
-      dragHandle = handle ? handle.dataset.dir : null;
-    }
-
-    function doDrag(clientX, clientY) {
-      if (!isDraggingCrop || !cropState.active || !initialCrop) return;
-      const dx = clientX - dragStartX;
-      const dy = clientY - dragStartY;
-      const b = cropState.bounds;
-
-      if (!dragHandle) {
-        // Move box
-        let newX = Math.max(b.left, Math.min(b.left + b.width - initialCrop.w, initialCrop.x + dx));
-        let newY = Math.max(b.top, Math.min(b.top + b.height - initialCrop.h, initialCrop.y + dy));
-        cropState.x = newX;
-        cropState.y = newY;
-      } else {
-        // Resize box
-        let newX = initialCrop.x;
-        let newY = initialCrop.y;
-        let newW = initialCrop.w;
-        let newH = initialCrop.h;
-
-        if (dragHandle.includes('e')) newW = Math.max(40, Math.min(b.left + b.width - initialCrop.x, initialCrop.w + dx));
-        if (dragHandle.includes('s')) newH = Math.max(40, Math.min(b.top + b.height - initialCrop.y, initialCrop.h + dy));
-        if (dragHandle.includes('w')) {
-          const clampedDx = Math.min(initialCrop.w - 40, Math.max(b.left - initialCrop.x, dx));
-          newX = initialCrop.x + clampedDx;
-          newW = initialCrop.w - clampedDx;
+        uploaded++;
+        setProgress(uploaded, total);
+      } catch (err) {
+        console.error('Upload error:', err);
+        if (errorBox && errorMsg) {
+          errorMsg.textContent = err.message || 'Сбой сети или недоступность сервиса при передаче файла';
+          errorBox.style.display = 'block';
         }
-        if (dragHandle.includes('n')) {
-          const clampedDy = Math.min(initialCrop.h - 40, Math.max(b.top - initialCrop.y, dy));
-          newY = initialCrop.y + clampedDy;
-          newH = initialCrop.h - clampedDy;
-        }
-
-        if (cropState.ratio === '1:1') {
-          const side = Math.min(newW, newH);
-          newW = side;
-          newH = side;
-        } else if (cropState.ratio === '4:3') {
-          newH = newW * 0.75;
-        }
-
-        cropState.x = newX;
-        cropState.y = newY;
-        cropState.w = newW;
-        cropState.h = newH;
+        return;
       }
-      renderCropBox();
     }
 
-    function endDrag() {
-      isDraggingCrop = false;
-      dragHandle = null;
-      initialCrop = null;
-    }
-
-    cropOverlay.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      startDrag(e.clientX, e.clientY, e.target);
-    });
-    window.addEventListener('mousemove', (e) => {
-      if (isDraggingCrop) doDrag(e.clientX, e.clientY);
-    });
-    window.addEventListener('mouseup', endDrag);
-
-    cropOverlay.addEventListener('touchstart', (e) => {
-      if (e.touches.length === 1) {
-        startDrag(e.touches[0].clientX, e.touches[0].clientY, e.target);
-      }
-    }, { passive: false });
-    window.addEventListener('touchmove', (e) => {
-      if (isDraggingCrop && e.touches.length === 1) {
-        doDrag(e.touches[0].clientX, e.touches[0].clientY);
-      }
-    }, { passive: false });
-    window.addEventListener('touchend', endDrag);
-  }
-
-  window.editorSetCover = async function() {
-    const cur = photos[currentIndex];
-    if (!cur) return;
-    try {
-      const res = await fetch(`/api/items/${itemCode}/photos/${cur.display_id}/cover`, {
-        method: 'POST',
-      });
-      if (res.ok) {
-        window.location.reload();
-      } else {
-        const err = await res.json().catch(() => ({}));
-        alert(err.detail || 'Не удалось установить обложку');
-      }
-    } catch (e) {
-      alert('Ошибка при установке обложки');
-    }
-  };
-
-  window.editorUndo = async function() {
-    const cur = photos[currentIndex];
-    if (!cur) return;
-    try {
-      const res = await fetch(`/api/items/${itemCode}/photos/${cur.display_id}/undo`, {
-        method: 'POST',
-      });
-      if (res.ok) {
-        const data = await res.json();
-        cur.url = data.url;
-        cur.display_id = data.photo_id;
-        const img = document.getElementById('editor-main-img');
-        if (img) img.src = data.url;
-        updateSliderUI();
-      } else {
-        alert('Нет предыдущей версии для отмены');
-      }
-    } catch (e) {
-      alert('Ошибка при отмене изменений');
-    }
+    if (progressText) progressText.textContent = `Загружено ${total} из ${total}. Обновление...`;
+    setTimeout(() => {
+      window.location.reload();
+    }, 400);
   };
 })();
 </script>

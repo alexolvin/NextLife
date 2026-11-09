@@ -54,6 +54,8 @@ def api_reorder_item_photos(
 
         attrs = dict(item.attrs or {})
         attrs["photo_order"] = payload.order
+        if payload.order:
+            attrs["cover_photo_id"] = payload.order[0]
         item.attrs = attrs
 
         for idx, pid in enumerate(payload.order):
@@ -67,6 +69,9 @@ def api_reorder_item_photos(
                     photo.transform_log = t_log
                 else:
                     photo.transform_log = [{"step": "reorder", "sort_order": idx}]
+
+        from nextlife.services.listings_photos import propagate_cover_photo_to_listings
+        propagate_cover_photo_to_listings(session, code)
 
         record_audit_event(
             session=session,
@@ -349,6 +354,30 @@ def ui_toggle_item_photo_defect(
         )
         session.commit()
     return _redirect_card(code, notice="photo_defect_toggled")
+
+
+@photos_ops_router.post("/ui/items/{code}/photos/{photo_id}/move")
+def ui_move_item_photo(
+    code: str, photo_id: str, dir: str = "prev", auth: bool = Depends(check_auth),
+) -> RedirectResponse:
+    """UI: переместить фото левее (prev) или правее (next) в листинге."""
+    from nextlife.services.listings_photos import get_item_ordered_photo_ids, propagate_cover_photo_to_listings
+    with get_db_session() as session:
+        _require_item(session, code)
+        item = session.get(Item, code)
+        cur_order = get_item_ordered_photo_ids(session, code)
+        idx = next((i for i, pid in enumerate(cur_order) if pid == photo_id), -1)
+        if idx >= 0:
+            swap_idx = idx - 1 if dir in ("prev", "left") else idx + 1
+            if 0 <= swap_idx < len(cur_order):
+                cur_order[idx], cur_order[swap_idx] = cur_order[swap_idx], cur_order[idx]
+                attrs = dict(item.attrs or {})
+                attrs["photo_order"] = cur_order
+                attrs["cover_photo_id"] = cur_order[0]
+                item.attrs = attrs
+                propagate_cover_photo_to_listings(session, code)
+                session.commit()
+    return _redirect_card(code, notice="photo_reordered")
 
 
 @photos_ops_router.post("/ui/items/{code}/photos/regen-variants")

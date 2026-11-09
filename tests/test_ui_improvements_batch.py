@@ -201,12 +201,18 @@ def test_photo_gallery_renders_both_rotate_buttons():
     # In photo ops row:
     assert 'data-testid="btn-op-rotate-left"' in body
     assert 'data-testid="btn-op-rotate"' in body
-    assert "Влево 90°" in body
-    assert "Вправо 90°" in body
+    assert 'title="Повернуть влево 90°"' in body
+    assert 'title="Повернуть вправо 90°"' in body
+    assert 'data-testid="btn-op-move-left"' in body
+    assert 'data-testid="btn-op-move-right"' in body
+    assert 'data-testid="btn-op-cover"' in body
+    assert 'data-testid="btn-op-undo"' in body
+    assert 'data-testid="btn-op-defect"' not in body
+    assert 'data-testid="btn-upload-defect"' not in body
+    assert 'data-testid="upload-progress-box"' in body
 
-    # In photo editor toolbar:
-    assert 'data-testid="btn-editor-rotate-left"' in body
-    assert 'data-testid="btn-editor-rotate"' in body
+    # Editor modal should be removed
+    assert 'data-testid="photo-editor-modal"' not in body
 
 
 def test_item_status_transitions_to_deleted():
@@ -229,17 +235,19 @@ def test_delete_stock_item_cancels_active_deals_when_confirmed():
     session.scalar.return_value = lot
 
     with patch("nextlife.services.stock._get_item", return_value=item), \
-         patch("nextlife.services.stock.can_delete_lot", return_value=(False, "Active deal")), \
+         patch("nextlife.services.stock_deletion.can_delete_lot", return_value=(False, "Active deal")), \
          patch("nextlife.services.stock._active_listings", return_value=[]), \
          patch("nextlife.services.stock.unpublish_listings_now", return_value=[]), \
          patch("nextlife.services.stock.delete_photo_and_derived", return_value=[]), \
          patch("nextlife.services.stock.record_audit_event"):
 
-        session.scalars.side_effect = [
-            MagicMock(all=lambda: []),  # listings
-            MagicMock(all=lambda: [deal]),  # active_deals
-            MagicMock(all=lambda: []),  # photos
-        ]
+        def mock_scalars(stmt):
+            s_str = str(stmt).lower()
+            if "deal" in s_str:
+                return MagicMock(all=lambda: [deal])
+            return MagicMock(all=lambda: [])
+
+        session.scalars.side_effect = mock_scalars
 
         res = delete_stock_item(session, "106", confirm_listings=True, confirm_deals=True)
         assert res["status"] == "DELETED"

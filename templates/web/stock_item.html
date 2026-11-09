@@ -152,9 +152,9 @@
     <div class="toast-banner" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Статус фото дефекта обновлён</div>
   {% elif notice == 'photo_op_failed' %}
     <div class="toast-banner" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">⚠ Не удалось выполнить операцию над фото</div>
-  {% elif notice == 'delete_forbidden' or request.query_params.get('notice') == 'delete_forbidden' %}
+  {% elif notice == 'delete_forbidden' or (request and 'query_string' in request.scope and request.query_params.get('notice') == 'delete_forbidden') %}
     <div class="alert alert-danger" style="background: #fee2e2; color: #991b1b; border: 1px solid #f87171; padding: 12px 14px; border-radius: 8px; margin-bottom: 14px;" data-testid="alert-delete-forbidden">
-      <strong>⚠️ Удаление заблокировано:</strong> {{ request.query_params.get('reason') or 'Нельзя удалить объявление, пока оно опубликовано на площадке. Сначала снимите его с размещения.' }}
+      <strong>⚠️ Удаление заблокировано:</strong> {{ (request.query_params.get('reason') if request and 'query_string' in request.scope else '') or 'Нельзя удалить объявление, пока оно опубликовано на площадке. Сначала снимите его с размещения.' }}
     </div>
   {% endif %}
 
