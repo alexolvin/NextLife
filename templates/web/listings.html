@@ -45,6 +45,10 @@
       <span style="font-size: 1.1rem; font-weight: bold;">✓</span>
       <div><strong>Ревизия площадок завершена:</strong> статус активных объявлений подтверждён на площадках, отсутствующие переведены в «Снятые».</div>
     </div>
+  {% elif request.query_params.get('notice') == 'delete_forbidden' %}
+    <div style="background: #fee2e2; border: 1px solid #f87171; color: #991b1b; padding: 12px 14px; border-radius: 8px; margin-bottom: 14px;" data-testid="alert-delete-forbidden">
+      <strong>⚠️ Удаление заблокировано:</strong> {{ request.query_params.get('reason') or 'Нельзя удалить объявление, пока оно опубликовано на площадке. Сначала снимите его с размещения.' }}
+    </div>
   {% elif request.query_params.get('notice') == 'deleted' %}
     <div style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;" data-testid="alert-deleted">
       Объявление успешно удалено.
@@ -202,7 +206,7 @@
 
           <!-- Bottom Actions Frame: Equal width pictogram buttons filling 100% -->
           <div class="card-actions-bar" data-testid="listing-actions-bar">
-            {% if l.status not in ('PUBLISHED', 'UPDATING') %}
+            {% if l.status not in ('PUBLISHED', 'UPDATING', 'UNPUBLISH_FAILED') %}
               <form method="post" action="/ui/listings/{{ l.id }}/delete" style="margin: 0;"
                     onsubmit="return confirm('Вы уверены, что хотите удалить объявление для площадки {{ l.marketplace_key }}?');">
                 <input type="hidden" name="return_to" value="/ui/listings?filter={{ filter_group }}{% if item_code %}&item_code={{ item_code }}{% endif %}{% if q %}&q={{ q }}{% endif %}">
@@ -319,7 +323,20 @@
                   </svg>
                 </button>
               </form>
-            {% elif l.status in ('FAILED', 'UNPUBLISH_FAILED', 'ERROR') %}
+            {% elif l.status == 'UNPUBLISH_FAILED' %}
+              <!-- Повторить снятие с площадки -->
+              <form method="post" action="/ui/listings/{{ l.id }}/unpublish" style="margin: 0;" onsubmit="return handleUnpublishSubmit(event, this)">
+                <input type="hidden" name="return_to" value="/ui/listings?filter={{ filter_group }}{% if item_code %}&item_code={{ item_code }}{% endif %}{% if q %}&q={{ q }}{% endif %}">
+                <button type="submit" class="card-action-btn action-danger"
+                        title="Повторить снятие с площадки" aria-label="Повторить снятие с площадки"
+                        data-testid="btn-unpublish-listing">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </form>
+            {% elif l.status in ('FAILED', 'ERROR') %}
               <!-- Опубликовать (повторить попытку) -->
               <form method="post" action="/ui/listings/{{ l.id }}/publish" style="margin: 0;">
                 <input type="hidden" name="return_to" value="/ui/listings?filter={{ filter_group }}{% if item_code %}&item_code={{ item_code }}{% endif %}{% if q %}&q={{ q }}{% endif %}">

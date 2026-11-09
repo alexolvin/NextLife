@@ -90,3 +90,91 @@ def test_kit_analyzer_delegates_to_pc_profile():
     ram_items = [c for c in components if c.get("component_type") == "ram"]
     assert len(ram_items) == 1
     assert "32GB" in ram_items[0]["name"]
+
+
+def test_exclusions_ad_text_ground_truth():
+    """Components explicitly excluded in ad text must NEVER be added."""
+    # 1. PC sold without GPU
+    comps_no_gpu = decompose_pc_build("Herní PC i5 12400F 16GB bez grafické karty", "prodávám bez GPU")
+    types_no_gpu = [c.get("component_type") for c in comps_no_gpu]
+    assert "gpu" not in types_no_gpu
+    assert not any("GPU" in c["name"] or "Видеокарта" in c["name"] for c in comps_no_gpu)
+
+    # 2. PC sold without storage
+    comps_no_disk = decompose_pc_build("Herní PC Ryzen 5 5600 RTX 3070 16GB bez disku", "SSD si nechávám")
+    types_no_disk = [c.get("component_type") for c in comps_no_disk]
+    assert "storage" not in types_no_disk
+
+    # 3. Upgrade set (motherboard + CPU + RAM) without case/PSU/GPU
+    comps_upgrade = decompose_pc_build("Upgrade set deska ASUS B550 + Ryzen 5 5600 + 32GB RAM", "pouze komponenty")
+    types_upgrade = [c.get("component_type") for c in comps_upgrade]
+    assert "platform" not in types_upgrade  # No Case & PSU
+    assert "gpu" not in types_upgrade       # No GPU
+    assert "cpu" in types_upgrade
+    assert "ram" in types_upgrade
+    assert "motherboard" in types_upgrade
+
+
+def test_ram_generations_frequency_and_sodimm():
+    """Verify DDR2-DDR5, frequency premiums, and SODIMM form-factor."""
+    from nextlife.services.kit_ram_profile import extract_ram_details, calculate_ram_price
+
+    # DDR2
+    spec_ddr2 = extract_ram_details("Starší PC 4GB DDR2 800MHz")
+    assert spec_ddr2.generation == "DDR2"
+    assert spec_ddr2.capacity_gb == 4
+    assert spec_ddr2.frequency_mhz == 800
+    p_ddr2 = calculate_ram_price(spec_ddr2)
+    assert 100 <= p_ddr2 <= 200
+
+    # DDR3 SODIMM
+    spec_sodimm = extract_ram_details("Notebook RAM 16GB DDR3 SODIMM 1600MHz")
+    assert spec_sodimm.generation == "DDR3"
+    assert spec_sodimm.form_factor == "SODIMM"
+    assert spec_sodimm.capacity_gb == 16
+    p_sodimm = calculate_ram_price(spec_sodimm)
+    assert 500 <= p_sodimm <= 800
+
+    # DDR4 3600MHz (frequency bonus)
+    spec_d4_base = extract_ram_details("RAM 32GB DDR4 2400MHz")
+    spec_d4_fast = extract_ram_details("RAM 32GB DDR4 3600MHz")
+    p_base = calculate_ram_price(spec_d4_base)
+    p_fast = calculate_ram_price(spec_d4_fast)
+    assert p_fast > p_base
+    assert p_fast >= 1800
+
+    # DDR5 6000MHz
+    spec_d5 = extract_ram_details("Gaming PC 32GB DDR5 6000MHz CL30")
+    assert spec_d5.generation == "DDR5"
+    assert spec_d5.frequency_mhz == 6000
+    p_d5 = calculate_ram_price(spec_d5)
+    assert p_d5 >= 2500
+
+
+def test_gpu_overpriced_samples_cutoff():
+    """Cut off overpriced listings and whole PCs for GPU market queries."""
+    from nextlife.services.sample_filter import calculate_sample_median, is_relevant_sample
+
+    # Listing for a whole PC must NOT match a standalone GPU query
+    ok, reason = is_relevant_sample("RTX 3080", "Herní PC sestava RTX 3080 i7 32GB", 28000)
+    assert ok is False
+    assert "pc" in reason.lower()
+
+    # Overpriced listings cut off: baseline 10,500 CZK
+    sample_items = [
+        {"title": "MSI RTX 3080 Gaming X Trio", "price": 10000, "url": "https://bazos.cz/1"},
+        {"title": "ASUS TUF RTX 3080 10GB", "price": 10500, "url": "https://bazos.cz/2"},
+        {"title": "GIGABYTE RTX 3080 Eagle", "price": 11000, "url": "https://bazos.cz/3"},
+        {"title": "Scalper RTX 3080 insane price", "price": 24000, "url": "https://bazos.cz/4"},  # Overpriced
+    ]
+    # Ceiling is 1.20 * 10500 = 12600 CZK
+    med, count, urls = calculate_sample_median(
+        query="RTX 3080",
+        items=sample_items,
+        fallback_median=10500,
+        expected_price_range=(5250, 12600),
+    )
+    assert count == 3  # The 24,000 listing was cut off!
+    assert med <= 11000
+    assert not any("4" in u for u in urls)
+

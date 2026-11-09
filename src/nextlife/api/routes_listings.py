@@ -19,10 +19,10 @@ from nextlife.core.status import ListingStatus
 from nextlife.services.listings_reconcile import reconcile_listings_with_marketplaces
 from nextlife.services.listings_sort import sort_listings_by_status
 from nextlife.services.listings import (
-    ListingValidationError, approve_listing, delete_listing, get_listings_counts,
-    get_marketplace_capabilities, prepare_item_listings, publish_approved_listings,
-    publish_listing_now, relist_listing_now, set_listing_free, unapprove_listing,
-    unpublish_listing, update_listing,
+    ListingDeletionForbiddenError, ListingValidationError, approve_listing, delete_listing,
+    get_listings_counts, get_marketplace_capabilities, prepare_item_listings,
+    publish_approved_listings, publish_listing_now, relist_listing_now, set_listing_free,
+    unapprove_listing, unpublish_listing, update_listing,
 )
 from nextlife.storage.db import get_db_session
 from nextlife.storage.models import Item, ItemPhoto, Listing
@@ -387,13 +387,19 @@ def ui_delete_listing(
     return_to: str | None = Form(default=None),
     auth: bool = Depends(check_auth),
 ) -> RedirectResponse:
-    with get_db_session() as session:
-        listing = session.get(Listing, listing_id)
-        item_code = listing.item_code if listing else None
-        delete_listing(session, listing_id)
-        session.commit()
-    target_url = return_to or (f"/ui/stock/{item_code}#listings?notice=listing_deleted" if item_code else "/ui/listings?notice=deleted")
-    return RedirectResponse(url=target_url, status_code=status.HTTP_303_SEE_OTHER)
+    try:
+        with get_db_session() as session:
+            listing = session.get(Listing, listing_id)
+            item_code = listing.item_code if listing else None
+            delete_listing(session, listing_id)
+            session.commit()
+        target_url = return_to or (f"/ui/stock/{item_code}#listings?notice=listing_deleted" if item_code else "/ui/listings?notice=deleted")
+        return RedirectResponse(url=target_url, status_code=status.HTTP_303_SEE_OTHER)
+    except ListingDeletionForbiddenError as exc:
+        sep = "&" if "?" in (return_to or "") else "?"
+        reason_enc = quote(str(exc))
+        target_url = f"{return_to}{sep}notice=delete_forbidden&reason={reason_enc}" if return_to else f"/ui/listings/{listing_id}?notice=delete_forbidden&reason={reason_enc}"
+        return RedirectResponse(url=target_url, status_code=status.HTTP_303_SEE_OTHER)
 
 
 @router.post("/ui/listings/recheck-live")

@@ -301,10 +301,38 @@ def relist_listing_now(session: Session, listing_id: str) -> dict[str, Any]:
     return {"supported": True, "job_id": job.id, "status": "QUEUED"}
 
 
+class ListingDeletionForbiddenError(NextLifeError):
+    """Raised when attempting to delete a listing that is live on a marketplace."""
+    pass
+
+
 def delete_listing(session: Session, listing_id: str) -> None:
-    """Delete listing record from system safely, unlinking FKs."""
+    """Delete listing record from system safely, unlinking FKs.
+
+    Closed-loop guard: never allow deletion of a listing while it is published
+    or active on a marketplace (PUBLISHED, UPDATING, UNPUBLISH_FAILED).
+    """
     listing = session.get(Listing, listing_id)
     if listing:
+        live_statuses = {
+            ListingStatus.PUBLISHED.value,
+            ListingStatus.UPDATING.value,
+            ListingStatus.UNPUBLISH_FAILED.value,
+        }
+        if listing.status in live_statuses:
+            raise ListingDeletionForbiddenError(
+                f"Нельзя удалить объявление #{listing_id} ({listing.marketplace_key}): "
+                f"оно активно на площадке (статус {listing.status}). "
+                f"Сначала снимите его с размещения."
+            )
+        if listing.external_url and listing.status != ListingStatus.ARCHIVED.value:
+            from nextlife.services.listings_reconcile import check_url_is_live
+            if check_url_is_live(listing.external_url):
+                raise ListingDeletionForbiddenError(
+                    f"Нельзя удалить объявление #{listing_id} ({listing.marketplace_key}): "
+                    f"сетевая проверка показала, что объявление всё ещё доступно на площадке ({listing.external_url}). "
+                    f"Сначала снимите его с размещения."
+                )
         from nextlife.storage.models import Deal, Thread
         session.execute(update(Deal).where(Deal.listing_id == listing_id).values(listing_id=None))
         session.execute(update(Thread).where(Thread.listing_id == listing_id).values(listing_id=None))

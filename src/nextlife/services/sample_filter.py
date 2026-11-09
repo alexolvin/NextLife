@@ -151,6 +151,10 @@ def is_relevant_sample(
 
     # 5. Component vs PC build check
     if is_component_query(query):
+        is_gpu_query = bool(re.search(r"\b(rtx|gtx|rx\s*\d|radeon|geforce)\b", q_lower))
+        if is_gpu_query and re.search(r"\b(herní\s*pc|herni\s*pc|gaming\s*pc|pc\s*sestava|stolní\s*pc|stolni\s*pc|celé\s*pc|cele\s*pc|počítač|pocitac|sestava|desktop|skříň|skrin)\b", t):
+            return False, "gpu_query_matched_entire_pc"
+
         if _PC_BUILD_PATTERN.search(t):
             cleaned_t = re.sub(r"\b(?:do|pro|z)\s+(?:pc|počítače|pocitace|ntb|notebooku)\b", "", t, flags=re.IGNORECASE)
             m = _PC_BUILD_PATTERN.search(cleaned_t)
@@ -199,7 +203,7 @@ def filter_relevant_samples(
         exp_min, exp_max = expected_price_range
         valid = [
             it for it in valid
-            if (exp_min * 0.4) <= float(it.get("price") or 0) <= (exp_max * 2.2)
+            if exp_min <= float(it.get("price") or 0) <= exp_max
         ]
 
     # Statistical outlier filtering using IQR if sample size >= 4
@@ -226,17 +230,26 @@ def calculate_sample_median(
     """Calculate verified median price from relevant samples.
 
     Returns (median_price, verified_count, sample_urls).
+    For GPUs, trims overpriced listings to guarantee realistic realizable valuation.
     """
     valid = filter_relevant_samples(query, items, expected_price_range)
     if not valid:
         return fallback_median, 0, []
 
     prices = sorted([int(float(it.get("price") or 0)) for it in valid])
-    mid = len(prices) // 2
-    if len(prices) % 2 == 1:
-        med = prices[mid]
+    is_gpu = bool(re.search(r"\b(rtx|gtx|rx\s*\d|radeon|geforce)\b", query.lower()))
+
+    # For GPUs: cut off overpriced sellers asking above liquid market rates
+    if is_gpu and len(prices) >= 3:
+        # Take 40th percentile to represent conservative, realizable liquidation price
+        p_idx = int(len(prices) * 0.4)
+        med = prices[p_idx]
     else:
-        med = int((prices[mid - 1] + prices[mid]) / 2)
+        mid = len(prices) // 2
+        if len(prices) % 2 == 1:
+            med = prices[mid]
+        else:
+            med = int((prices[mid - 1] + prices[mid]) / 2)
 
     sample_urls = [it.get("url") or it.get("external_url") or "" for it in valid if it.get("url") or it.get("external_url")]
     return med, len(prices), sample_urls[:5]

@@ -30,6 +30,13 @@
     </div>
   </div>
 
+  <!-- Notice Alerts -->
+  {% if request.query_params.get('notice') == 'delete_forbidden' %}
+    <div class="alert alert-danger" style="margin-bottom: 16px; padding: 12px 14px; background: #fee2e2; border: 1px solid #f87171; border-radius: 8px; color: #991b1b;" data-testid="alert-delete-forbidden">
+      <strong>⚠️ Удаление заблокировано:</strong> {{ request.query_params.get('reason') or 'Нельзя удалить объявление, пока оно опубликовано на площадке. Сначала снимите его с размещения.' }}
+    </div>
+  {% endif %}
+
   <!-- Header Info Card -->
   <div class="card" style="padding: 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 16px;">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
@@ -224,12 +231,19 @@
       {% endif %}
 
       <!-- Unpublish action (§6.2, §2.4) -->
-      {% if listing.status in ('PUBLISHED', 'UPDATING') %}
-        {% if caps.unpublish %}
-          <form method="post" action="/ui/listings/{{ listing.id }}/unpublish" onsubmit="return confirm('Вы действительно хотите удалить/снять объявление с площадки {{ listing.marketplace_key }}?');" style="margin: 0;">
+      {% if listing.status in ('PUBLISHED', 'UPDATING', 'UNPUBLISH_FAILED') %}
+        {% if listing.status == 'UPDATING' %}
+          <button type="button" class="btn btn-danger" disabled style="background: #fee2e2; color: #b91c1c; opacity: 0.8; cursor: wait;" data-testid="btn-unpublishing-spinner">
+            <span style="display: inline-flex; align-items: center; gap: 6px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" style="animation: spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+              <span>Снятие выполняется...</span>
+            </span>
+          </button>
+        {% elif caps.unpublish or listing.status == 'UNPUBLISH_FAILED' %}
+          <form method="post" action="/ui/listings/{{ listing.id }}/unpublish" onsubmit="return confirm('Вы действительно хотите снять объявление с площадки {{ listing.marketplace_key }}?');" style="margin: 0;">
             <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
             <button type="submit" class="btn btn-danger" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 8px; cursor: pointer;" data-testid="btn-unpublish">
-              <span>🗑️ Удалить объявление с площадки</span>
+              <span>{{ '🔄 Повторить снятие с площадки' if listing.status == 'UNPUBLISH_FAILED' else '🗑️ Снять объявление с площадки' }}</span>
             </button>
           </form>
         {% else %}
@@ -257,13 +271,19 @@
         </div>
       {% endif %}
 
-      <!-- Delete action -->
-      <form method="post" action="/ui/listings/{{ listing.id }}/delete" onsubmit="return confirm('Удалить эту запись объявления из системы?');" style="margin: 0;">
-        <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
-        <button type="submit" class="btn btn-secondary" style="color: #64748b;" data-testid="btn-delete-listing">
-          Удалить из системы
-        </button>
-      </form>
+      <!-- Delete action: FORBIDDEN when listing is live on marketplace -->
+      {% if listing.status in ('PUBLISHED', 'UPDATING', 'UNPUBLISH_FAILED') %}
+        <div style="font-size: 0.85rem; color: #991b1b; padding: 10px 14px; background: #fee2e2; border: 1px solid #fca5a5; border-radius: 8px;" data-testid="notice-delete-blocked">
+          <strong>⚠️ Удаление из системы заблокировано:</strong> объявление ещё экспонируется на площадке. Чтобы удалить запись, сначала подтвердите снятие с размещения.
+        </div>
+      {% else %}
+        <form method="post" action="/ui/listings/{{ listing.id }}/delete" onsubmit="return confirm('Удалить эту запись объявления из системы?');" style="margin: 0;">
+          <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
+          <button type="submit" class="btn btn-secondary" style="color: #64748b;" data-testid="btn-delete-listing">
+            Удалить из системы
+          </button>
+        </form>
+      {% endif %}
     </div>
   </div>
 </div>

@@ -107,46 +107,12 @@ def is_pc_build_candidate(title: str, description: str = "") -> bool:
 
 
 def _extract_ram_capacity_and_type(text: str) -> tuple[int | None, str]:
-    """Extract RAM capacity in GB and memory generation (DDR4/DDR5) from text.
-
-    Supports formats: 32G, 32GB, 32 gb, 32ГБ, 32 ram, ram 32g, 2x16gb, 4x8g, etc.
-    """
-    t = text.lower()
-    # Detect generation
-    is_ddr5 = bool(re.search(r"\bddr5\b", t))
-    is_ddr4 = bool(re.search(r"\bddr4\b", t))
-    gen_label = "DDR5" if is_ddr5 else ("DDR4" if is_ddr4 else "DDR4/DDR5")
-
-    # Multi-stick patterns: 2x16gb, 4x8g, 2x32g
-    m_multi = re.search(r"\b([24])\s*[x*]\s*(\d{1,3})\s*(?:gb|g|гб)?\b", t)
-    if m_multi:
-        sticks, cap = int(m_multi.group(1)), int(m_multi.group(2))
-        total = sticks * cap
-        if total in (8, 16, 32, 64, 128):
-            return total, gen_label
-
-    # Specific ram mention: e.g. "ram 32g", "32gb ram", "pamet 32g"
-    m_ram_tag = re.search(r"\b(?:ram|paměť|pamet)\s*[:=]?\s*(\d{1,3})\s*(?:gb|g|гб)?\b", t)
-    if m_ram_tag:
-        cap = int(m_ram_tag.group(1))
-        if cap in (4, 8, 16, 24, 32, 48, 64, 96, 128):
-            return cap, gen_label
-
-    m_ram_tag2 = re.search(r"\b(\d{1,3})\s*(?:gb|g|гб)?\s*(?:ram|paměť|pamet)\b", t)
-    if m_ram_tag2:
-        cap = int(m_ram_tag2.group(1))
-        if cap in (4, 8, 16, 24, 32, 48, 64, 96, 128):
-            return cap, gen_label
-
-    # Direct token: 32G, 32GB, 16G, 64G, 128G, 8G
-    # Exclude common non-RAM tokens (e.g. 500g weight or 4g modem)
-    tokens = re.findall(r"\b(128|64|32|16|8)\s*(?:gb|g|гб)\b", t)
-    if tokens:
-        for tok in tokens:
-            cap = int(tok)
-            return cap, gen_label
-
-    return None, gen_label
+    """Extract RAM capacity in GB and memory generation (DDR4/DDR5) from text."""
+    from nextlife.services.kit_ram_profile import extract_ram_details
+    spec = extract_ram_details(text)
+    if spec:
+        return spec.capacity_gb, spec.generation
+    return None, "DDR4/DDR5"
 
 
 def _extract_storage_capacity(text: str) -> tuple[str | None, int]:
@@ -171,158 +137,206 @@ def decompose_pc_build(
     total_cost: Decimal | None = None,
     connector: Any | None = None,
 ) -> list[dict[str, Any]]:
-    """Profile-based decomposition for desktop computer builds."""
+    """Profile-based decomposition for desktop computer builds.
+
+    Adheres strictly to the ad text as the primary source of truth:
+    - Never includes components excluded in text (e.g. 'bez grafiky', 'bez disku', 'bez ram').
+    - Only includes components that are explicitly mentioned or physically integral to a complete PC.
+    """
+    from nextlife.services.kit_ram_profile import extract_ram_details, calculate_ram_price, RamSpec
+
     full_text = f"{title}\n{description}".strip()
     components: list[dict[str, Any]] = []
+
+    # Detect negative context & exclusions (text is the single source of truth)
+    is_gpu_excluded = bool(re.search(
+        r"\b(bez\s*(?:grafik|gpu|grafické\s*karty|vga)|integrovaná\s*(?:grafika|grafická\s*karta|vga)|no\s*gpu|intel\s*uhd|radeon\s*graphics\s*\(integ)\b",
+        full_text.lower(),
+    ))
+    is_cpu_excluded = bool(re.search(r"\b(bez\s*(?:procesoru|cpu)|no\s*cpu)\b", full_text.lower()))
+    is_ram_excluded = bool(re.search(r"\b(bez\s*(?:ram|pamět|pamet|pamětí)|no\s*ram)\b", full_text.lower()))
+    is_storage_excluded = bool(re.search(r"\b(bez\s*(?:disku|ssd|hdd|úložiště|uloziste|m\.?2)|no\s*storage|no\s*ssd|no\s*disk)\b", full_text.lower()))
+    is_case_psu_excluded = bool(re.search(r"\b(bez\s*(?:zdroje|psu|skřín|skrine|case))\b", full_text.lower()))
+    is_cooler_excluded = bool(re.search(r"\b(bez\s*(?:chladič|chladic|cooler|chlazení)|no\s*cooler)\b", full_text.lower()))
+    is_upgrade_set = bool(re.search(r"\b(upgrade\s*kit|set\s*(?:deska|cpu|základní|zakladni)|bundle|combo|pouze\s*komponenty)\b", full_text.lower()))
+    has_case_or_psu = bool(re.search(r"\b(zdroj|psu|skříň|skrin|case|bedna|seasonic|corsair|be\s*quiet|fortron|silverstone|fractal|nzxt\s*h\d|montech)\b", full_text.lower()))
+    has_cooler_mentioned = bool(re.search(r"\b(chladič|chladic|cooler|chlazení|liquid|aio|vodn[íi]|kraken|noctua|arctic|wraith|assassin|dark\s*rock|endorfy|deepcool)\b", full_text.lower()))
+    is_assembled_pc = any(k in full_text.lower() for k in ("herní pc", "herni pc", "gaming pc", "pc sestava", "stolní pc", "počítač", "gamebox"))
 
     # 1. GPU Extraction
     gpu_entry: dict[str, Any] | None = None
     t_inspect = full_text
-    for pat, label, price, search_kw in _GPU_CATALOG:
-        m = re.search(pat, t_inspect.lower())
-        if m:
-            gpu_entry = {
-                "name": f"Видеокарта (GPU): {label}",
-                "qty": 1,
-                "median_price": price,
-                "prices_count": 5,
-                "status": "ok",
-                "component_type": "gpu",
-                "_query": search_kw,
-                "sample_urls": [_make_sample_url(search_kw)],
-            }
-            # Blank out the matched GPU token and its VRAM to prevent confusing GPU VRAM with system RAM
-            t_inspect = re.sub(pat, " [GPU_EXCLUDED] ", t_inspect, flags=re.IGNORECASE)
-            t_inspect = re.sub(r"\b(24|20|16|12|10|8|6)\s*(?:gb|g|гб)\s*(?:vram|gddr\d?)?\b", " ", t_inspect, count=1, flags=re.IGNORECASE)
-            break
+    if not is_gpu_excluded:
+        for pat, label, price, search_kw in _GPU_CATALOG:
+            m = re.search(pat, t_inspect.lower())
+            if m:
+                gpu_entry = {
+                    "name": f"Видеокарта (GPU): {label}",
+                    "qty": 1,
+                    "median_price": price,
+                    "prices_count": 5,
+                    "status": "ok",
+                    "component_type": "gpu",
+                    "_query": search_kw,
+                    "sample_urls": [_make_sample_url(search_kw)],
+                }
+                t_inspect = re.sub(pat, " [GPU_EXCLUDED] ", t_inspect, flags=re.IGNORECASE)
+                t_inspect = re.sub(r"\b(24|20|16|12|10|8|6)\s*(?:gb|g|гб)\s*(?:vram|gddr\d?)?\b", " ", t_inspect, count=1, flags=re.IGNORECASE)
+                break
 
     if gpu_entry:
         components.append(gpu_entry)
 
     # 2. CPU Extraction
     cpu_entry: dict[str, Any] | None = None
-    for pat, label, price, search_kw in _CPU_CATALOG:
-        m = re.search(pat, t_inspect.lower())
-        if m:
-            cpu_entry = {
-                "name": f"Процессор (CPU): {label}",
-                "qty": 1,
-                "median_price": price,
-                "prices_count": 5,
-                "status": "ok",
-                "component_type": "cpu",
-                "_query": search_kw,
-                "sample_urls": [_make_sample_url(search_kw)],
-            }
-            t_inspect = re.sub(pat, " [CPU_EXCLUDED] ", t_inspect, flags=re.IGNORECASE)
-            break
+    if not is_cpu_excluded:
+        for pat, label, price, search_kw in _CPU_CATALOG:
+            m = re.search(pat, t_inspect.lower())
+            if m:
+                cpu_entry = {
+                    "name": f"Процессор (CPU): {label}",
+                    "qty": 1,
+                    "median_price": price,
+                    "prices_count": 5,
+                    "status": "ok",
+                    "component_type": "cpu",
+                    "_query": search_kw,
+                    "sample_urls": [_make_sample_url(search_kw)],
+                }
+                t_inspect = re.sub(pat, " [CPU_EXCLUDED] ", t_inspect, flags=re.IGNORECASE)
+                break
 
     if cpu_entry:
         components.append(cpu_entry)
 
-    # 3. RAM Extraction (Crucial: accounts for 32G, 32GB, 16G, etc.)
-    ram_cap, ram_gen = _extract_ram_capacity_and_type(t_inspect)
-    if ram_cap is None:
-        # Check original full_text in case GPU exclusion touched something
-        ram_cap, ram_gen = _extract_ram_capacity_and_type(full_text)
+    # 3. RAM Extraction: takes into account generation (DDR2-DDR5), frequency, form-factor (SODIMM/UDIMM)
+    if not is_ram_excluded:
+        cpu_ctx = cpu_entry["name"] if cpu_entry else full_text
+        ram_spec = extract_ram_details(t_inspect, context=cpu_ctx)
+        if not ram_spec:
+            ram_spec = extract_ram_details(full_text, context=cpu_ctx)
 
-    # Default baseline for gaming PC if RAM not explicitly found
-    if ram_cap is None:
-        ram_cap = 16
+        # Baseline only if an assembled PC is explicitly being sold
+        if not ram_spec and is_assembled_pc and not is_upgrade_set:
+            gen = _extract_ram_capacity_and_type(full_text)[1]
+            ram_spec = RamSpec(capacity_gb=16, generation="DDR5" if "DDR5" in gen else "DDR4")
 
-    ram_prices = {
-        128: 6800,
-        64: 3800 if ram_gen == "DDR5" else 3000,
-        32: 2400 if ram_gen == "DDR5" else 1700,
-        16: 1200 if ram_gen == "DDR5" else 850,
-        8: 450,
-    }
-    ram_price = ram_prices.get(ram_cap, 1700)
-    ram_query = f"{ram_cap}GB {ram_gen}" if ram_gen in ("DDR4", "DDR5") else f"{ram_cap}GB RAM"
-    components.append({
-        "name": f"Оперативная память (RAM): {ram_cap}GB {ram_gen}",
-        "qty": 1,
-        "median_price": ram_price,
-        "prices_count": 5,
-        "status": "ok",
-        "component_type": "ram",
-        "_query": ram_query,
-        "sample_urls": [_make_sample_url(ram_query)],
-    })
+        if ram_spec:
+            ram_price = calculate_ram_price(ram_spec)
+            components.append({
+                "name": f"Оперативная память (RAM): {ram_spec.display_name}",
+                "qty": 1,
+                "median_price": ram_price,
+                "prices_count": 5,
+                "status": "ok",
+                "component_type": "ram",
+                "_query": ram_spec.search_query,
+                "sample_urls": [_make_sample_url(ram_spec.search_query)],
+            })
 
-    # 4. Storage Extraction (SSD / NVMe)
-    storage_label, storage_price = _extract_storage_capacity(full_text)
-    if not storage_label:
-        # Default standard NVMe drive for gaming PC build
-        storage_label = "1TB NVMe M.2 SSD"
-        storage_price = 1450
-    components.append({
-        "name": f"Накопитель (Storage): {storage_label}",
-        "qty": 1,
-        "median_price": storage_price,
-        "prices_count": 5,
-        "status": "ok",
-        "component_type": "storage",
-        "_query": storage_label[:14],
-        "sample_urls": [_make_sample_url(storage_label[:14])],
-    })
+    # 4. Storage Extraction: strictly verify storage presence in text
+    if not is_storage_excluded:
+        storage_label, storage_price = _extract_storage_capacity(full_text)
+        is_turnkey_pc = bool(re.search(r"\b(stačí\s*zapojit|připraven|nainstalov[áa]n\s*win|windows\s*1[01]|kompletní\s*pc|hotový\s*pc)\b", full_text.lower()))
+        if storage_label:
+            components.append({
+                "name": f"Накопитель (Storage): {storage_label}",
+                "qty": 1,
+                "median_price": storage_price,
+                "prices_count": 5,
+                "status": "ok",
+                "component_type": "storage",
+                "_query": storage_label[:14],
+                "sample_urls": [_make_sample_url(storage_label[:14])],
+            })
+        elif is_turnkey_pc and is_assembled_pc and not is_upgrade_set:
+            components.append({
+                "name": "Накопитель (Storage): 1TB NVMe M.2 SSD",
+                "qty": 1,
+                "median_price": 1450,
+                "prices_count": 5,
+                "status": "ok",
+                "component_type": "storage",
+                "_query": "1TB SSD NVMe",
+                "sample_urls": [_make_sample_url("1TB SSD NVMe")],
+            })
 
     # 5. Motherboard, Case & Power Supply (Platform)
-    # Tier assessment based on GPU / CPU power requirements
-    gpu_price = gpu_entry["median_price"] if gpu_entry else 5000
-    if gpu_price >= 18000:
-        psu_desc = "850W-1000W Gold"
-        platform_price = 5500
-    elif gpu_price >= 10000:
-        psu_desc = "750W Bronze/Gold"
-        platform_price = 4200
-    else:
-        psu_desc = "550W-650W"
-        platform_price = 3200
+    if is_case_psu_excluded or (is_upgrade_set and not has_case_or_psu):
+        if any(k in full_text.lower() for k in ("deska", "motherboard", "základní", "zakladni", "b550", "b650", "z790", "x570", "b450", "z690")):
+            components.append({
+                "name": "Материнская плата (Motherboard)",
+                "qty": 1,
+                "median_price": 2800,
+                "prices_count": 5,
+                "status": "ok",
+                "component_type": "motherboard",
+                "_query": "základní deska",
+                "sample_urls": [_make_sample_url("základní deska")],
+            })
+    elif has_case_or_psu or (is_assembled_pc and not is_upgrade_set):
+        gpu_price = gpu_entry["median_price"] if gpu_entry else 5000
+        if gpu_price >= 18000:
+            psu_desc, platform_price = "850W-1000W Gold", 5500
+        elif gpu_price >= 10000:
+            psu_desc, platform_price = "750W Bronze/Gold", 4200
+        else:
+            psu_desc, platform_price = "550W-650W", 3200
 
-    components.append({
-        "name": f"Материнская плата, корпус и блок питания ({psu_desc})",
-        "qty": 1,
-        "median_price": platform_price,
-        "prices_count": 5,
-        "status": "ok",
-        "component_type": "platform",
-        "_query": "skříň zdroj PC",
-        "sample_urls": [_make_sample_url("skříň zdroj PC")],
-    })
-
-    # 6. CPU Cooling
-    has_aio = bool(re.search(r"\b(liquid|aio|vodn[íi]|water|kraken|arctic liquid|сво)\b", full_text.lower()))
-    if has_aio:
         components.append({
-            "name": "Система жидкостного охлаждения (AIO Liquid Cooling)",
+            "name": f"Материнская плата, корпус и блок питания ({psu_desc})",
             "qty": 1,
-            "median_price": 2400,
+            "median_price": platform_price,
             "prices_count": 5,
             "status": "ok",
-            "component_type": "cooling",
-            "_query": "vodní chlazení AIO",
-            "sample_urls": [_make_sample_url("vodní chlazení AIO")],
-        })
-    else:
-        components.append({
-            "name": "Охлаждение процессора (CPU Cooler)",
-            "qty": 1,
-            "median_price": 750,
-            "prices_count": 4,
-            "status": "ok",
-            "component_type": "cooling",
-            "_query": "chladič CPU",
-            "sample_urls": [_make_sample_url("chladič CPU")],
+            "component_type": "platform",
+            "_query": "skříň zdroj PC",
+            "sample_urls": [_make_sample_url("skříň zdroj PC")],
         })
 
-    # Sample verification via connector if available
+    # 6. CPU Cooling
+    if not is_cooler_excluded:
+        has_aio = bool(re.search(r"\b(liquid|aio|vodn[íi]|water|kraken|arctic liquid|сво)\b", full_text.lower()))
+        if has_aio:
+            components.append({
+                "name": "Система жидкостного охлаждения (AIO Liquid Cooling)",
+                "qty": 1,
+                "median_price": 2400,
+                "prices_count": 5,
+                "status": "ok",
+                "component_type": "cooling",
+                "_query": "vodní chlazení AIO",
+                "sample_urls": [_make_sample_url("vodní chlazení AIO")],
+            })
+        elif has_cooler_mentioned or (is_assembled_pc and not is_upgrade_set):
+            components.append({
+                "name": "Охлаждение процессора (CPU Cooler)",
+                "qty": 1,
+                "median_price": 750,
+                "prices_count": 4,
+                "status": "ok",
+                "component_type": "cooling",
+                "_query": "chladič CPU",
+                "sample_urls": [_make_sample_url("chladič CPU")],
+            })
+
+    # Sample verification via connector with tight overpriced-ceiling cutoffs
     if connector is not None and components:
         from concurrent.futures import ThreadPoolExecutor
 
         def _enrich(c: dict[str, Any]) -> None:
             query = c.pop("_query", c["name"])
             fb = c["median_price"]
+            c_type = c.get("component_type", "other")
+            # Aggressive ceiling cutoffs to prevent overpriced listings from distorting valuation
+            if c_type == "gpu":
+                expected_range = (int(fb * 0.50), int(fb * 1.20))
+            elif c_type == "cpu":
+                expected_range = (int(fb * 0.50), int(fb * 1.30))
+            elif c_type == "ram":
+                expected_range = (int(fb * 0.40), int(fb * 1.40))
+            else:
+                expected_range = (int(fb * 0.40), int(fb * 1.50))
             try:
                 raw_items = connector.search(query)[:10]
                 item_dicts = [{"title": it.title, "price": it.price, "url": it.external_url} for it in raw_items]
@@ -330,7 +344,7 @@ def decompose_pc_build(
                     query=query,
                     items=item_dicts,
                     fallback_median=fb,
-                    expected_price_range=(int(fb * 0.4), int(fb * 2.2)),
+                    expected_price_range=expected_range,
                 )
                 if cnt >= 1 and sample_urls:
                     c["median_price"] = med

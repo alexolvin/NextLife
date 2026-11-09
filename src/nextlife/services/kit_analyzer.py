@@ -122,11 +122,19 @@ def _fetch_verified_component_pricing(
     try:
         raw_items = connector.search(query)[:12]
         item_dicts = [{"title": it.title, "price": it.price, "url": it.external_url} for it in raw_items]
+        if comp_type == "gpu":
+            exp_range = (int(fallback_median * 0.50), int(fallback_median * 1.20))
+        elif comp_type == "cpu":
+            exp_range = (int(fallback_median * 0.50), int(fallback_median * 1.30))
+        elif comp_type == "ram":
+            exp_range = (int(fallback_median * 0.40), int(fallback_median * 1.40))
+        else:
+            exp_range = (int(fallback_median * 0.40), int(fallback_median * 1.50))
         med, count, sample_urls = calculate_sample_median(
             query=query,
             items=item_dicts,
             fallback_median=fallback_median,
-            expected_price_range=(int(fallback_median * 0.4), int(fallback_median * 2.2)),
+            expected_price_range=exp_range,
         )
         if count >= 1 and sample_urls:
             return med, count, sample_urls[:2] + [search_url]
@@ -153,10 +161,14 @@ def _estimate_comp_price(name: str, comp_type: str, fallback_amount: int) -> int
                 return price
         return max(3000, fallback_amount)
     if comp_type == "ram":
+        from nextlife.services.kit_ram_profile import extract_ram_details, calculate_ram_price
+        spec = extract_ram_details(name)
+        if spec:
+            return calculate_ram_price(spec)
         for pat, price in _RAM_PRICES:
             if re.search(pat, t):
                 return price
-        return max(1500, fallback_amount)
+        return max(800, fallback_amount)
     if comp_type == "storage":
         for pat, price in _STORAGE_PRICES:
             if re.search(pat, t):
