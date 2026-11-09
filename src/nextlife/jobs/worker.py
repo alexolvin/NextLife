@@ -81,24 +81,19 @@ def process_one_job(session: Session) -> bool:
     try:
         dispatch_job(job, session)
         job.state = "DONE"
-        job.error_code = None
-        job.error_text = None
-        job.error_hint = None
+        job.last_error = None
         job.locked_by = None
-        job.finished_at = datetime.now(UTC)
         logger.info(f"Job {job.id} ({job.kind}) completed successfully")
     except Exception as exc:
-        err_info = classify_error(exc)
-        logger.error(f"Job {job.id} ({job.kind}) failed: {exc} (class={err_info.category})")
+        err_code, err_text, err_hint = classify_error(exc)
+        logger.error(f"Job {job.id} ({job.kind}) failed: {exc} (code={err_code})")
 
         job.attempts += 1
-        job.error_code = err_info.code
-        job.error_text = str(exc)
-        job.error_hint = err_info.hint
+        job.last_error = f"[{err_code}] {str(exc)}"
 
         # Retry logic:
         # Retry only for network errors when attempts < 3
-        if err_info.category == "NETWORK" and job.attempts < 3:
+        if err_code == "NETWORK" and job.attempts < 3:
             delay = NETWORK_RETRY_DELAYS[min(job.attempts - 1, len(NETWORK_RETRY_DELAYS) - 1)]
             job.state = "PENDING"
             job.run_after = datetime.now(UTC) + timedelta(seconds=delay)
@@ -107,15 +102,13 @@ def process_one_job(session: Session) -> bool:
         else:
             job.state = "FAILED"
             job.locked_by = None
-            job.finished_at = datetime.now(UTC)
 
             # Create owner notification on fatal job failure
             notif = OwnerNotification(
                 id=str(uuid.uuid4()),
+                kind="JOB_FAILED",
                 title=f"Ошибка выполнения задачи: {job.kind}",
-                message=f"Задача завершилась с ошибкой: {str(exc)}",
-                action_required=True,
-                level="ERROR",
+                body=f"Задача завершилась с ошибкой: {str(exc)}",
             )
             session.add(notif)
 

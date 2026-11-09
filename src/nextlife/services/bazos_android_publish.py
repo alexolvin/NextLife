@@ -1473,7 +1473,7 @@ def bazos_android_delete_listing(
     if transport is None:
         cfg = load_config().app.android_bridge.phone_broker
         transport = make_phone_broker_transport(cfg)
-        transport.lease_max_duration_s = 300
+        transport.lease_max_duration_s = 30
         own_transport = True
 
     deleted = False
@@ -1548,7 +1548,13 @@ def bazos_android_delete_listing(
         errors.append("Телефон занят окном обслуживания.")
     except AndroidBridgeError as exc:
         log.warning("bazos android delete failed: %s", exc)
-        errors.append("Ошибка связи с Android Bridge при удалении объявления.")
+        err_msg = str(exc)
+        if "offline" in err_msg.lower():
+            errors.append("Телефон PhoneBroker офлайн. Проверьте подключение устройства.")
+        elif "timed out" in err_msg.lower():
+            errors.append("Превышено время ожидания PhoneBroker (30 сек).")
+        else:
+            errors.append(f"Ошибка связи с PhoneBroker: {err_msg}")
     finally:
         if own_transport:
             transport.end()

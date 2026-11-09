@@ -518,6 +518,9 @@ def delete_preview(session: Session, code: str) -> dict[str, Any]:
     }
 
 
+from nextlife.services.stock_deletion import StockDeletionUnpublishError, delete_stock_item_closed_loop
+
+
 def delete_stock_item(
     session: Session,
     code: str,
@@ -525,98 +528,14 @@ def delete_stock_item(
     confirm_deals: bool = False,
     actor: str = "OWNER",
 ) -> dict[str, Any]:
-    """Удаление предмета Склада (§1.3, §3.4).
-
-    Порядок: снятие объявлений -> lot DELETED -> item DELETED -> коммит ->
-    удаление файлов фото. Активная сделка блокирует удаление.
-    """
-    item = _get_item(session, code)
-    lot = session.scalar(select(Lot).where(Lot.code == code))
-
-    # Активная сделка блокирует удаление (can_delete_lot).
-    can_delete, reason = can_delete_lot(session, code)
-    if not can_delete:
-        if confirm_deals:
-            from sqlalchemy import or_
-
-            from nextlife.storage.models import Deal
-
-            item_id = lot.item_id if lot else code
-            listings = session.scalars(select(Listing).where(Listing.item_code == item_id)).all()
-            listing_ids = [lst.id for lst in listings]
-            conditions = []
-            if listing_ids:
-                conditions.append(Deal.listing_id.in_(listing_ids))
-            if lot:
-                conditions.append(Deal.lot_id == lot.id)
-            if conditions:
-                active_deals = session.scalars(
-                    select(Deal).where(
-                        or_(*conditions),
-                        Deal.status.in_(["ACTIVE", "OPEN", "IN_PROGRESS", "PAID", "SHIPPED"]),
-                        Deal.closed_at.is_(None),
-                    )
-                ).all()
-                now_utc = datetime.now(UTC)
-                for d in active_deals:
-                    d.status = "CANCELLED"
-                    d.closed_at = now_utc
-            session.flush()
-        else:
-            raise LotDeletionBlockedError(reason or "Активная сделка.")
-
-    active_listings = _active_listings(session, code)
-    if active_listings and not confirm_listings:
-        raise StockDeletionNeedsConfirmationError(
-            f"Нужно подтверждение снятия {len(active_listings)} объявлений."
-        )
-
-    # 1. Снять объявления с площадок.
-    unpublish_results = unpublish_listings_now(session, code, actor=actor)
-
-    # 2+3. Soft delete: lot DELETED, item DELETED.
-    if lot is not None:
-        lot.status = "DELETED"
-    validate_transition(ItemStatus(item.status), ItemStatus.DELETED)
-    item.status = ItemStatus.DELETED.value
-
-    # Сбор путей фото (корни цепочек).
-    photos = session.scalars(select(ItemPhoto).where(ItemPhoto.item_code == code)).all()
-    photo_ids = {p.id for p in photos}
-    roots = [p.id for p in photos if p.derived_from_id is None or p.derived_from_id not in photo_ids]
-    files: list[str] = []
-    for pid in roots:
-        files.extend(delete_photo_and_derived(session, code, pid))
-
-    record_audit_event(
+    """Удаление предмета Склада (§1.3, §3.4) с Closed-Loop Marketplace Verification."""
+    return delete_stock_item_closed_loop(
         session=session,
+        code=code,
+        confirm_listings=confirm_listings,
+        confirm_deals=confirm_deals,
         actor=actor,
-        action="STOCK_ITEM_DELETED",
-        entity="item",
-        entity_id=code,
-        data={
-            "title": item.title,
-            "unpublish": unpublish_results,
-            "photos_deleted": len(files),
-        },
     )
-    session.commit()
-
-    # Удаление файлов — только после коммита.
-    removed: list[str] = []
-    for path in files:
-        try:
-            Path(path).unlink(missing_ok=True)
-            removed.append(path)
-        except OSError:
-            pass
-
-    return {
-        "code": code,
-        "status": "DELETED",
-        "unpublish": unpublish_results,
-        "photos_deleted": len(removed),
-    }
 
 
 def check_item_ready_for_sale(session: Session, code: str) -> tuple[bool, list[str]]:

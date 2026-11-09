@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+</style>
 <div class="listings-container" style="padding: 16px; max-width: 900px; margin: 0 auto;" data-testid="listings-screen">
   <!-- Header & Actions -->
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
@@ -146,7 +152,10 @@
                 {% elif l.status == 'APPROVED' %}
                   <span class="badge" style="font-size: 0.75rem; padding: 4px 8px; background: #dcfce7; color: #166534; font-weight: 600;">APPROVED</span>
                 {% elif l.status == 'UPDATING' %}
-                  <span class="badge" style="font-size: 0.75rem; padding: 4px 8px; background: #fef3c7; color: #92400e; font-weight: 600;">UPDATING</span>
+                  <span class="badge" style="font-size: 0.75rem; padding: 4px 8px; background: #fee2e2; color: #b91c1c; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;" title="Выполняется снятие с площадки...">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="animation: spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+                    СНЯТИЕ...
+                  </span>
                 {% elif l.status == 'DRAFT' %}
                   <span class="badge" style="font-size: 0.75rem; padding: 4px 8px; background: #fef9c3; color: #854d0e; font-weight: 600;">{{ l.status }}</span>
                 {% elif 'ERR' in l.status or l.status == 'FAILED' or l.last_error_text %}
@@ -238,13 +247,22 @@
             {% endif %}
 
             <!-- Действия в зависимости от статуса -->
-            {% if l.status in ('PUBLISHED', 'UPDATING') %}
+            {% if l.status == 'UPDATING' %}
+              <!-- Снятие выполняется: кружок ожидания прямо на кнопке -->
+              <button type="button" class="card-action-btn action-danger" disabled
+                      style="opacity: 0.9; cursor: wait; background: #fee2e2; border-color: #fca5a5; color: #b91c1c;"
+                      title="Выполняется снятие с площадки..." aria-label="Выполняется снятие">
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;">
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+                </svg>
+              </button>
+            {% elif l.status == 'PUBLISHED' %}
               <!-- Снять с площадки -->
-              <form method="post" action="/ui/listings/{{ l.id }}/unpublish" style="margin: 0;">
+              <form method="post" action="/ui/listings/{{ l.id }}/unpublish" style="margin: 0;" onsubmit="return handleUnpublishSubmit(event, this)">
                 <input type="hidden" name="return_to" value="/ui/listings?filter={{ filter_group }}{% if item_code %}&item_code={{ item_code }}{% endif %}{% if q %}&q={{ q }}{% endif %}">
                 <button type="submit" class="card-action-btn action-danger"
                         title="Снять объявление с площадки" aria-label="Снять объявление с площадки"
-                        data-testid="btn-unpublish-listing" onclick="return confirm('Снять объявление с площадки?')">
+                        data-testid="btn-unpublish-listing">
                   <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -334,4 +352,33 @@
     </div>
   {% endif %}
 </div>
+
+<script>
+  function handleUnpublishSubmit(e, form) {
+    if (!confirm('Снять объявление с площадки?')) {
+      e.preventDefault();
+      return false;
+    }
+    const btn = form.querySelector('button[type="submit"]');
+    if (btn) {
+      btn.disabled = true;
+      btn.style.opacity = '0.9';
+      btn.style.cursor = 'wait';
+      btn.title = 'Снятие выполняется...';
+      btn.innerHTML = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>';
+    }
+    return true;
+  }
+
+  // Auto-refresh if any listing is currently in UPDATING state
+  (function() {
+    const updatingCards = document.querySelectorAll('.card-action-btn[disabled][title*="снятие"], span.badge:has-text("СНЯТИЕ")');
+    const hasUpdating = document.body.innerText.includes('СНЯТИЕ...') || document.body.innerText.includes('UPDATING');
+    if (hasUpdating) {
+      setTimeout(function() {
+        window.location.reload();
+      }, 4000);
+    }
+  })();
+</script>
 {% endblock %}

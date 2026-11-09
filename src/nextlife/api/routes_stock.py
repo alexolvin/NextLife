@@ -26,6 +26,7 @@ from nextlife.services.lot_delete import LotDeletionBlockedError
 from nextlife.services.shipping_options import get_lot_delivery_summary
 from nextlife.services.stock import (
     StockDeletionNeedsConfirmationError,
+    StockDeletionUnpublishError,
     StockItemNotFoundError,
     StockValidationError,
     bulk_update_location,
@@ -584,4 +585,13 @@ def api_stock_delete(
             return JSONResponse(
                 status_code=status.HTTP_409_CONFLICT,
                 content={"detail": str(exc)},
+            )
+        except StockDeletionUnpublishError as exc:
+            return JSONResponse(
+                status_code=status.HTTP_409_CONFLICT,
+                content={
+                    "detail": str(exc),
+                    "error_type": "UNPUBLISH_FAILED",
+                    "failed_listings": exc.failed_listings,
+                },
             )
