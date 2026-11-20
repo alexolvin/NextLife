@@ -1,0 +1,90 @@
+{# templates/web/_components.html - Reusable UI component macros (TZ §3.2) #}
+{% import "icons.html" as icons %}
+
+{% macro badge(label, tone='neutral', testid=None) %}
+<span class="badge badge-{{ tone }}" {% if testid %}data-testid="{{ testid }}"{% endif %}>{{ label }}</span>
+{% endmacro %}
+
+{% macro chip_toggle(name, label, checked=False, disabled=False, testid=None) %}
+<label class="chip-toggle {% if checked %}is-checked{% endif %} {% if disabled %}is-disabled{% endif %}">
+  <input type="checkbox" name="{{ name }}" {% if checked %}checked{% endif %} {% if disabled %}disabled{% endif %} {% if testid %}data-testid="{{ testid }}"{% endif %} onchange="this.parentElement.classList.toggle('is-checked', this.checked)">
+  <span>{{ label }}</span>
+</label>
+{% endmacro %}
+
+{% macro slim_bar(text, close_href=None, testid=None) %}
+<div class="slim-bar" {% if testid %}data-testid="{{ testid }}"{% endif %}>
+  <div class="slim-bar-content">{{ text }}</div>
+  {% if close_href %}
+  <a href="{{ close_href }}" class="slim-bar-close" aria-label="Сбросить">✕</a>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{% macro empty_state(text="Нет данных для отображения") %}
+<div class="empty">{{ text }}</div>
+{% endmacro %}
+
+{% macro help_popover(hint_text) %}
+<span class="hint" tabindex="0" title="{{ hint_text }}" aria-label="Подсказка">
+  ?
+  <span class="hint-popover">{{ hint_text }}</span>
+</span>
+{% endmacro %}
+
+{% macro overflow_menu(items=[]) %}
+<details class="menu">
+  <summary class="btn-icon" aria-label="Действия">
+    {{ icons.icon_more(16) }}
+  </summary>
+  <div class="menu-dropdown">
+    {% for item in items %}
+      {% if item.is_divider %}
+        <hr class="menu-divider">
+      {% elif item.method == 'post' %}
+        <form method="post" action="{{ item.url }}" class="inline-form">
+          {% for k, v in (item.params or {}).items() %}
+            <input type="hidden" name="{{ k }}" value="{{ v }}">
+          {% endfor %}
+          <button type="submit" class="menu-item {% if item.danger %}text-danger{% endif %}" {% if item.confirm %}onclick="return confirm('{{ item.confirm }}')"{% endif %} {% if item.testid %}data-testid="{{ item.testid }}"{% endif %}>
+            {{ item.label }}
+          </button>
+        </form>
+      {% else %}
+        <a href="{{ item.url }}" class="menu-item {% if item.danger %}text-danger{% endif %}" {% if item.testid %}data-testid="{{ item.testid }}"{% endif %}>
+          {{ item.label }}
+        </a>
+      {% endif %}
+    {% endfor %}
+  </div>
+</details>
+{% endmacro %}
+
+{% macro list_row(href=None, thumb_url=None, title="", subtitle="", price=None, badge_label=None, badge_tone='neutral', right_html=None, testid=None) %}
+<div class="row list-row {% if href %}cursor-pointer{% endif %}" {% if testid %}data-testid="{{ testid }}"{% endif %} {% if href %}onclick="window.location='{{ href }}'"{% endif %}>
+  <div class="list-row-thumb">
+    {% if thumb_url %}
+      <img src="{{ thumb_url }}" alt="" class="thumb-img" loading="lazy">
+    {% else %}
+      <div class="thumb-placeholder">
+        {{ icons.icon_image_placeholder(20) }}
+      </div>
+    {% endif %}
+  </div>
+  <div class="list-row-body">
+    <div class="list-row-title">{{ title }}</div>
+    <div class="list-row-meta">{{ subtitle }}</div>
+  </div>
+  <div class="list-row-right" onclick="event.stopPropagation()">
+    {% if price is not none %}
+      <span class="list-row-price">{{ price }}</span>
+    {% endif %}
+    {% if badge_label %}
+      <span class="badge badge-{{ badge_tone }}">{{ badge_label }}</span>
+    {% endif %}
+    {% if right_html %}
+      {{ right_html | safe }}
+    {% endif %}
+  </div>
+</div>
+{% endmacro %}

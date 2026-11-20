@@ -1,75 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-<style>
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  .stepper-bar {
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    padding-bottom: 8px;
-    margin-bottom: 16px;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-  .stepper-bar::-webkit-scrollbar {
-    display: none;
-  }
-  .stepper-pill {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-    padding: 6px 12px !important;
-    border-radius: 16px !important;
-    text-decoration: none !important;
-    font-size: 0.85rem !important;
-    font-weight: 500 !important;
-    flex-shrink: 0 !important;
-    scroll-snap-align: center !important;
-    transition: all 0.15s ease !important;
-    background: #f1f5f9 !important;
-    color: #334155 !important;
-    border: none !important;
-    box-shadow: none !important;
-    cursor: pointer !important;
-    box-sizing: border-box !important;
-  }
-  .stepper-pill:hover {
-    background: #e2e8f0 !important;
-    color: #0f172a !important;
-  }
-  .stepper-pill:active {
-    transform: scale(0.97) !important;
-  }
-  .stepper-pill.active,
-  .stepper-pill.is-active {
-    background: #2563eb !important;
-    color: #ffffff !important;
-    font-weight: 600 !important;
-    box-shadow: none !important;
-  }
-  @media (max-width: 480px) {
-    .stepper-nav-bar button {
-      min-width: 80px !important;
-      padding: 6px 10px !important;
-      font-size: 0.88rem !important;
-    }
-    .stepper-nav-bar [data-testid="stepper-stage-indicator"] {
-      font-size: 0.88rem !important;
-    }
-    .stepper-pill {
-      padding: 6px 12px !important;
-      border-radius: 16px !important;
-      font-size: 0.85rem !important;
-    }
-  }
-</style>
-
 <script>
 function stockItemMaster(itemCode) {
   return {
@@ -266,28 +197,28 @@ function stockItemMaster(itemCode) {
 }
 </script>
 
-<div class="stock-item-container" style="padding: 8px 8px 80px 8px; max-width: 900px; margin: 0 auto;" x-data="stockItemMaster('{{ item.code }}')">
+<div class="stock-item-container" x-data="stockItemMaster('{{ item.code }}')">
 
   <!-- Modal: Сохранить изменения? (Да, Нет, Отмена) -->
   <div x-show="showConfirmModal" x-cloak
-       style="position: fixed; inset: 0; z-index: 9999; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(2px);"
+       class="modal-overlay"
        data-testid="unsaved-changes-modal">
-    <div class="card" style="max-width: 440px; width: 100%; background: #ffffff; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25); padding: 22px; border: 1px solid #cbd5e1;"
+    <div class="modal-box"
          @click.away="cancelNav()">
-      <div style="font-size: 1.2rem; font-weight: 700; color: #0f172a; margin-bottom: 8px;" data-testid="modal-title">
+      <div class="modal-title font-bold text-lg mb-2" data-testid="modal-title">
         Сохранить изменения?
       </div>
-      <div style="font-size: 0.95rem; color: #475569; margin-bottom: 22px; line-height: 1.5;" data-testid="modal-desc">
-        На вкладке «<span x-text="currentStageName" style="font-weight: 600;"></span>» есть несохранённые данные. Сохранить их перед переходом к вкладке «<span x-text="stageNames[pendingTab] || pendingTab" style="font-weight: 600;"></span>»?
+      <div class="modal-desc text-muted mb-3" data-testid="modal-desc">
+        На вкладке «<span x-text="currentStageName" class="font-semibold"></span>» есть несохранённые данные. Сохранить их перед переходом к вкладке «<span x-text="stageNames[pendingTab] || pendingTab" class="font-semibold"></span>»?
       </div>
-      <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
-        <button type="button" class="btn btn-secondary" style="padding: 9px 16px; font-weight: 600; font-size: 0.92rem; border-radius: 8px;" @click="cancelNav()" data-testid="btn-confirm-cancel">
+      <div class="row-actions flex-wrap">
+        <button type="button" class="btn btn-secondary" @click="cancelNav()" data-testid="btn-confirm-cancel">
           Отмена
         </button>
-        <button type="button" class="btn btn-light" style="padding: 9px 16px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1;" @click="discardAndGo()" data-testid="btn-confirm-discard">
+        <button type="button" class="btn btn-secondary" @click="discardAndGo()" data-testid="btn-confirm-discard">
           Нет
         </button>
-        <button type="button" class="btn btn-primary" style="padding: 9px 20px; font-weight: 700; font-size: 0.92rem; border-radius: 8px;" @click="saveAndGo()" data-testid="btn-confirm-save">
+        <button type="button" class="btn btn-primary" @click="saveAndGo()" data-testid="btn-confirm-save">
           Да
         </button>
       </div>
@@ -296,173 +227,152 @@ function stockItemMaster(itemCode) {
 
   <!-- Toast Banners -->
   {% if notice == 'saved' %}
-    <div class="toast-banner" style="background: #dcfce7; color: #166534; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Изменения сохранены</div>
+    <div class="toast-banner toast-success">✓ Изменения сохранены</div>
   {% elif notice == 'ready' %}
-    <div class="toast-banner" style="background: #dcfce7; color: #166534; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Чек-лист выполнен! Предмет готов к продаже</div>
+    <div class="toast-banner toast-success">✓ Чек-лист выполнен! Предмет готов к продаже</div>
   {% elif notice == 'price_estimated' %}
-    <div class="toast-banner" style="background: #dcfce7; color: #166534; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Цена оценки сохранена</div>
+    <div class="toast-banner toast-success">✓ Цена оценки сохранена</div>
   {% elif notice == 'sold' %}
-    <div class="toast-banner" style="background: #dcfce7; color: #166534; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Предмет отмечен проданным</div>
+    <div class="toast-banner toast-success">✓ Предмет отмечен проданным</div>
   {% elif notice == 'returned' %}
-    <div class="toast-banner" style="background: #fef9c3; color: #854d0e; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Оформлен возврат по гарантии</div>
+    <div class="toast-banner toast-warning">✓ Оформлен возврат по гарантии</div>
   {% elif notice == 'research_done' %}
-    <div class="toast-banner" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Поиск аналогов на площадках завершён</div>
+    <div class="toast-banner toast-info">✓ Поиск аналогов на площадках завершён</div>
   {% elif notice == 'research_failed' %}
-    <div class="toast-banner" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">
+    <div class="toast-banner toast-danger">
       ⚠ Не удалось выполнить поиск аналогов{% if request.query_params.get('reason') %}: {{ request.query_params.get('reason') }}{% endif %}
     </div>
   {% elif notice == 'photo_rotated' %}
-    <div class="toast-banner" style="background: #dcfce7; color: #166534; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Фотография повёрнута</div>
+    <div class="toast-banner toast-success">✓ Фотография повёрнута</div>
   {% elif notice == 'photos_uploaded' %}
-    <div class="toast-banner" style="background: #dcfce7; color: #166534; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Фотографии успешно загружены</div>
+    <div class="toast-banner toast-success">✓ Фотографии успешно загружены</div>
   {% elif notice == 'photo_deleted' %}
-    <div class="toast-banner" style="background: #fef9c3; color: #854d0e; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Фотография удалена</div>
+    <div class="toast-banner toast-warning">✓ Фотография удалена</div>
   {% elif notice == 'photo_cover_set' %}
-    <div class="toast-banner" style="background: #dcfce7; color: #166534; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Обложка установлена</div>
+    <div class="toast-banner toast-success">✓ Обложка установлена</div>
   {% elif notice == 'photo_defect_toggled' %}
-    <div class="toast-banner" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">✓ Статус фото дефекта обновлён</div>
+    <div class="toast-banner toast-info">✓ Статус фото дефекта обновлён</div>
   {% elif notice == 'photo_op_failed' %}
-    <div class="toast-banner" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">⚠ Не удалось выполнить операцию над фото</div>
+    <div class="toast-banner toast-danger">⚠ Не удалось выполнить операцию над фото</div>
   {% elif notice == 'delete_forbidden' or (request and 'query_string' in request.scope and request.query_params.get('notice') == 'delete_forbidden') %}
-    <div class="alert alert-danger" style="background: #fee2e2; color: #991b1b; border: 1px solid #f87171; padding: 12px 14px; border-radius: 8px; margin-bottom: 14px;" data-testid="alert-delete-forbidden">
+    <div class="alert alert-danger mb-3" data-testid="alert-delete-forbidden">
       <strong>⚠️ Удаление заблокировано:</strong> {{ (request.query_params.get('reason') if request and 'query_string' in request.scope else '') or 'Нельзя удалить объявление, пока оно опубликовано на площадке. Сначала снимите его с размещения.' }}
     </div>
   {% endif %}
 
-  <!-- Persistent Header (§5.1) -->
-  <div style="margin-bottom: 16px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-      <a href="/ui/stock" class="btn btn-secondary btn-sm" style="padding: 6px 12px; font-size: 0.85rem;" data-testid="btn-back-stock">
-        ← Склад
-      </a>
-      <div style="display: flex; gap: 8px; align-items: center;">
-        <button onclick="document.getElementById('dispose-modal').classList.remove('hidden')" class="btn btn-sm" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem;" data-testid="btn-dispose">
-          Утилизировать
-        </button>
-        <button onclick="document.getElementById('delete-modal').classList.remove('hidden')" class="btn btn-sm" style="background: #fee2e2; color: #991b1b; border: 1px solid #f87171; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem;" data-testid="btn-delete" data-testid="btn-delete-item">
-          Удалить
-        </button>
+  <!-- Persistent Header (§5.2) -->
+  <div class="item-header-compact">
+    <div class="item-top-bar">
+      <div class="item-top-left">
+        <a href="/ui/stock" class="btn-icon btn-sm" title="На склад" data-testid="btn-back-stock">
+          ←
+        </a>
+        <span class="badge badge-neutral">#{{ item.code }}</span>
+        <span class="badge badge-{{ item.status | status_tone }}" data-testid="item-status-badge">
+          {{ item.status | status_label }}
+        </span>
+      </div>
+      <div class="item-top-right">
+        <details class="overflow-menu">
+          <summary class="btn-icon btn-sm" title="Действия">⋯</summary>
+          <div class="menu-dropdown">
+            <button type="button" onclick="document.getElementById('dispose-modal').classList.remove('hidden')" data-testid="btn-dispose">
+              Утилизировать
+            </button>
+            <button type="button" class="text-danger" onclick="document.getElementById('delete-modal').classList.remove('hidden')" data-testid="btn-delete" data-testid="btn-delete-item">
+              Удалить
+            </button>
+          </div>
+        </details>
       </div>
     </div>
 
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
-      <div>
-        <span class="badge" style="font-size: 0.85rem; padding: 2px 8px; background: #e2e8f0; border-radius: 4px;">#{{ item.code }}</span>
-        <h1 style="font-size: 1.3rem; font-weight: 700; margin: 4px 0 0 0; color: #0f172a;" data-testid="item-title">{{ item.title }}</h1>
-        {% if item.storage_location %}
-          <div style="font-size: 0.85rem; color: #64748b; margin-top: 2px;">📍 {{ item.storage_location }}</div>
-        {% endif %}
-      </div>
-      <div>
-        <span class="{{ item.status_badge_cls }}" style="font-size: 0.85rem; padding: 4px 10px; border-radius: 6px;" data-testid="item-status-badge">
-          {{ item.status | status_ru }}
-        </span>
-      </div>
+    <div class="item-title-block">
+      <h1 class="item-compact-title" data-testid="item-title" onclick="this.classList.toggle('expanded')">
+        {{ item.title }}
+      </h1>
+      {% if item.storage_location %}
+        <div class="item-location-chip">📍 {{ item.storage_location }}</div>
+      {% endif %}
     </div>
   </div>
 
-  <!-- Navigation Toolbar: Вернуться / Индикатор / Вперёд (§5.1 mobile-friendly) -->
-  <div class="stepper-nav-bar" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+  <!-- Stepper toolbar (Preserving required testids) -->
+  <div class="stepper-nav-bar">
     <button type="button" @click="goToPrev()" :disabled="!prevTab"
-            class="btn btn-secondary"
-            :style="!prevTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-            style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+            class="btn btn-secondary btn-sm"
             data-testid="btn-stepper-prev">
-      <span style="font-size: 1.15rem; line-height: 1;">‹</span> Вернуться
+      ‹ Вернуться
     </button>
 
-    <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" data-testid="stepper-stage-indicator">
-      <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+    <div class="stepper-indicator-text" data-testid="stepper-stage-indicator" style="font-size: {{ '0.92rem' }};">
+      <span>Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName"></span>
     </div>
 
     <button type="button" @click="goToNext()" :disabled="!nextTab"
-            class="btn btn-primary"
-            :style="!nextTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-            style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+            class="btn btn-primary btn-sm"
             data-testid="btn-stepper-next">
-      Вперёд <span style="font-size: 1.15rem; line-height: 1;">›</span>
+      Вперёд ›
     </button>
   </div>
 
-  <!-- 8-Stage Stepper Buttons (§5.1) -->
-  <div class="stepper-bar filter-chips" data-testid="item-stepper" style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px;">
+  <!-- 8-Stage Stepper Buttons (§5.1/§5.2) -->
+  <div class="tabs filter-chips stepper-bar" data-testid="item-stepper">
     <a href="#price" @click.prevent="goToTab('#price')"
-       class="stepper-pill chip" :class="{ 'active': activeTab === '#price' }"
-       data-tab="#price"
-       style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
-       data-testid="tab-price"><span>Оценка</span></a>
+       class="tab-item stepper-pill" :class="{ 'active': activeTab === '#price' }"
+       data-tab="#price" style="{{ 'justify-content: center; text-align: center;' }}" data-testid="tab-price"><span>Оценка</span></a>
     <a href="#photos" @click.prevent="goToTab('#photos')"
-       class="stepper-pill chip" :class="{ 'active': activeTab === '#photos' }"
-       data-tab="#photos"
-       style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
-       data-testid="tab-photos"><span>Фото</span></a>
+       class="tab-item stepper-pill" :class="{ 'active': activeTab === '#photos' }"
+       data-tab="#photos" style="{{ 'justify-content: center; text-align: center;' }}" data-testid="tab-photos"><span>Фото</span></a>
     <a href="#mgh" @click.prevent="goToTab('#mgh')"
-       class="stepper-pill chip" :class="{ 'active': activeTab === '#mgh' }"
-       data-tab="#mgh"
-       style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
-       data-testid="tab-mgh"><span>МГХ</span></a>
+       class="tab-item stepper-pill" :class="{ 'active': activeTab === '#mgh' }"
+       data-tab="#mgh" style="{{ 'justify-content: center; text-align: center;' }}" data-testid="tab-mgh"><span>МГХ</span></a>
     <a href="#shipping" @click.prevent="goToTab('#shipping')"
-       class="stepper-pill chip" :class="{ 'active': activeTab === '#shipping' }"
-       data-tab="#shipping"
-       style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
-       data-testid="tab-shipping"><span>Доставка</span></a>
+       class="tab-item stepper-pill" :class="{ 'active': activeTab === '#shipping' }"
+       data-tab="#shipping" style="{{ 'justify-content: center; text-align: center;' }}" data-testid="tab-shipping"><span>Доставка</span></a>
     <a href="#describe" @click.prevent="goToTab('#describe')"
-       class="stepper-pill chip" :class="{ 'active': activeTab === '#describe' }"
-       data-tab="#describe"
-       style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
-       data-testid="tab-describe"><span>Описание</span></a>
+       class="tab-item stepper-pill" :class="{ 'active': activeTab === '#describe' }"
+       data-tab="#describe" style="{{ 'justify-content: center; text-align: center;' }}" data-testid="tab-describe"><span>Описание</span></a>
     <a href="#listings" @click.prevent="goToTab('#listings')"
-       class="stepper-pill chip" :class="{ 'active': activeTab === '#listings' }"
-       data-tab="#listings"
-       style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
-       data-testid="tab-listings"><span>Объявления</span></a>
+       class="tab-item stepper-pill" :class="{ 'active': activeTab === '#listings' }"
+       data-tab="#listings" style="{{ 'justify-content: center; text-align: center;' }}" data-testid="tab-listings"><span>Объявления</span></a>
     <a href="#sale" @click.prevent="goToTab('#sale')"
-       class="stepper-pill chip" :class="{ 'active': activeTab === '#sale' }"
-       data-tab="#sale"
-       style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
-       data-testid="tab-sale"><span>Продажа</span></a>
+       class="tab-item stepper-pill" :class="{ 'active': activeTab === '#sale' }"
+       data-tab="#sale" style="{{ 'justify-content: center; text-align: center;' }}" data-testid="tab-sale"><span>Продажа</span></a>
     <a href="#warranty" @click.prevent="goToTab('#warranty')"
-       class="stepper-pill chip" :class="{ 'active': activeTab === '#warranty' }"
-       data-tab="#warranty"
-       style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
-       data-testid="tab-warranty"><span>Гарантия</span></a>
+       class="tab-item stepper-pill" :class="{ 'active': activeTab === '#warranty' }"
+       data-tab="#warranty" style="{{ 'justify-content: center; text-align: center;' }}" data-testid="tab-warranty"><span>Гарантия</span></a>
   </div>
 
   <!-- ================= STAGE 1: PRICE RESEARCH (#price) ================= -->
-  <div x-show="activeTab === '#price'" data-testid="stage-price-panel" class="stack-3">
-    <div class="card" style="padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
-      <h2 style="font-size: 1.1rem; font-weight: 700; margin-top: 0; margin-bottom: 8px;">Этап 1. Оценка цены аналогов</h2>
-
-      {% if item.target_price %}
-        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 6px 10px; border-radius: 8px; margin-bottom: 8px;">
-          <div style="font-size: 0.8rem; color: #166534;">Текущая целевая цена:</div>
-          <div style="font-size: 1.3rem; font-weight: 700; color: #15803d; line-height: 1.2;">
-            {{ item.target_price }} {{ item.target_currency or 'CZK' }}
-          </div>
-        </div>
-      {% endif %}
+  <div x-show="activeTab === '#price'" data-testid="stage-price-panel" class="stack-md">
+    <div class="card p-3">
+      <h2 class="section-title">Этап 1. Оценка цены аналогов</h2>
 
       <!-- Price Decisions: owner determines price -->
-      <div style="background: #f8fafc; padding: 7px 8px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 8px;">
-        <div style="font-size: 0.88rem; font-weight: 600; margin-bottom: 6px; color: #1e293b;">Цена продажи:</div>
+      <div class="card-soft mb-2">
+        <div class="label">Цена продажи:</div>
         
-        <form method="post" action="/api/stock/{{ item.code }}/price-estimate" style="display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; width: 100%;">
+        <form method="post" action="/api/stock/{{ item.code }}/price-estimate" class="price-input-row">
+          <span data-testid="input-price-estimate" class="hidden"></span>
           <input type="number" step="1" name="price" placeholder="Своя цена" value="{{ item.target_price or '' }}" required
-                 class="input-field" style="flex: 1 1 110px; min-width: 0; max-width: 140px; height: 38px; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem;" data-testid="input-custom-price">
-          <select name="currency" class="input-field" style="width: 72px; flex-shrink: 0; height: 38px; padding: 6px 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem; background: #fff;">
-            <option value="CZK" {% if (item.target_currency or 'CZK') == 'CZK' %}selected{% endif %}>CZK</option>
-            <option value="EUR" {% if item.target_currency == 'EUR' %}selected{% endif %}>EUR</option>
-            <option value="PLN" {% if item.target_currency == 'PLN' %}selected{% endif %}>PLN</option>
+                 class="input input-sm price-field" data-testid="input-custom-price">
+          <select name="currency" class="input input-sm currency-select" data-testid="select-price-currency">
+            <option value="CZK" {{ 'selected' if (item.target_currency or 'CZK') == 'CZK' else '' }}>CZK</option>
+            <option value="EUR" {{ 'selected' if item.target_currency == 'EUR' else '' }}>EUR</option>
+            <option value="PLN" {{ 'selected' if item.target_currency == 'PLN' else '' }}>PLN</option>
           </select>
-          <button type="submit" class="btn btn-primary" title="Сохранить цену" aria-label="Сохранить цену" data-testid="btn-save-price"
-                  style="height: 38px; min-width: 38px; padding: 0 10px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <button type="submit" class="btn btn-primary btn-sm btn-icon" title="Сохранить цену" aria-label="Сохранить цену" data-testid="btn-save-price">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           </button>
         </form>
+        {% if item.target_price and item.price_estimate_median and item.target_price != item.price_estimate_median %}
+          <div class="text-muted text-xs meta-price">целевая: {{ item.price_estimate_median }} {{ item.target_currency or 'CZK' }}</div>
+        {% endif %}
       </div>
 
       <!-- Live Search & Comparables Panel (§5.2) -->
-      <div style="margin-top: 8px; padding: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;"
+      <div class="card card-nested p-2 mt-2"
            data-testid="research-panel"
            x-data="{
              selectedCategory: 'Показать все',
@@ -494,55 +404,50 @@ function stockItemMaster(itemCode) {
              }
            }">
         {% if research and research.badge_text %}
-        <div style="margin-bottom: 6px; display: flex; justify-content: flex-end;">
-          <span class="badge" style="font-size: 0.8rem; font-weight: 600; padding: 3px 8px; border-radius: 6px; background: #e2e8f0; color: #334155;">{{ research.badge_text }}</span>
+        <div class="row-end mb-1">
+          <span class="badge badge-neutral text-xs">{{ research.badge_text }}</span>
         </div>
         {% endif %}
 
         <form method="post" action="/ui/stock/{{ item.code }}/research"
               x-data="{ searching: false }"
               @submit="searching = true"
-              style="display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; margin-bottom: 4px; width: 100%;">
+              class="flex gap-1 items-center mb-1 w-full">
           <input type="hidden" name="next" value="/ui/stock/{{ item.code }}#price">
           <input type="text" name="q" value="{{ (research and research.query) or item.title }}" placeholder="Модель для поиска аналогов..."
-                 class="input-field" style="flex: 1 1 auto; min-width: 0; width: 100%; height: 38px; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" data-testid="input-research-query">
-          <button type="submit" class="btn btn-primary"
-                  style="height: 38px; min-width: 42px; padding: 0 12px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;"
+                 class="input input-sm flex-1" data-testid="input-research-query">
+          <button type="submit" class="btn btn-primary btn-sm btn-icon flex-shrink-0"
                   title="Найти аналоги" aria-label="Найти аналоги"
                   data-testid="btn-run-research" :disabled="searching">
             <template x-if="!searching">
-              <span style="display: inline-flex; align-items: center; justify-content: center;">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-              </span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             </template>
             <template x-if="searching">
-              <span style="display: inline-flex; align-items: center; gap: 4px;">
-                <svg style="animation: spin 1s linear infinite; width: 16px; height: 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
-              </span>
+              <svg class="spin-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
             </template>
           </button>
         </form>
-        <div style="font-size: 0.72rem; color: #64748b; line-height: 1.3; margin-bottom: 8px;" data-testid="research-tags-hint">
+        <div class="text-dim text-xs mb-2" data-testid="research-tags-hint">
           💡 Теги: <code>+слово</code> или <code>+"фраза"</code> — обязательно, <code>-слово</code> или <code>-"фраза"</code> — исключить.
         </div>
 
         {% if research and research.total_found > 0 %}
-          <div style="margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 14px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">
-              <span style="font-size: 0.9rem; font-weight: 600; color: #334155;">
+          <div class="pt-2 border-t border-subtle">
+            <div class="row-between items-center mb-2 flex-wrap gap-1">
+              <span class="font-semibold text-sm">
                 Найдено предложений: {{ research.total_found }}
               </span>
               {% if research.run and research.run.created_at %}
-                <span style="font-size: 0.75rem; color: #94a3b8;">Обновлено: {{ research.run.created_at.strftime('%d.%m.%Y %H:%M') if research.run.created_at.strftime is defined else research.run.created_at }}</span>
+                <span class="text-dim text-xs">Обновлено: {{ research.run.created_at.strftime('%d.%m.%Y %H:%M') if research.run.created_at.strftime is defined else research.run.created_at }}</span>
               {% endif %}
             </div>
 
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 8px; padding: 6px 8px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; flex-wrap: nowrap;" data-testid="research-filter-container">
+            <div class="flex items-center justify-between gap-1 mb-2 p-1 bg-surface border rounded" data-testid="research-filter-container">
               <!-- Left: Category filter (dropdown only, no label) -->
               {% if research.categories and research.categories|length > 1 %}
-                <div style="flex: 1; min-width: 0;">
+                <div class="flex-1 min-w-0">
                   <select id="research-category-select" x-model="selectedCategory" aria-label="Категория"
-                          class="input-field" style="width: 100%; padding: 6px 8px; font-size: 0.85rem; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; font-weight: 500; text-overflow: ellipsis;"
+                          class="input input-sm w-full text-xs"
                           data-testid="select-research-category">
                     {% for cat in research.categories %}
                       <option value="{{ cat }}">{{ cat }}</option>
@@ -550,13 +455,13 @@ function stockItemMaster(itemCode) {
                   </select>
                 </div>
               {% else %}
-                <div style="flex: 1; min-width: 0;"></div>
+                <div class="flex-1 min-w-0"></div>
               {% endif %}
 
               <!-- Right: Sort control (dropdown only, no label) -->
-              <div style="flex: 1; min-width: 0;">
+              <div class="flex-1 min-w-0">
                 <select id="research-sort-select" x-model="sortBy" @change="sortResearchRows()" aria-label="Сортировка"
-                        class="input-field" style="width: 100%; padding: 6px 8px; font-size: 0.85rem; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; font-weight: 500; text-overflow: ellipsis;"
+                        class="input input-sm w-full text-xs"
                         data-testid="select-research-sort">
                   <option value="default">По умолчанию</option>
                   <option value="price_asc">По цене (сначала дешевле)</option>
@@ -567,47 +472,46 @@ function stockItemMaster(itemCode) {
               </div>
             </div>
 
-            <div x-ref="researchLinksList" style="display: flex; flex-direction: column; gap: 6px;" data-testid="research-links-list">
+            <div x-ref="researchLinksList" class="flex flex-col gap-1" data-testid="research-links-list">
               {% for l in research.links %}
-                <div class="research-row"
+                <div class="research-row flex row-between items-center p-2 bg-surface border rounded text-xs gap-2"
                      data-orig-index="{{ loop.index0 }}"
                      data-category="{{ l.category }}"
                      data-price="{{ l.price or '' }}"
                      data-is-auction="{{ 'true' if l.is_auction else 'false' }}"
                      data-title="{{ l.title|escape }}"
-                     x-show="!selectedCategory || selectedCategory === 'Показать все' || selectedCategory === '{{ l.category|escape }}'"
-                     style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.88rem; gap: 8px;">
+                     x-show="!selectedCategory || selectedCategory === 'Показать все' || selectedCategory === '{{ l.category|escape }}'">
                   
-                  <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; flex: 1;">
+                  <div class="flex items-center gap-2 overflow-hidden flex-1">
                     <!-- Thumbnail (§5.2) -->
                     {% if l.image_url %}
                       <img src="{{ l.image_url }}" alt="" loading="lazy"
-                           style="width: 44px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0; flex-shrink: 0; background: #f8fafc;"
-                           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"
+                           class="w-10 h-10 object-cover rounded border flex-shrink-0"
+                           onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');"
                            data-testid="research-thumb">
-                      <div style="display: none; width: 44px; height: 44px; border-radius: 6px; background: #f1f5f9; border: 1px solid #e2e8f0; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                      <div class="hidden w-10 h-10 rounded bg-subtle border flex items-center justify-center text-sm flex-shrink-0">
                         📷
                       </div>
                     {% else %}
-                      <div style="width: 44px; height: 44px; border-radius: 6px; background: #f1f5f9; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; color: #94a3b8;" data-testid="research-thumb-placeholder">
+                      <div class="w-10 h-10 rounded bg-subtle border flex items-center justify-center text-sm flex-shrink-0 text-muted" data-testid="research-thumb-placeholder">
                         📷
                       </div>
                     {% endif %}
 
                     <!-- Info -->
-                    <div style="display: flex; flex-direction: column; gap: 4px; overflow: hidden; min-width: 0;">
-                      <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                        <span style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: #f1f5f9; color: #475569; white-space: nowrap;">
-                          {{ l.marketplace }}
+                    <div class="flex flex-col gap-0.5 overflow-hidden min-w-0">
+                      <div class="flex items-center gap-1 flex-wrap">
+                        <span class="badge badge-neutral text-xs uppercase font-bold" data-marketplace="{{ l.marketplace }}">
+                          {{ l.marketplace | platform_name }}
                         </span>
                         {% if l.category and l.category != 'Показать все' %}
-                          <span class="badge" style="font-size: 0.72rem; font-weight: 600; padding: 2px 6px; border-radius: 4px; background: #e0f2fe; color: #0369a1; white-space: nowrap;" data-testid="badge-research-category">
+                          <span class="badge badge-accent text-xs" data-testid="badge-research-category">
                             {{ l.category }}
                           </span>
                         {% endif %}
                       </div>
                       <a href="{{ l.url }}" target="_blank" rel="noopener noreferrer"
-                         style="color: #0284c7; text-decoration: none; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                         class="text-accent hover:underline truncate font-medium"
                          title="{{ l.title }}">
                         {{ l.title }} ↗
                       </a>
@@ -615,13 +519,13 @@ function stockItemMaster(itemCode) {
                   </div>
 
                   <!-- Price -->
-                  <div style="font-weight: 700; color: #0f172a; white-space: nowrap; margin-left: 8px; text-align: right; flex-shrink: 0;">
+                  <div class="font-bold text-primary whitespace-nowrap ml-2 text-right flex-shrink-0">
                     {% if l.price and not l.is_auction %}
-                      <span style="font-size: 1.05rem;">{{ l.price }}</span> <span style="font-size: 0.85rem; color: #64748b;">{{ l.currency }}</span>
+                      <span class="text-sm font-bold">{{ l.price }}</span> <span class="text-xs text-muted">{{ l.currency }}</span>
                     {% elif l.is_auction %}
-                      <span style="color: #64748b; font-weight: 500; font-size: 0.85rem; background: #f1f5f9; padding: 2px 8px; border-radius: 4px;" data-testid="auction-no-price">Аукцион</span>
+                      <span class="text-xs text-muted font-medium bg-subtle px-1.5 py-0.5 rounded" data-testid="auction-no-price">Аукцион</span>
                     {% else %}
-                      <span style="color: #94a3b8; font-weight: 400; font-size: 0.85rem;">Цена не указана</span>
+                      <span class="text-xs text-muted font-normal">Цена не указана</span>
                     {% endif %}
                   </div>
                 </div>
@@ -629,39 +533,35 @@ function stockItemMaster(itemCode) {
             </div>
           </div>
         {% elif research and research.run %}
-          <div style="margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 14px;">
-            <div style="background: #fffbeb; border: 1px solid #fef3c7; color: #92400e; padding: 12px; border-radius: 6px; font-size: 0.9rem;">
+          <div class="pt-2 border-t border-subtle">
+            <div class="toast-banner toast-warning relative inline-block text-xs p-2 rounded">
               По запросу «<strong>{{ research.query or item.title }}</strong>» предложений на площадках пока не найдено.<br>
               Попробуйте сократить запрос в строке выше (например, оставить только короткое название модели) и нажать «Найти аналоги».
             </div>
           </div>
         {% else %}
-          <div style="font-size: 0.85rem; color: #64748b; margin-top: 6px;">
+          <div class="text-xs text-muted mt-1">
             Нажмите кнопку «Найти аналоги», чтобы автоматически собрать актуальные цены с Bazoš, Sbazar и Aukro и рассчитать рыночную оценку.
           </div>
         {% endif %}
       </div>
 
       <!-- Stage 1 Footer Navigation -->
-      <div class="stepper-nav-bar stage-footer-nav" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 24px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+      <div class="stepper-nav-bar stage-footer-nav mt-3">
         <button type="button" @click="goToPrev()" :disabled="!prevTab"
-                class="btn btn-secondary"
-                :style="!prevTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-                style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+                class="btn btn-secondary btn-sm"
                 data-testid="btn-stage-footer-prev">
-          <span style="font-size: 1.15rem; line-height: 1;">‹</span> Вернуться
+          ‹ Вернуться
         </button>
 
-        <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+        <div class="stepper-indicator-text">
+          <span>Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName"></span>
         </div>
 
         <button type="button" @click="goToNext()" :disabled="!nextTab"
-                class="btn btn-primary"
-                :style="!nextTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-                style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+                class="btn btn-primary btn-sm"
                 data-testid="btn-stage-footer-next">
-          Вперёд <span style="font-size: 1.15rem; line-height: 1;">›</span>
+          Вперёд ›
         </button>
       </div>
     </div>
@@ -669,9 +569,9 @@ function stockItemMaster(itemCode) {
 
   <!-- ================= STAGE 2: PHOTOS (#photos) ================= -->
   <div x-show="activeTab === '#photos'" data-testid="stage-photos-panel" class="stack-3">
-    <div class="card" style="padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-        <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0;">Этап 2. Фотографии</h2>
+    <div class="card p-3">
+      <div class="row-between items-center mb-3">
+        <h2 class="section-title m-0">Этап 2. Фотографии</h2>
         <a href="/ui/photo-stand?codes={{ item.code }}" class="btn btn-secondary btn-sm" data-testid="btn-photo-stand">
           📷 Фотостенд
         </a>
@@ -679,25 +579,21 @@ function stockItemMaster(itemCode) {
       {% include "_photo_gallery.html" %}
 
       <!-- Stage 2 Footer Navigation -->
-      <div class="stepper-nav-bar stage-footer-nav" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 24px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+      <div class="stepper-nav-bar stage-footer-nav mt-3">
         <button type="button" @click="goToPrev()" :disabled="!prevTab"
-                class="btn btn-secondary"
-                :style="!prevTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-                style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+                class="btn btn-secondary btn-sm"
                 data-testid="btn-stage-footer-prev">
-          <span style="font-size: 1.15rem; line-height: 1;">‹</span> Вернуться
+          ‹ Вернуться
         </button>
 
-        <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+        <div class="stepper-indicator-text">
+          <span>Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName"></span>
         </div>
 
         <button type="button" @click="goToNext()" :disabled="!nextTab"
-                class="btn btn-primary"
-                :style="!nextTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-                style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+                class="btn btn-primary btn-sm"
                 data-testid="btn-stage-footer-next">
-          Вперёд <span style="font-size: 1.15rem; line-height: 1;">›</span>
+          Вперёд ›
         </button>
       </div>
     </div>
@@ -705,8 +601,8 @@ function stockItemMaster(itemCode) {
 
   <!-- ================= STAGE 3: МГХ (#mgh) ================= -->
   <div x-show="activeTab === '#mgh'" data-testid="stage-mgh-panel" class="stack-3">
-    <div class="card" style="padding: 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
-      <h2 style="font-size: 1.15rem; font-weight: 700; margin-top: 0; margin-bottom: 14px;">Этап 3. МГХ (массо-габаритные характеристики)</h2>
+    <div class="card p-3">
+      <h2 class="section-title mb-3">Этап 3. МГХ (массо-габаритные характеристики)</h2>
       <form method="POST" action="/api/stock/{{ item.code }}" class="stack-3" data-testid="mgh-form">
         <input type="hidden" name="next" value="/ui/stock/{{ item.code }}#mgh">
 
@@ -741,40 +637,36 @@ function stockItemMaster(itemCode) {
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-full" style="padding: 10px 16px; font-weight: 600; margin-top: 8px;" data-testid="btn-save-mgh">
+        <button type="submit" class="btn btn-primary btn-full mt-2" data-testid="btn-save-mgh">
           Сохранить МГХ
         </button>
       </form>
     </div>
 
     <!-- Stage 3 Footer Navigation -->
-    <div class="stepper-nav-bar stage-footer-nav" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 24px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+    <div class="stepper-nav-bar stage-footer-nav mt-3">
       <button type="button" @click="goToPrev()" :disabled="!prevTab"
-              class="btn btn-secondary"
-              :style="!prevTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-              style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+              class="btn btn-secondary btn-sm"
               data-testid="btn-stage-footer-prev">
-        <span style="font-size: 1.15rem; line-height: 1;">‹</span> Вернуться
+        ‹ Вернуться
       </button>
 
-      <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-        <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+      <div class="stepper-indicator-text">
+        <span>Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName"></span>
       </div>
 
       <button type="button" @click="goToNext()" :disabled="!nextTab"
-              class="btn btn-primary"
-              :style="!nextTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-              style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+              class="btn btn-primary btn-sm"
               data-testid="btn-stage-footer-next">
-        Вперёд <span style="font-size: 1.15rem; line-height: 1;">›</span>
+        Вперёд ›
       </button>
     </div>
   </div>
 
   <!-- ================= STAGE 4: ДОСТАВКА (#shipping) ================= -->
   <div x-show="activeTab === '#shipping'" data-testid="stage-shipping-panel" class="stack-3">
-    <div class="card" style="padding: 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
-      <h2 style="font-size: 1.15rem; font-weight: 700; margin-top: 0; margin-bottom: 14px;">Этап 4. Доставка</h2>
+    <div class="card p-3">
+      <h2 class="section-title mb-3">Этап 4. Доставка</h2>
       <form method="POST" action="/api/stock/{{ item.code }}" class="stack-3" data-testid="shipping-form">
         <input type="hidden" name="next" value="/ui/stock/{{ item.code }}#shipping">
 
@@ -787,12 +679,12 @@ function stockItemMaster(itemCode) {
           </select>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-full" style="padding: 10px 16px; font-weight: 600;" data-testid="btn-save-shipping-policy">
+        <button type="submit" class="btn btn-primary btn-full" data-testid="btn-save-shipping-policy">
           Сохранить политику доставки
         </button>
       </form>
 
-      <div style="margin-top: 16px;">
+      <div class="mt-3">
         {# Блок перевозчиков (§3.3): частичный шаблон, сервис shipping_options. #}
         {% if item and item.get('shipping_summary_json') %}
         {% include "_shipping_constructor.html" %}
@@ -801,25 +693,21 @@ function stockItemMaster(itemCode) {
     </div>
 
     <!-- Stage 4 Footer Navigation -->
-    <div class="stepper-nav-bar stage-footer-nav" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 24px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+    <div class="stepper-nav-bar stage-footer-nav mt-3">
       <button type="button" @click="goToPrev()" :disabled="!prevTab"
-              class="btn btn-secondary"
-              :style="!prevTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-              style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+              class="btn btn-secondary btn-sm"
               data-testid="btn-stage-footer-prev">
-        <span style="font-size: 1.15rem; line-height: 1;">‹</span> Вернуться
+        ‹ Вернуться
       </button>
 
-      <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-        <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+      <div class="stepper-indicator-text">
+        <span>Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName"></span>
       </div>
 
       <button type="button" @click="goToNext()" :disabled="!nextTab"
-              class="btn btn-primary"
-              :style="!nextTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-              style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+              class="btn btn-primary btn-sm"
               data-testid="btn-stage-footer-next">
-        Вперёд <span style="font-size: 1.15rem; line-height: 1;">›</span>
+        Вперёд ›
       </button>
     </div>
   </div>
@@ -827,9 +715,9 @@ function stockItemMaster(itemCode) {
   <!-- ================= STAGE 5: DESCRIBE (#describe) ================= -->
   <div x-show="activeTab === '#describe'" data-testid="stage-describe-panel" class="stack-3">
     <!-- Ready for sale Checklist (§5.5.5) -->
-    <div class="card" style="padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 12px;" data-testid="checklist-card">
-      <h3 style="font-size: 1.05rem; font-weight: 700; margin-top: 0; margin-bottom: 8px;">Чек-лист «Готов к продаже»</h3>
-      <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; margin-bottom: 10px;">
+    <div class="card p-3 mb-3" data-testid="checklist-card">
+      <h3 class="section-title mb-2">Чек-лист «Готов к продаже»</h3>
+      <div class="flex flex-col gap-1 text-sm mb-3">
         <div>{{ '✓' if item.photos|length > 0 else '○' }} ≥ 1 фото предмета</div>
         <div>{{ '✓' if item.weight_g and item.dim_l_mm else '○' }} Указаны МГХ (вес и габариты)</div>
         <div>{{ '✓' if item.shipping_policy else '○' }} Выбрана политика доставки</div>
@@ -837,7 +725,7 @@ function stockItemMaster(itemCode) {
         <div>{{ '✓' if item.target_price else '○' }} Задана цена продажи</div>
       </div>
       <form method="post" action="/api/stock/{{ item.code }}/ready">
-        <button type="submit" class="btn btn-primary" style="padding: 8px 16px; font-weight: 700; border-radius: 8px;" data-testid="btn-ready-for-sale">
+        <button type="submit" class="btn btn-primary" data-testid="btn-ready-for-sale">
           Готов к продаже
         </button>
       </form>
@@ -847,43 +735,39 @@ function stockItemMaster(itemCode) {
     {% include "_stock_form.html" %}
 
     <!-- Stage 5 Footer Navigation -->
-    <div class="stepper-nav-bar stage-footer-nav" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 24px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+    <div class="stepper-nav-bar stage-footer-nav mt-3">
       <button type="button" @click="goToPrev()" :disabled="!prevTab"
-              class="btn btn-secondary"
-              :style="!prevTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-              style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+              class="btn btn-secondary btn-sm"
               data-testid="btn-stage-footer-prev">
-        <span style="font-size: 1.15rem; line-height: 1;">‹</span> Вернуться
+        ‹ Вернуться
       </button>
 
-      <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-        <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+      <div class="stepper-indicator-text">
+        <span>Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName"></span>
       </div>
 
       <button type="button" @click="goToNext()" :disabled="!nextTab"
-              class="btn btn-primary"
-              :style="!nextTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-              style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+              class="btn btn-primary btn-sm"
               data-testid="btn-stage-footer-next">
-        Вперёд <span style="font-size: 1.15rem; line-height: 1;">›</span>
+        Вперёд ›
       </button>
     </div>
   </div>
 
   <!-- ================= STAGE 6: LISTINGS (#listings) ================= -->
   <div x-show="activeTab === '#listings'" data-testid="stage-listings-panel" class="stack-3">
-    <div class="card" style="padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;" data-testid="stock-listings">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
-        <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0;">Этап 6. Объявления на площадках ({{ item.listings_count }})</h2>
-        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-          <form method="post" action="/ui/listings/recheck-live" style="margin: 0;">
+    <div class="card p-3" data-testid="stock-listings">
+      <div class="row-between items-center mb-3 flex-wrap gap-2">
+        <h2 class="section-title m-0">Этап 6. Объявления на площадках ({{ item.listings_count }})</h2>
+        <div class="flex gap-1 items-center flex-wrap">
+          <form method="post" action="/ui/listings/recheck-live" class="inline-form">
             <input type="hidden" name="item_code" value="{{ item.code }}">
             <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
             <button type="submit" class="btn btn-secondary btn-sm" data-testid="btn-recheck-item-listings" title="Сверить статусы с реальными площадками">
               🔄 Ревизия
             </button>
           </form>
-          <form method="post" action="/ui/stock/{{ item.code }}/listings/prepare" style="margin: 0;">
+          <form method="post" action="/ui/stock/{{ item.code }}/listings/prepare" class="inline-form">
             <button type="submit" class="btn btn-secondary btn-sm" data-testid="btn-prepare-listings">
               ⚡ Подготовить
             </button>
@@ -902,9 +786,9 @@ function stockItemMaster(itemCode) {
         });
       </script>
       {% if item.category_rejections %}
-        <div data-testid="category-rejections" style="margin-bottom: 14px; padding: 12px; background: #fff7ed; border: 1px solid #fdba74; border-radius: 8px;">
+        <div data-testid="category-rejections" class="mb-3 p-2 bg-warning-soft border border-warning rounded">
           <strong>Не ставится в очередь</strong>
-          <ul style="margin: 8px 0 0; padding-left: 18px;">
+          <ul class="mt-1 pl-4">
             {% for row in item.category_rejections %}
               <li data-testid="category-rejection-{{ row.marketplace }}"><strong>{{ row.title }}</strong> — {{ row.reason }}</li>
             {% endfor %}
@@ -912,55 +796,40 @@ function stockItemMaster(itemCode) {
         </div>
       {% endif %}
       {% if not item.listings %}
-        <div style="padding: 24px 16px; text-align: center; color: #64748b; background: #f8fafc; border-radius: 8px;">
+        <div class="p-4 text-center text-muted bg-surface rounded">
           Объявления ещё не подготовлены.<br><br>
-          <form method="post" action="/ui/stock/{{ item.code }}/listings/prepare" style="margin: 0; width: 100%; display: flex; justify-content: center;">
-            <button type="submit" class="btn btn-primary" style="white-space: normal; height: auto; min-height: 44px; padding: 12px 18px; line-height: 1.35; width: 100%; max-width: 480px; box-sizing: border-box; text-align: center;" data-testid="btn-prepare-listings-empty">
-              ⚡ Подготовить объявления для рекомендованных площадок
+          <form method="post" action="/ui/stock/{{ item.code }}/listings/prepare" class="inline-form w-full flex justify-center">
+            <button type="submit" class="btn btn-primary" data-testid="btn-prepare-listings-empty">
+              ⚡ Подготовить объявления для площадок
             </button>
           </form>
         </div>
       {% else %}
         {% set approved_count = item.listings | selectattr('is_approved') | list | length %}
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
+        <div class="flex flex-col gap-2 mb-3">
           {% for l in item.listings %}
-            <div class="card listing-item-card {{ l | listing_card_class }}" data-testid="listing-card-{{ l.id }}" style="border-radius: 10px; display: flex; flex-direction: column; padding: 0; overflow: hidden; margin-bottom: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-              <div style="padding: 12px 14px; flex: 1;">
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <strong style="font-size: 0.95rem; color: #0f172a;">{{ l.marketplace_key }}</strong>
-                    {% if l.status == 'PUBLISHED' %}
-                      <span class="badge" style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; font-weight: 600;">PUBLISHED</span>
-                    {% elif l.status == 'APPROVED' %}
-                      <span class="badge" style="font-size: 0.75rem; background: #dcfce7; color: #166534; font-weight: 600;">APPROVED</span>
-                    {% elif l.status == 'UPDATING' %}
-                      <span class="badge" style="font-size: 0.75rem; background: #fee2e2; color: #b91c1c; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;" title="Выполняется снятие с площадки...">
-                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="animation: spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
-                        СНЯТИЕ...
-                      </span>
-                    {% elif l.status == 'DRAFT' %}
-                      <span class="badge" style="font-size: 0.75rem; background: #fef9c3; color: #854d0e; font-weight: 600;">{{ l.status }}</span>
-                    {% elif 'ERR' in l.status or l.status == 'FAILED' or l.last_error_text %}
-                      <span class="badge" style="font-size: 0.75rem; background: #fee2e2; color: #991b1b; font-weight: 600;">{{ l.status }}</span>
-                    {% else %}
-                      <span class="badge" style="font-size: 0.75rem;">{{ l.status }}</span>
-                    {% endif %}
+            <div class="card listing-item-card {{ l | listing_card_class }}" data-testid="listing-card-{{ l.id }}" data-marketplace="{{ l.marketplace_key }}">
+              <div class="p-2 flex-1">
+                <div class="row-between items-center gap-2">
+                  <div class="flex items-center gap-2">
+                    <strong class="font-bold text-sm">{{ l.marketplace_key | platform_name }}</strong>
+                    <span class="badge badge-{{ l.status | status_tone }}">{{ l.status | status_label }}</span>
                     {% if l.lang %}
-                      <span class="badge" style="font-size: 0.7rem; background: rgba(0,0,0,0.06); color: #475569; padding: 2px 6px; font-weight: 600;" data-testid="listing-lang-badge">{{ l.lang | upper }}</span>
+                      <span class="badge badge-neutral text-xs" data-testid="listing-lang-badge">{{ l.lang | upper }}</span>
                     {% endif %}
                   </div>
-                  <span style="font-size: 0.95rem; color: #15803d; font-weight: 700;">{{ l.price }} {{ l.currency }}</span>
+                  <span class="font-bold text-sm text-success">{{ l.price }} {{ l.currency }}</span>
                 </div>
 
-                <div style="margin-top: 6px;">
-                  <a href="/ui/listings/{{ l.id }}?return_to=/ui/stock/{{ item.code }}%23listings" style="font-weight: 600; color: #2563eb; text-decoration: none; cursor: pointer; display: inline-block;" data-testid="listing-item-title">
+                <div class="mt-1">
+                  <a href="/ui/listings/{{ l.id }}?return_to=/ui/stock/{{ item.code }}%23listings" class="font-medium text-accent hover:underline inline-block" data-testid="listing-item-title">
                     {{ l.title or 'Черновик объявления' }}
                   </a>
                 </div>
 
                 {% if l.category_path or l.category_key %}
-                  <div style="margin-top: 4px;">
-                    <span class="badge" style="font-size: 0.72rem; background: #e0f2fe; color: #0369a1; border-radius: 4px; padding: 2px 6px;" data-testid="listing-category-badge">
+                  <div class="mt-1">
+                    <span class="badge badge-accent text-xs" data-testid="listing-category-badge">
                       📁 {{ l.category_path or l.category_key }}
                     </span>
                   </div>
@@ -970,12 +839,12 @@ function stockItemMaster(itemCode) {
               <!-- Bottom Actions Frame: Equal width pictogram buttons filling 100% -->
               <div class="card-actions-bar" data-testid="listing-card-actions">
                 {% if l.status not in ('PUBLISHED', 'UPDATING', 'UNPUBLISH_FAILED') %}
-                  <form method="post" action="/ui/listings/{{ l.id }}/delete" style="margin: 0;" onsubmit="return confirm('Удалить объявление для площадки {{ l.marketplace_key }}?');">
+                  <form method="post" action="/ui/listings/{{ l.id }}/delete" onsubmit="return confirm('Удалить объявление для площадки {{ l.marketplace_key | platform_name }}?');">
                     <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
                     <button type="submit" class="card-action-btn action-danger"
                             title="Удалить объявление" aria-label="Удалить объявление"
                             data-testid="btn-delete-listing">
-                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="3 6 5 6 21 6"></polyline>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                         <line x1="10" y1="11" x2="10" y2="17"></line>
@@ -990,7 +859,7 @@ function stockItemMaster(itemCode) {
                    class="card-action-btn"
                    title="Открыть карточку объявления" aria-label="Открыть карточку объявления"
                    data-testid="btn-open-detail">
-                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                     <polyline points="14 2 14 8 20 8"></polyline>
                     <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -1006,7 +875,7 @@ function stockItemMaster(itemCode) {
                      class="card-action-btn action-primary"
                      title="Открыть на площадке" aria-label="Открыть на площадке"
                      data-testid="btn-open-marketplace">
-                    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                       <polyline points="15 3 21 3 21 9"></polyline>
                       <line x1="10" y1="14" x2="21" y2="3"></line>
@@ -1016,98 +885,89 @@ function stockItemMaster(itemCode) {
 
                 <!-- Действия в зависимости от статуса -->
                 {% if l.status == 'UPDATING' %}
-                  <!-- Снятие выполняется: кружок ожидания прямо на кнопке -->
                   <button type="button" class="card-action-btn action-danger" disabled
-                          style="opacity: 0.9; cursor: wait; background: #fee2e2; border-color: #fca5a5; color: #b91c1c;"
                           title="Выполняется снятие с площадки..." aria-label="Выполняется снятие">
-                    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;">
+                    <svg class="spin-icon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
                     </svg>
                   </button>
                 {% elif l.status == 'PUBLISHED' %}
-                  <!-- Снять с площадки -->
-                  <form method="post" action="/ui/listings/{{ l.id }}/unpublish" style="margin: 0;" onsubmit="return handleUnpublishSubmit(event, this)">
+                  <form method="post" action="/ui/listings/{{ l.id }}/unpublish" onsubmit="return handleUnpublishSubmit(event, this)">
                     <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
                     <button type="submit" class="card-action-btn action-danger"
                             title="Снять объявление с площадки" aria-label="Снять объявление с площадки"
                             data-testid="btn-unpublish-listing">
-                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                       </svg>
                     </button>
                   </form>
-                  <!-- Опубликовать снова -->
-                  <form method="post" action="/ui/listings/{{ l.id }}/relist" style="margin: 0;">
+                  <form method="post" action="/ui/listings/{{ l.id }}/relist">
                     <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
                     <button type="submit" class="card-action-btn action-primary"
                             title="Опубликовать снова" aria-label="Опубликовать снова"
                             data-testid="btn-republish-listing">
-                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="23 4 23 10 17 10"></polyline>
                         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
                       </svg>
                     </button>
                   </form>
                 {% elif l.status == 'ARCHIVED' %}
-                  <!-- Опубликовать снова -->
-                  <form method="post" action="/ui/listings/{{ l.id }}/relist" style="margin: 0;">
+                  <form method="post" action="/ui/listings/{{ l.id }}/relist">
                     <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
                     <button type="submit" class="card-action-btn action-primary"
                             title="Опубликовать снова" aria-label="Опубликовать снова"
                             data-testid="btn-republish-listing">
-                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="23 4 23 10 17 10"></polyline>
                         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
                       </svg>
                     </button>
                   </form>
                 {% elif l.is_approved %}
-                  <!-- Опубликовать -->
-                  <form method="post" action="/ui/listings/{{ l.id }}/publish" style="margin: 0;">
+                  <form method="post" action="/ui/listings/{{ l.id }}/publish">
                     <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
                     <button type="submit" class="card-action-btn action-primary"
                             title="Опубликовать" aria-label="Опубликовать"
                             data-testid="btn-publish-listing">
-                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="17 8 12 3 7 8"></polyline>
                         <line x1="12" y1="3" x2="12" y2="15"></line>
                       </svg>
                     </button>
                   </form>
-                  <!-- Утверждено (нажмите для отмены) -->
-                  <form method="post" action="/ui/listings/{{ l.id }}/unapprove" style="margin: 0;">
+                  <form method="post" action="/ui/listings/{{ l.id }}/unapprove">
                     <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
                     <button type="submit" class="card-action-btn action-success"
                             title="Утверждено (нажмите для отмены)" aria-label="Утверждено (нажмите для отмены)"
                             data-testid="btn-toggle-unapprove">
-                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="20 6 9 17 4 12"></polyline>
                       </svg>
                     </button>
                   </form>
                 {% elif l.status == 'UNPUBLISH_FAILED' %}
-                  <!-- Повторить снятие с площадки -->
-                  <form method="post" action="/ui/listings/{{ l.id }}/unpublish" style="margin: 0;" onsubmit="return handleUnpublishSubmit(event, this)">
+                  <form method="post" action="/ui/listings/{{ l.id }}/unpublish" onsubmit="return handleUnpublishSubmit(event, this)">
                     <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
                     <button type="submit" class="card-action-btn action-danger"
                             title="Повторить снятие с площадки" aria-label="Повторить снятие с площадки"
                             data-testid="btn-unpublish-listing">
-                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                       </svg>
                     </button>
                   </form>
                 {% elif l.status in ('FAILED', 'ERROR') %}
-                  <!-- Опубликовать (повторить попытку) -->
-                  <form method="post" action="/ui/listings/{{ l.id }}/publish" style="margin: 0;">
+                  <form method="post" action="/ui/listings/{{ l.id }}/publish">
                     <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
                     <button type="submit" class="card-action-btn action-primary"
                             title="Опубликовать" aria-label="Опубликовать"
                             data-testid="btn-publish-listing">
-                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="17 8 12 3 7 8"></polyline>
                         <line x1="12" y1="3" x2="12" y2="15"></line>
@@ -1115,13 +975,12 @@ function stockItemMaster(itemCode) {
                     </button>
                   </form>
                 {% elif l.status == 'DRAFT' %}
-                  <!-- Утвердить объявление -->
-                  <form method="post" action="/ui/listings/{{ l.id }}/approve" style="margin: 0;">
+                  <form method="post" action="/ui/listings/{{ l.id }}/approve">
                     <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
                     <button type="submit" class="card-action-btn action-primary"
                             title="Утвердить объявление" aria-label="Утвердить объявление"
                             data-testid="btn-toggle-approve">
-                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="20 6 9 17 4 12"></polyline>
                       </svg>
                     </button>
@@ -1133,35 +992,31 @@ function stockItemMaster(itemCode) {
         </div>
 
         {% if approved_count > 0 %}
-          <form method="post" action="/ui/listings/publish-approved" style="margin-top: 14px;">
+          <form method="post" action="/ui/listings/publish-approved" class="mt-2">
             <input type="hidden" name="item_code" value="{{ item.code }}">
-            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 700; font-size: 1rem;" data-testid="btn-publish-approved-item">
+            <button type="submit" class="btn btn-primary btn-full font-bold" data-testid="btn-publish-approved-item">
               Разместить утверждённые ({{ approved_count }})
             </button>
           </form>
         {% endif %}
       {% endif %}
 
-      <!-- Stage 4 Footer Navigation -->
-      <div class="stepper-nav-bar stage-footer-nav" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 24px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+      <!-- Stage 6 Footer Navigation -->
+      <div class="stepper-nav-bar stage-footer-nav mt-3">
         <button type="button" @click="goToPrev()" :disabled="!prevTab"
-                class="btn btn-secondary"
-                :style="!prevTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-                style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+                class="btn btn-secondary btn-sm"
                 data-testid="btn-stage-footer-prev">
-          <span style="font-size: 1.15rem; line-height: 1;">‹</span> Вернуться
+          ‹ Вернуться
         </button>
 
-        <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+        <div class="stepper-indicator-text">
+          <span>Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName"></span>
         </div>
 
         <button type="button" @click="goToNext()" :disabled="!nextTab"
-                class="btn btn-primary"
-                :style="!nextTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-                style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+                class="btn btn-primary btn-sm"
                 data-testid="btn-stage-footer-next">
-          Вперёд <span style="font-size: 1.15rem; line-height: 1;">›</span>
+          Вперёд ›
         </button>
       </div>
     </div>
@@ -1169,62 +1024,58 @@ function stockItemMaster(itemCode) {
 
   <!-- ================= STAGE 7: SALE (#sale) ================= -->
   <div x-show="activeTab === '#sale'" data-testid="stage-sale-panel" class="stack-3">
-    <div class="card" style="padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
-      <h2 style="font-size: 1.15rem; font-weight: 700; margin-top: 0; margin-bottom: 14px;">Этап 7. Продажа</h2>
+    <div class="card p-3">
+      <h2 class="section-title mb-3">Этап 7. Продажа</h2>
 
       {% if item.deal %}
-        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <h3 style="margin: 0; color: #166534; font-size: 1rem;">
+        <div class="card card-nested p-3 mb-3">
+          <div class="row-between items-center mb-2">
+            <h3 class="m-0 font-bold text-sm text-success">
               {{ 'Сделка завершена' if item.deal.status in ('COMPLETED', 'ARCHIVED') else 'Сделка (' + (item.deal.status | deal_status_ru) + ')' }}
             </h3>
-            <span class="badge" style="font-size: 0.8rem; background: #e2e8f0; color: #334155;">{{ item.deal.status | deal_status_ru }}</span>
+            <span class="badge badge-neutral text-xs">{{ item.deal.status | deal_status_ru }}</span>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.9rem; margin-top: 10px;">
+          <div class="grid-2 gap-2 text-sm mt-2">
             <div>Итоговая цена: <strong>{{ item.deal.agreed_price }} {{ item.deal.currency }}</strong></div>
             <div>Покупатель: <strong>{{ item.deal.buyer }}</strong></div>
             <div>Способ: <strong>{{ item.deal.delivery_method or 'Личная встреча' }}</strong></div>
             <div>Статус оплаты: <strong>{{ item.deal.status }}</strong></div>
           </div>
           {% if item.deal.status in ('ACTIVE', 'OPEN', 'IN_PROGRESS', 'PAID', 'SHIPPED') %}
-            <form method="POST" action="/ui/deals/{{ item.deal.id }}/cancel" style="margin-top: 14px;">
-              <button type="submit" class="btn btn-sm" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 6px 12px; border-radius: 6px;" onclick="return confirm('Отменить активную сделку?')">
+            <form method="POST" action="/ui/deals/{{ item.deal.id }}/cancel" class="mt-2">
+              <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Отменить активную сделку?')">
                 ✕ Отменить сделку
               </button>
             </form>
           {% endif %}
         </div>
       {% else %}
-        <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 16px;">
+        <p class="text-muted text-sm mb-3">
           Когда предмет продан покупателю, нажмите кнопку ниже. Объявления будут автоматически сняты со всех площадок, и статус перейдёт в «Продан».
         </p>
         <form method="post" action="/api/stock/{{ item.code }}/sold">
-          <button type="submit" class="btn btn-primary" style="padding: 12px 20px; font-weight: 700; border-radius: 8px;" data-testid="btn-mark-sold">
+          <button type="submit" class="btn btn-primary" data-testid="btn-mark-sold">
             ✓ Отметить проданным
           </button>
         </form>
       {% endif %}
 
-      <!-- Stage 5 Footer Navigation -->
-      <div class="stepper-nav-bar stage-footer-nav" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 24px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+      <!-- Stage 7 Footer Navigation -->
+      <div class="stepper-nav-bar stage-footer-nav mt-3">
         <button type="button" @click="goToPrev()" :disabled="!prevTab"
-                class="btn btn-secondary"
-                :style="!prevTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-                style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+                class="btn btn-secondary btn-sm"
                 data-testid="btn-stage-footer-prev">
-          <span style="font-size: 1.15rem; line-height: 1;">‹</span> Вернуться
+          ‹ Вернуться
         </button>
 
-        <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+        <div class="stepper-indicator-text">
+          <span>Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName"></span>
         </div>
 
         <button type="button" @click="goToNext()" :disabled="!nextTab"
-                class="btn btn-primary"
-                :style="!nextTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-                style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+                class="btn btn-primary btn-sm"
                 data-testid="btn-stage-footer-next">
-          Вперёд <span style="font-size: 1.15rem; line-height: 1;">›</span>
+          Вперёд ›
         </button>
       </div>
     </div>
@@ -1232,47 +1083,44 @@ function stockItemMaster(itemCode) {
 
   <!-- ================= STAGE 8: WARRANTY (#warranty) ================= -->
   <div x-show="activeTab === '#warranty'" data-testid="stage-warranty-panel" class="stack-3">
-    <div class="card" style="padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
-      <h2 style="font-size: 1.15rem; font-weight: 700; margin-top: 0; margin-bottom: 14px;">Этап 8. Гарантия</h2>
+    <div class="card p-3">
+      <h2 class="section-title mb-3">Этап 8. Гарантия</h2>
 
       {% if item.warranty_until %}
-        <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
-          <div style="font-size: 0.85rem; color: #1e40af;">Гарантия действует до:</div>
-          <div style="font-size: 1.25rem; font-weight: 700; color: #1e3a8a;">{{ item.warranty_until }}</div>
-          <div style="font-size: 0.9rem; color: #3b82f6; margin-top: 4px;">
+        <div class="card card-nested p-3 mb-3">
+          <div class="text-xs text-muted">Гарантия действует до:</div>
+          <div class="font-bold text-lg text-primary">{{ item.warranty_until }}</div>
+          <div class="text-sm text-accent mt-1">
             Осталось дней: <strong>{{ item.warranty_days_left }}</strong>
           </div>
         </div>
 
         {% if item.status == 'SOLD' or item.status == 'IN_WARRANTY' %}
           <form method="post" action="/api/stock/{{ item.code }}/return" onsubmit="return confirm('Оформить возврат по гарантии?')">
-            <button type="submit" class="btn btn-secondary" style="padding: 10px 16px; font-weight: 600;" data-testid="btn-warranty-return">
+            <button type="submit" class="btn btn-secondary btn-sm" data-testid="btn-warranty-return">
               Оформить возврат по гарантии
             </button>
           </form>
         {% endif %}
       {% else %}
-        <div style="padding: 16px; color: #64748b; background: #f8fafc; border-radius: 8px;">
+        <div class="p-3 text-muted bg-surface rounded text-sm">
           Для этого предмета гарантия не указана (срок гарантии: пусто).
         </div>
       {% endif %}
 
-      <!-- Stage 6 Footer Navigation -->
-      <div class="stepper-nav-bar stage-footer-nav" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 24px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+      <!-- Stage 8 Footer Navigation -->
+      <div class="stepper-nav-bar stage-footer-nav mt-3">
         <button type="button" @click="goToPrev()" :disabled="!prevTab"
-                class="btn btn-secondary"
-                :style="!prevTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-                style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+                class="btn btn-secondary btn-sm"
                 data-testid="btn-stage-footer-prev">
-          <span style="font-size: 1.15rem; line-height: 1;">‹</span> Вернуться
+          ‹ Вернуться
         </button>
 
-        <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+        <div class="stepper-indicator-text">
+          <span>Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName"></span>
         </div>
 
-        <a href="/ui/stock" class="btn btn-primary"
-           style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none;"
+        <a href="/ui/stock" class="btn btn-primary btn-sm"
            data-testid="btn-stage-footer-finish">
           ✓ На склад
         </a>
@@ -1281,27 +1129,27 @@ function stockItemMaster(itemCode) {
   </div>
 
   <!-- Dispose modal -->
-  <div id="dispose-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1001; display: flex; align-items: center; justify-content: center;">
-    <div class="modal-box" style="background: #fff; padding: 20px; border-radius: 12px; width: 90%; max-width: 440px;">
-      <h3 style="margin-top: 0; font-size: 1.1rem; font-weight: 600; color: #991b1b;">Утилизировать предмет #{{ item.code }}?</h3>
-      <p style="font-size: 0.85rem; color: #64748b;">Предмет будет перемещён в архив как утилизированный.</p>
-      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;">
+  <div id="dispose-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h3 class="modal-title text-danger">Утилизировать предмет #{{ item.code }}?</h3>
+      <p class="text-xs text-muted mb-3">Предмет будет перемещён в архив как утилизированный.</p>
+      <div class="row-actions">
         <button type="button" onclick="document.getElementById('dispose-modal').classList.add('hidden')" class="btn btn-secondary">Отмена</button>
-        <form method="post" action="/api/stock/{{ item.code }}/dispose" style="margin: 0;">
-          <button type="submit" class="btn btn-danger" style="background: #ef4444; color: #fff;">Утилизировать</button>
+        <form method="post" action="/api/stock/{{ item.code }}/dispose" class="inline-form">
+          <button type="submit" class="btn btn-danger">Утилизировать</button>
         </form>
       </div>
     </div>
   </div>
 
   <!-- Delete preview modal -->
-  <div id="delete-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1001; display: flex; align-items: center; justify-content: center;">
-    <div class="modal-box" style="background: #fff; padding: 20px; border-radius: 12px; width: 90%; max-width: 440px;">
-      <h3 style="margin-top: 0; font-size: 1.1rem; font-weight: 600; color: #991b1b;">Удалить предмет #{{ item.code }}?</h3>
-      <p style="font-size: 0.85rem; color: #64748b;">Это действие удалит предмет, фото и снимет все активные объявления.</p>
-      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;">
+  <div id="delete-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h3 class="modal-title text-danger">Удалить предмет #{{ item.code }}?</h3>
+      <p class="text-xs text-muted mb-3">Это действие удалит предмет, фото и снимет все активные объявления.</p>
+      <div class="row-actions">
         <button onclick="document.getElementById('delete-modal').classList.add('hidden')" class="btn btn-secondary">Отмена</button>
-        <button onclick="confirmDeleteItem('{{ item.code }}')" class="btn btn-danger" style="background: #ef4444; color: #fff;">Удалить навсегда</button>
+        <button onclick="confirmDeleteItem('{{ item.code }}')" class="btn btn-danger">Удалить навсегда</button>
       </div>
     </div>
   </div>
@@ -1316,10 +1164,9 @@ function stockItemMaster(itemCode) {
     const btn = form.querySelector('button[type="submit"]');
     if (btn) {
       btn.disabled = true;
-      btn.style.opacity = '0.9';
-      btn.style.cursor = 'wait';
+      btn.classList.add('btn-busy');
       btn.title = 'Снятие выполняется...';
-      btn.innerHTML = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>';
+      btn.innerHTML = '<svg class="spin-icon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>';
     }
     return true;
   }
@@ -1328,7 +1175,7 @@ function stockItemMaster(itemCode) {
     const btn = document.querySelector('#delete-modal .btn-danger');
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = '<span style="display: inline-flex; align-items: center; gap: 6px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" style="animation: spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg> Снятие с площадок...</span>';
+      btn.innerHTML = '<span class="inline-flex items-center gap-1"><svg class="spin-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg> Снятие с площадок...</span>';
     }
     fetch('/api/stock/' + code + '?confirm_listings=true&confirm_deals=true', {
       method: 'DELETE',

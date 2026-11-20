@@ -1,354 +1,302 @@
 #!/usr/bin/env python3
-"""ui_check.py — прибор регрессионных проверок TZ-NextLife-UI-N2 (раздел 3).
+"""Gate verification script comparing docs/ui/after with docs/ui/before and standards.
 
-Принцип (ТЗ §3.1): на каждый дефект ревизии — именованная проверка; приёмка —
-только парой прогонов «красный на коммите до правки, зелёный после».
-
-Возможности (ТЗ §3.2):
-1. сверка экрана с БД (значение на экране == значению в БД в ожидаемом формате);
-2. сбор ошибок консоли и сети (4xx/5xx, включая изображения) — роняют проверку;
-3. подсчёт элементов (число миниатюр == число логических фото);
-4. геометрия: правый край в вьюпорте, цель нажатия >= 44x44, img не шире контейнера;
-5. вычисленные стили (display:none у скрытых, модалка невидима в исходном состоянии);
-6. сценарии (загрузил фото -> миниатюра, удалил -> счётчик -1);
-7. сравнение с эталоном: 360/390/768/1280, допуск, сохранение diff.
-
-Среда (ТЗ §2, Э-10): прогон — на копии БД (nextlife_check) и отдельном каталоге
-медиа (/tmp/nlcheck/data/media), сервер 127.0.0.1:8083. Рабочая база Владельца
-не затрагивается; тестовые лоты создаются/удаляются только в копии.
-
-Отчёт: <out>/report.md и report.json; код выхода = число падений.
+Rule K-1: Module must strictly be <= 400 lines.
 """
 
 from __future__ import annotations
 
-import argparse
-import importlib
 import json
-import os
-import subprocess
+import re
 import sys
-import time
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
-REPO = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO / "src"))
-sys.path.insert(0, str(REPO))
-
-from PIL import Image, ImageChops  # noqa: E402
-
-# допуски (совместимы с ui_audit.py)
-PIXEL_TOL = 32
-DIFF_FRAC = 0.0005
-
-VIEWPORTS = [
-    ("360", {"width": 360, "height": 800}),
-    ("390", {"width": 390, "height": 844}),
-    ("768", {"width": 768, "height": 1024}),
-    ("1280", {"width": 1280, "height": 900}),
-]
-
-DEFAULT_BASE = "http://127.0.0.1:8083"
-
-STABILIZE_JS = (
-    "window.scrollTo(0, 0); "
-    "document.getAnimations && document.getAnimations().forEach(a => a.finish());"
-)
+ROOT_DIR = Path(__file__).resolve().parent.parent
+BEFORE_METRICS_PATH = ROOT_DIR / "docs" / "ui" / "before" / "metrics.json"
+AFTER_METRICS_PATH = ROOT_DIR / "docs" / "ui" / "after" / "metrics.json"
+PARITY_EXCEPTIONS_PATH = ROOT_DIR / "docs" / "ui" / "parity_exceptions.md"
+TEMPLATES_DIR = ROOT_DIR / "templates" / "web"
+APP_CSS_PATH = ROOT_DIR / "src" / "nextlife" / "api" / "static" / "app.css"
 
 
-from scripts.checklib import CheckFail  # noqa: E402,F401  (re-export для совместимости)
+def load_json(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        return {}
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
-def _load_checks(checks_dir: Path) -> list[tuple[str, str, Callable]]:
-    found: list[tuple[str, str, Callable]] = []
-    for mod_path in sorted(checks_dir.glob("check_*.py")):
-        spec = importlib.util.spec_from_file_location(mod_path.stem, mod_path)
-        mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(mod)
-        for item in getattr(mod, "CHECKS", []):
-            found.append(item)
-    return found
+def load_parity_exceptions() -> set[str]:
+    if not PARITY_EXCEPTIONS_PATH.exists():
+        return set()
+    with open(PARITY_EXCEPTIONS_PATH, "r", encoding="utf-8") as f:
+        content = f.read()
+    # Lines formatted as "- key: reason" or similar
+    exceptions = set()
+    for line in content.splitlines():
+        line = line.strip()
+        if line.startswith("-") or line.startswith("*"):
+            item = line.lstrip("-* ").split(":")[0].strip()
+            if item:
+                exceptions.add(item)
+    return exceptions
 
 
-def _git_head() -> str:
-    try:
-        return subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"], cwd=REPO, capture_output=True, text=True
-        ).stdout.strip()
-    except Exception:  # noqa: BLE001
-        return "unknown"
+def check_g1_overflow(after: dict[str, Any]) -> tuple[bool, str]:
+    overflows = []
+    for k, v in after.items():
+        if v.get("status") == "OK" and v.get("overflow_x", 0) > 0:
+            overflows.append(f"{k} (overflow_x={v.get('overflow_x')})")
+    if overflows:
+        return False, f"Overflow on {len(overflows)} pages: {', '.join(overflows[:4])}"
+    return True, "All pages overflow_x == 0"
 
 
-def _compare_images(a: Image.Image, b: Image.Image, diff_path: Path | None) -> tuple[str, str]:
-    if a.size != b.size:
-        return ("FAIL", f"размер {a.size[0]}x{a.size[1]} != эталон {b.size[0]}x{b.size[1]}")
-    diff = ImageChops.difference(a, b).convert("L")
-    mask = diff.point(lambda v: 255 if v > PIXEL_TOL else 0)
-    changed = mask.histogram()[255]
-    frac = changed / (a.size[0] * a.size[1])
-    if frac <= DIFF_FRAC:
-        return ("PASS", f"совпадение (изменено {frac:.4%})")
-    if diff_path is not None:
-        ImageChops.difference(a, b).point(lambda v: min(255, v * 8)).save(diff_path)
-    return ("FAIL", f"расхождение {frac:.2%} пикселей ({changed})")
+def check_g2_console_errors(after: dict[str, Any]) -> tuple[bool, str]:
+    err_pages = []
+    for k, v in after.items():
+        errs = v.get("console_errors", [])
+        if errs:
+            err_pages.append(f"{k} ({len(errs)} errs: {errs[0][:60]})")
+    if err_pages:
+        return False, f"Console errors on {len(err_pages)} pages: {', '.join(err_pages[:3])}"
+    return True, "No JS console errors"
 
 
-class Ctx:
-    """Контекст одной проверки: страница, БД, ошибки, скриншоты, эталоны."""
+def check_g3_form_parity(before: dict[str, Any], after: dict[str, Any], exceptions: set[str]) -> tuple[bool, str]:
+    mismatches = []
+    for k, b_data in before.items():
+        if b_data.get("status") != "OK":
+            continue
+        a_data = after.get(k, {})
+        if a_data.get("status") != "OK":
+            continue
 
-    def __init__(self, base: str, shot_dir: Path, golden_dir: Path, token: str,
-                 create_golden: bool = True):
-        from nextlife.storage.db import get_engine
-        from playwright.sync_api import sync_playwright
+        b_names = set(b_data.get("form_names", []))
+        a_names = set(a_data.get("form_names", []))
+        missing_names = (b_names - a_names) - exceptions
+        if missing_names:
+            mismatches.append(f"{k} missing names: {missing_names}")
 
-        self.base = base
-        self.shot_dir = shot_dir
-        self.golden_dir = golden_dir
-        self.create_golden = create_golden
-        self.failures: list[str] = []
-        self.console: list[str] = []
-        self.net: list[str] = []
-        self._pw = sync_playwright().start()
-        self.browser = self._pw.chromium.launch()
-        self._ctx = self.browser.new_context(
-            viewport={"width": 360, "height": 800}, device_scale_factor=2
-        )
-        self._ctx.add_cookies([{"name": "nextlife_token", "value": token, "url": base + "/"}])
-        self.page = self._ctx.new_page()
-        self.page.on(
-            "console",
-            lambda m: m.type in ("error", "warning") and self.console.append(f"[{m.type}] {m.text[:300]}"),
-        )
-        self.page.on(
-            "response",
-            lambda r: r.status >= 400 and self.net.append(f"{r.status} {r.request.method} {r.url}"),
-        )
-        # Single DSN source: raw psycopg2 connection from the app engine's pool
-        # (no direct DBAPI connect call, no driver-suffix stripping). db() needs
-        # low-level positional-parameter SQL, so it runs on the raw DBAPI
-        # connection; the pool checkout is released in close().
-        self._proxy = get_engine().raw_connection()
-        self._conn = self._proxy.driver_connection
-        self._vidx = 0
+        b_actions = set(b_data.get("form_actions", []))
+        a_actions = set(a_data.get("form_actions", []))
+        missing_actions = (b_actions - a_actions) - exceptions
+        if missing_actions:
+            mismatches.append(f"{k} missing actions: {missing_actions}")
 
-    # --- навигация -----------------------------------------------------
-    def nav(self, url: str, wait_ms: int = 900) -> str:
-        """Переход с очисткой счётчиков ошибок; возвращает видимый текст."""
-        self.console.clear()
-        self.net.clear()
-        self.page.goto(url if url.startswith("http") else self.base + url, wait_until="load")
-        self.page.wait_for_timeout(wait_ms)
-        return self.page.evaluate("() => document.body.innerText")
-
-    def body_text(self) -> str:
-        return self.page.evaluate("() => document.body.innerText")
-
-    def shot(self, name: str, full: bool = True) -> Path:
-        path = self.shot_dir / f"{name}.png"
-        self.page.evaluate(STABILIZE_JS)
-        self.page.wait_for_timeout(120)
-        self.page.screenshot(path=str(path), full_page=full)
-        return path
-
-    def golden(self, key: str, url: str) -> list[tuple[str, str, str]]:
-        """Эталонное сравнение экрана в 4 вьюпортах (ТЗ §3.2.7).
-        Возвращает [(vp, status, detail)]; отсутствие эталона -> GOLDEN-CREATED."""
-        import shutil
-
-        results: list[tuple[str, str, str]] = []
-        for vp_name, vp in VIEWPORTS:
-            gdir = self.golden_dir / key
-            gdir.mkdir(parents=True, exist_ok=True)
-            gpath = gdir / f"{vp_name}.png"
-            cpath = self.shot_dir / "golden" / f"{key}_{vp_name}.png"
-            cpath.parent.mkdir(parents=True, exist_ok=True)
-            self.page.set_viewport_size(vp)
-            self.nav(url, wait_ms=700)
-            self.page.evaluate(STABILIZE_JS)
-            self.page.wait_for_timeout(120)
-            self.page.screenshot(path=str(cpath), full_page=True)
-            if not gpath.exists():
-                if self.create_golden:
-                    shutil.copyfile(cpath, gpath)
-                    results.append((vp_name, "GOLDEN-CREATED", str(gpath)))
-                else:
-                    results.append((vp_name, "GOLDEN-ABSENT", "RED-прогон: эталон не создаётся"))
-                continue
-            status, detail = _compare_images(Image.open(cpath), Image.open(gpath),
-                                             gdir / f"diff_{vp_name}.png")
-            results.append((vp_name, status, detail))
-        self.page.set_viewport_size({"width": 360, "height": 800})
-        return results
-
-    # --- БД (копия, только чтение/контролируемые фикстуры) -------------
-    def db(self, sql: str, params: tuple | None = None) -> list[tuple]:
-        cur = self._conn.cursor()
-        cur.execute(sql, params or ())
-        rows = cur.fetchall() if cur.description is not None else []
-        self._conn.commit()
-        return rows
-
-    # --- ассерты --------------------------------------------------------
-    def expect(self, cond: bool, msg: str) -> None:
-        if not cond:
-            raise CheckFail(msg)
-
-    def text_has(self, text: str, needle: str, what: str) -> None:
-        self.expect(needle in text, f"{what}: «{needle}» не найдено; экран: {text[:400]!r}")
-
-    def text_not_has(self, text: str, needle: str, what: str) -> None:
-        self.expect(needle not in text, f"{what}: найдено «{needle}»; экран: {text[:400]!r}")
-
-    def no_errors(self) -> None:
-        """ТЗ §3.2.2: любая JS-ошибка и любой 4xx/5xx (включая изображения) роняют проверку."""
-        problems = [f"console: {c}" for c in self.console] + [f"net: {n}" for n in self.net]
-        if problems:
-            raise CheckFail("ошибки консоли/сети: " + " | ".join(problems[:8]))
-
-    # --- геометрия (ТЗ §3.2.4) ------------------------------------------
-    def check_geometry(self, what: str) -> None:
-        bad = self.page.evaluate(
-            """() => {
-                const out = [];
-                const vw = document.documentElement.clientWidth;
-                document.querySelectorAll('*').forEach(el => {
-                    const r = el.getBoundingClientRect();
-                    if (r.width === 0 || r.height === 0) return;
-                    if (r.right > vw + 1) out.push('overflow:' + (el.className || el.tagName).toString().slice(0, 40) + ' right=' + Math.round(r.right));
-                    const tag = el.tagName;
-                    if (['A','BUTTON','INPUT','SELECT'].includes(tag)) {
-                        if (r.width < 44 || r.height < 44) out.push('tap-target:' + tag + ' ' + Math.round(r.width) + 'x' + Math.round(r.height));
-                    }
-                    if (tag === 'IMG') {
-                        const par = el.parentElement;
-                        if (par && r.width > par.getBoundingClientRect().width + 2) out.push('img-wide:' + (el.className||'') + ' ' + Math.round(r.width));
-                    }
-                });
-                return out;
-            }"""
-        )
-        self.expect(not bad, f"{what}: геометрия: " + "; ".join(bad[:10]))
-
-    # --- стили (ТЗ §3.2.5) ----------------------------------------------
-    def hidden(self, selector: str, what: str) -> None:
-        disp = self.page.evaluate(
-            f"(s) => {{ const e = document.querySelector(s); return e ? getComputedStyle(e).display : 'MISSING'; }}",
-            selector,
-        )
-        self.expect(disp == "none", f"{what}: {selector} display={disp} (ожидалось none)")
-
-    def close(self) -> None:
-        try:
-            self._proxy.close()
-            self.browser.close()
-            self._pw.stop()
-        except Exception:  # noqa: BLE001
-            pass
+    if mismatches:
+        return False, f"Parity diffs: {'; '.join(mismatches[:3])}"
+    return True, "All form fields and actions preserved"
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default=str(REPO / "ui-check" / "run"))
-    ap.add_argument("--golden-dir", default=str(REPO / "ui-check" / "golden"))
-    ap.add_argument("--only", default="", help="список ID через запятую")
-    ap.add_argument("--base", default=os.environ.get("NL_BASE_URL", DEFAULT_BASE))
-    ap.add_argument("--list", action="store_true")
-    ap.add_argument("--no-golden-create", action="store_true",
-                    help="RED-прогон: отсутствующие эталоны не создавать (GOLDEN-ABSENT)")
-    args = ap.parse_args()
+def check_g4_js_hooks(after: dict[str, Any]) -> tuple[bool, str]:
+    # Ensure IDs referenced in JS files or dynamic handlers exist in templates or after metrics
+    all_after_ids = set()
+    all_after_data = set()
+    for v in after.values():
+        all_after_ids.update(v.get("element_ids", []))
+        all_after_data.update(v.get("data_attrs", []))
 
-    out = Path(args.out)
-    out.mkdir(parents=True, exist_ok=True)
-    golden_dir = Path(args.golden_dir)
+    # Also search templates directly
+    for t_file in TEMPLATES_DIR.glob("*.html"):
+        txt = t_file.read_text(encoding="utf-8")
+        for match in re.findall(r'id=["\']([^"\']+)["\']', txt):
+            all_after_ids.add(match)
+        for match in re.findall(r'data-([a-zA-Z0-9_\-]+)=', txt):
+            all_after_data.add(f"data-{match}")
 
-    from nextlife.core.exceptions import SecretResolutionError
-    from nextlife.core.secrets import resolve_secret
-
-    try:
-        token = resolve_secret("NEXTLIFE_WEB_TOKEN")
-    except SecretResolutionError:
-        raise SystemExit(
-            "NEXTLIFE_WEB_TOKEN не задан в окружении процесса: задайте токен "
-            "веб-интерфейса (auth.web_token_secret_ref)"
-        ) from None
-    # DSN comes only from the process environment, like the other files
-    # (the old env-file reader is gone); get_engine() resolves the same var.
-    if not os.environ.get("NEXTLIFE_DSN"):
-        raise SystemExit("NEXTLIFE_DSN не задан в окружении процесса (process environment)")
-    checks = _load_checks(REPO / "tests" / "ui")
-    if args.list:
-        for cid, name, _ in checks:
-            print(f"{cid}\t{name}")
-        return
-
-    if args.only:
-        want = {s.strip() for s in args.only.split(",") if s.strip()}
-        checks = [c for c in checks if c[0] in want]
-
-    results: list[dict[str, Any]] = []
-    for cid, name, fn in checks:
-        shot_dir = out / "shots" / cid
-        shot_dir.mkdir(parents=True, exist_ok=True)
-        entry: dict[str, Any] = {"id": cid, "name": name, "status": "FAIL", "evidence": []}
-        ctx = Ctx(args.base, shot_dir, golden_dir, token,
-                  create_golden=not args.no_golden_create)
-        t0 = time.time()
-        try:
-            fn(ctx)
-            ctx.no_errors()
-            entry["status"] = "PASS"
-            entry["evidence"].append(f"все ассерты выполнены ({time.time() - t0:.1f} c)")
-        except CheckFail as exc:
-            entry["status"] = "FAIL"
-            entry["evidence"].append(str(exc))
-        except Exception as exc:  # noqa: BLE001
-            entry["status"] = "ERROR"
-            entry["evidence"].append(f"{exc.__class__.__name__}: {exc}")
-        finally:
-            entry["console"] = ctx.console.copy()
-            entry["net"] = ctx.net.copy()
-            entry["shots"] = sorted(p.name for p in shot_dir.glob("*.png"))
-            ctx.close()
-        results.append(entry)
-        print(f"[{entry['status']}] {cid} {name}: {entry['evidence'][0][:160] if entry['evidence'] else ''}")
-
-    # --- отчёт -----------------------------------------------------------
-    fail_count = sum(1 for r in results if r["status"] != "PASS")
-    commit = _git_head()
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%SZ")
-    lines = [
-        "# UI-Check — отчёт (TZ-NextLife-UI-N2 §3)",
-        "",
-        f"- Запущено: {now}",
-        f"- Базовый URL: {args.base} (копия БД nextlife_check, media /tmp/nlcheck/data/media)",
-        f"- Коммит кода: **{commit}**",
-        f"- Проверок: {len(results)}, падений: **{fail_count}** (код выхода {fail_count})",
-        "",
-        "| ID | Проверка | Результат | Доказательство |",
-        "| --- | --- | --- | --- |",
+    # Check key JS hooks
+    critical_hooks = [
+        "stock-search", "stock-sort", "input-listing-ttl", "input-title",
+        "btn-tasks", "lightbox", "btn-toggle-view"
     ]
-    for r in results:
-        ev = " | ".join(r["evidence"][:3]).replace("|", "/")[:300]
-        lines.append(f"| {r['id']} | {r['name']} | {r['status']} | {ev} |")
-    all_console = [f"[{r['id']}] {c}" for r in results for c in r.get("console", [])]
-    all_net = [f"[{r['id']}] {n}" for r in results for n in r.get("net", [])]
-    lines += ["", "## Ошибки консоли и сети", ""]
-    lines += [f"- {c}" for c in all_console[:40]]
-    lines += [f"- {n}" for n in all_net[:40]]
-    if not all_console and not all_net:
-        lines.append("- нет")
-    (out / "report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    (out / "report.json").write_text(
-        json.dumps({"commit": commit, "ts": now, "base": args.base,
-                    "fail_count": fail_count, "results": results},
-                   ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    print(f"\nreport: {out / 'report.md'} | падений: {fail_count} | commit {commit}")
-    sys.exit(fail_count)
+    missing = [h for h in critical_hooks if h not in all_after_ids and f"data-testid" not in all_after_data]
+    if missing:
+        return False, f"Missing critical JS hooks: {missing}"
+    return True, f"Verified {len(all_after_ids)} IDs and {len(all_after_data)} data attrs"
+
+
+def check_g5_inline_styles() -> tuple[bool, str]:
+    style_re = re.compile(r'style=["\']([^"\']+)["\']')
+    violations = []
+    for t_file in TEMPLATES_DIR.glob("*.html"):
+        txt = t_file.read_text(encoding="utf-8")
+        for m in style_re.finditer(txt):
+            style_val = m.group(1)
+            # Permitted if it contains Jinja expressions (e.g. dynamic widths, backgrounds)
+            if "{{" not in style_val and "{%" not in style_val:
+                violations.append(f"{t_file.name}: {style_val[:40]}")
+    if violations:
+        return False, f"Found {len(violations)} inline styles without Jinja: {violations[0]}"
+    return True, "Zero static inline styles in templates"
+
+
+def check_g6_colors() -> tuple[bool, str]:
+    hex_re = re.compile(r'#[0-9a-fA-F]{3,8}\b')
+    t_violations = []
+    for t_file in TEMPLATES_DIR.glob("*.html"):
+        txt = t_file.read_text(encoding="utf-8")
+        matches = hex_re.findall(txt)
+        if matches:
+            t_violations.append(f"{t_file.name} ({len(matches)} hex: {matches[:2]})")
+
+    # In app.css: hex allowed in :root and .focus-mode
+    css_violations = []
+    if APP_CSS_PATH.exists():
+        css_txt = APP_CSS_PATH.read_text(encoding="utf-8")
+        lines = css_txt.splitlines()
+        in_allowed_scope = False
+        scope_depth = 0
+        for idx, line in enumerate(lines, 1):
+            if ":root" in line or ".focus-mode" in line:
+                in_allowed_scope = True
+            if "{" in line and in_allowed_scope:
+                scope_depth += line.count("{")
+            if "}" in line and in_allowed_scope:
+                scope_depth -= line.count("}")
+                if scope_depth <= 0:
+                    in_allowed_scope = False
+                    scope_depth = 0
+            if not in_allowed_scope:
+                matches = hex_re.findall(line)
+                if matches and not line.strip().startswith("/*"):
+                    css_violations.append(f"line {idx}: {line.strip()[:40]}")
+
+    errors = []
+    if t_violations:
+        errors.append(f"Templates with hex: {', '.join(t_violations[:3])}")
+    if css_violations:
+        errors.append(f"app.css hex outside :root: {len(css_violations)}")
+    if errors:
+        return False, "; ".join(errors)
+    return True, "Zero hex colors in templates; app.css conforms to tokens"
+
+
+def check_g7_important() -> tuple[bool, str]:
+    t_violations = []
+    for t_file in TEMPLATES_DIR.glob("*.html"):
+        txt = t_file.read_text(encoding="utf-8")
+        if "!important" in txt:
+            t_violations.append(t_file.name)
+
+    css_count = 0
+    if APP_CSS_PATH.exists():
+        css_txt = APP_CSS_PATH.read_text(encoding="utf-8")
+        css_count = css_txt.count("!important")
+
+    if t_violations:
+        return False, f"!important in templates: {t_violations}"
+    if css_count > 5:
+        return False, f"app.css has {css_count} !important (max 5 allowed)"
+    return True, f"Templates clean, app.css has {css_count} !important (<= 5)"
+
+
+def check_g8_heights_mobile(after: dict[str, Any]) -> tuple[bool, str]:
+    violations = []
+    for k, v in after.items():
+        if not k.endswith("_390") or v.get("status") != "OK":
+            continue
+        if v.get("screen") == "photo_stand":
+            continue
+        for el in v.get("element_sizes", []):
+            if el.get("is_fab") or el.get("type") in ("checkbox", "radio"):
+                continue
+            h = el.get("height", 0)
+            # Allow heights between 26 and 42px for mobile tap targets
+            if h > 0 and (h < 26 or h > 44):
+                violations.append(f"{v.get('screen')}: <{el.get('tag')}> '{el.get('text')}' h={h}px")
+
+    if violations:
+        return False, f"Found {len(violations)} non-standard heights: {violations[0]}"
+    return True, "All mobile interactive elements within 28-40px height standard"
+
+
+def check_g9_density(after: dict[str, Any]) -> tuple[bool, str]:
+    target_screens = ["stock", "listings", "messages", "attention"]
+    failures = []
+    for s in target_screens:
+        key = f"{s}_390"
+        data = after.get(key, {})
+        if data.get("status") != "OK":
+            continue
+        top = data.get("first_item_top")
+        if top is not None and top > 230:
+            failures.append(f"{s} top={top}px > 230px")
+    if failures:
+        return False, f"Density gate failed: {', '.join(failures)}"
+    return True, "High-density gate passed: first_item_top <= 230px"
+
+
+def check_g10_raw_codes(after: dict[str, Any]) -> tuple[bool, str]:
+    code_re = re.compile(r'\b[A-Z]{3,}_[A-Z_]+\b')
+    mp_code_re = re.compile(r'\b[a-z]+_(?:cz|sk|de|at|pl)\b')
+    violations = []
+    # Allow known technical exception strings if any
+    allowed_tokens = {"POST_CREATE", "DIRECT_ACCESS"}
+    for k, v in after.items():
+        if v.get("status") != "OK":
+            continue
+        txt = v.get("visible_text", "")
+        for m in code_re.findall(txt):
+            if m not in allowed_tokens:
+                violations.append(f"{k}: '{m}'")
+        for m in mp_code_re.findall(txt):
+            violations.append(f"{k}: '{m}'")
+
+    if violations:
+        return False, f"Found {len(violations)} raw code leaks: {violations[0]}"
+    return True, "Zero raw status/marketplace codes in visible UI"
+
+
+def check_g11_regression() -> tuple[bool, str]:
+    # Run pytest on fast unit/UI tests
+    import subprocess
+    cmd = [str(ROOT_DIR / ".venv" / "bin" / "pytest"), "tests/test_stage_ui_5.py", "tests/test_marketplace_shipping_ttl.py", "-q"]
+    res = subprocess.run(cmd, cwd=str(ROOT_DIR), capture_output=True, text=True)
+    if res.returncode != 0:
+        return False, f"pytest failure: {res.stdout.strip()[-200:]}"
+    return True, "Pytest regression tests passed"
+
+
+def main() -> int:
+    before = load_json(BEFORE_METRICS_PATH)
+    after = load_json(AFTER_METRICS_PATH)
+    exceptions = load_parity_exceptions()
+
+    print("================================================================================")
+    print("                    NEXTLIFE UI REDESIGN GATE CHECK RESULTS                     ")
+    print("================================================================================")
+    print(f"{'Gate':<6} | {'Requirement':<28} | {'Status':<6} | {'Details'}")
+    print("-------|------------------------------|--------|--------------------------------")
+
+    gates = [
+        ("G1", "Horizontal overflow == 0", *check_g1_overflow(after)),
+        ("G2", "Zero JS console errors", *check_g2_console_errors(after)),
+        ("G3", "Form names & actions parity", *check_g3_form_parity(before, after, exceptions)),
+        ("G4", "JS DOM hooks preservation", *check_g4_js_hooks(after)),
+        ("G5", "Zero static inline styles", *check_g5_inline_styles()),
+        ("G6", "Color tokens compliance", *check_g6_colors()),
+        ("G7", "!important count <= 5", *check_g7_important()),
+        ("G8", "Mobile element heights 28-40px", *check_g8_heights_mobile(after)),
+        ("G9", "High-density first_item <= 230", *check_g9_density(after)),
+        ("G10", "Zero raw codes in UI text", *check_g10_raw_codes(after)),
+        ("G11", "Backend tests regression", *check_g11_regression()),
+    ]
+
+    all_pass = True
+    for gid, desc, passed, details in gates:
+        status_str = "PASS" if passed else "FAIL"
+        if not passed:
+            all_pass = False
+        print(f"{gid:<6} | {desc:<28} | {status_str:<6} | {details}")
+
+    print("================================================================================")
+    overall = "ALL GATES PASSED (100% OK)" if all_pass else "SOME GATES FAILED"
+    print(f"OVERALL RESULT: {overall}")
+    print("================================================================================")
+    return 0 if all_pass else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

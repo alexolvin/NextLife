@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="card" style="padding: 18px;" data-testid="connectors-report">
-  <h1 style="margin-top: 0;">Отчёт коннекторов</h1>
-  <pre style="white-space: pre-wrap; font-size: 0.85rem;" data-testid="connectors-report-body">{{ report_text }}</pre>
+<div class="card p-3" data-testid="connectors-report">
+  <h1 class="page-title">Отчёт коннекторов</h1>
+  <pre class="font-mono text-xs whitespace-pre-wrap mt-2" data-testid="connectors-report-body">{{ report_text }}</pre>
 </div>
 {% endblock %}

@@ -38,6 +38,8 @@ templates.env.globals["app_version"] = get_version_str()
 # TZ-NextLife-UI-N2 §4 V4 (P-E15): статусы — только по-русски (Э-6).
 templates.env.filters["status_ru"] = status_label_ru
 templates.env.filters["deal_status_ru"] = deal_status_label_ru
+from nextlife.api.ui_labels import register_ui_filters
+register_ui_filters(templates.env)
 
 
 def format_date_dmy(val: Any) -> str:

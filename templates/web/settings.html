@@ -3,26 +3,26 @@
 {% block title %}Настройки — NextLife{% endblock %}
 
 {% block content %}
-<div class="page-container" style="max-width: 720px; margin: 0 auto; padding: 1rem;">
-  <div class="settings-version-line" data-testid="settings-version" style="font-size: 0.85rem; font-weight: 600; color: var(--c-accent, #0a3d7a); margin-bottom: 0.5rem; letter-spacing: 0.02em;">
-    Версия: {{ app_version }}
-  </div>
-  <div style="margin-bottom: 1.25rem;">
-    <h1 style="font-size: 1.5rem; font-weight: 700; margin: 0 0 1rem 0;">Настройки</h1>
+<div class="page-container settings-page">
+  <div class="settings-header">
+    <div class="settings-version-line text-muted font-mono text-xs" data-testid="settings-version">
+      Версия: {{ app_version }}
+    </div>
+    <h1 class="settings-title">Настройки</h1>
     
     <!-- Tab Navigation -->
-    <div style="display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color, #e2e8f0);" data-testid="settings-tabs">
-      <a href="/ui/settings?tab=profile" class="btn btn-sm {% if tab == 'profile' %}btn-primary{% else %}btn-secondary{% endif %}" data-testid="tab-profile">Мои данные</a>
-      <a href="/ui/settings?tab=marketplaces" class="btn btn-sm {% if tab == 'marketplaces' %}btn-primary{% else %}btn-secondary{% endif %}" data-testid="tab-marketplaces">Площадки</a>
-      <a href="/ui/settings?tab=ai" class="btn btn-sm {% if tab == 'ai' %}btn-primary{% else %}btn-secondary{% endif %}" data-testid="tab-ai">ИИ</a>
-      <a href="/ui/settings?tab=notion" class="btn btn-sm {% if tab == 'notion' %}btn-primary{% else %}btn-secondary{% endif %}" data-testid="tab-notion">Notion</a>
-      <a href="/ui/settings?tab=buy" class="btn btn-sm {% if tab == 'buy' %}btn-primary{% else %}btn-secondary{% endif %}" data-testid="tab-buy">Покупки</a>
+    <div class="tabs-nav" data-testid="settings-tabs">
+      <a href="/ui/settings?tab=profile" class="tab-link {% if tab == 'profile' %}active{% endif %}" data-testid="tab-profile">Мои данные</a>
+      <a href="/ui/settings?tab=marketplaces" class="tab-link {% if tab == 'marketplaces' %}active{% endif %}" data-testid="tab-marketplaces">Площадки</a>
+      <a href="/ui/settings?tab=ai" class="tab-link {% if tab == 'ai' %}active{% endif %}" data-testid="tab-ai">ИИ</a>
+      <a href="/ui/settings?tab=notion" class="tab-link {% if tab == 'notion' %}active{% endif %}" data-testid="tab-notion">Notion</a>
+      <a href="/ui/settings?tab=buy" class="tab-link {% if tab == 'buy' %}active{% endif %}" data-testid="tab-buy">Покупки</a>
     </div>
   </div>
 
   <!-- Notices / Alerts -->
   {% if notice %}
-  <div style="padding: 0.75rem 1rem; border-radius: 8px; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; margin-bottom: 1rem;" data-testid="settings-notice">
+  <div class="alert alert-success" data-testid="settings-notice">
     {% if notice == 'profile_saved' or notice == 'secrets_saved' %}Данные профиля успешно сохранены.
     {% elif notice == 'marketplaces_saved' %}Настройки площадок сохранены.
     {% elif notice == 'ai_saved' or notice == 'llm_saved' %}Настройки ИИ успешно сохранены.
@@ -39,201 +39,188 @@
   {% endif %}
 
   {% if err %}
-  <div style="padding: 0.75rem 1rem; border-radius: 8px; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; margin-bottom: 1rem;" data-testid="settings-error">
+  <div class="alert alert-danger" data-testid="settings-error">
     Ошибка: {{ err }}
   </div>
   {% endif %}
 
   <!-- 1. МОИ ДАННЫЕ (Profile) -->
   {% if tab == 'profile' %}
-  <form method="POST" action="/ui/settings/profile" class="card" style="padding: 1.25rem; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px;" data-testid="form-profile">
-    <h2 style="font-size: 1.15rem; font-weight: 600; margin-top: 0; margin-bottom: 1rem;">Мои данные</h2>
-    <div style="margin-bottom: 1rem;">
-      <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Имя продавца</label>
-      <input type="text" name="seller_name" value="{{ seller_name }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Имя продавца" data-testid="input-seller-name">
+  <form method="POST" action="/ui/settings/profile" class="card" data-testid="form-profile">
+    <h2 class="section-title">Мои данные</h2>
+    <div class="form-grid-profile">
+      <div class="form-group form-col-full">
+        <label class="label">Имя продавца</label>
+        <input type="text" name="seller_name" value="{{ seller_name }}" class="input" placeholder="Имя продавца" data-testid="input-seller-name">
+      </div>
+      <div class="form-row-2col form-col-full">
+        <div class="form-group">
+          <label class="label">Почтовый индекс (PSČ)</label>
+          <input type="text" name="seller_psc" value="{{ seller_psc }}" class="input" placeholder="110 00" data-testid="input-seller-psc">
+        </div>
+        <div class="form-group">
+          <label class="label">Телефон</label>
+          <input type="text" name="seller_phone" value="{{ seller_phone }}" class="input" placeholder="+420..." data-testid="input-seller-phone">
+        </div>
+      </div>
+      <div class="form-group form-col-full">
+        <label class="label">Место встреч по умолчанию</label>
+        <input type="text" name="default_meeting_place" value="{{ default_meeting_place }}" class="input" placeholder="Прага, ст. м. Мустек" data-testid="input-meeting-place">
+      </div>
     </div>
-    <div style="margin-bottom: 1rem;">
-      <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Почтовый индекс (PSČ)</label>
-      <input type="text" name="seller_psc" value="{{ seller_psc }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="110 00" data-testid="input-seller-psc">
+    <div class="form-actions-right">
+      <button type="submit" class="btn btn-primary" data-testid="profile-save-btn">Сохранить</button>
     </div>
-    <div style="margin-bottom: 1rem;">
-      <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Телефон</label>
-      <input type="text" name="seller_phone" value="{{ seller_phone }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="+420..." data-testid="input-seller-phone">
-    </div>
-    <div style="margin-bottom: 1.25rem;">
-      <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Место встреч по умолчанию</label>
-      <input type="text" name="default_meeting_place" value="{{ default_meeting_place }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Прага, ст. м. Мустек" data-testid="input-meeting-place">
-    </div>
-    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.65rem;" data-testid="profile-save-btn">Сохранить</button>
   </form>
   {% endif %}
 
   <!-- 2. ПЛОЩАДКИ (Marketplaces) -->
   {% if tab == 'marketplaces' %}
-  <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-    <!-- Capabilities Matrix Table -->
-    <div class="card" style="padding: 1.25rem; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; overflow-x: auto;">
-      <h2 style="font-size: 1.15rem; font-weight: 600; margin-top: 0; margin-bottom: 0.5rem;">Матрица возможностей площадок</h2>
-      <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 0.75rem;">Только для чтения. Возможности включаются при наличии реальной реализации в коннекторе.</p>
-      
-      <!-- Статусная легенда -->
-      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; font-size: 0.8rem;" data-testid="mp-status-legend">
-        <span style="display: inline-flex; align-items: center; gap: 0.35rem; background: #dcfce7; color: #166534; padding: 3px 8px; border-radius: 6px; border: 1px solid #bbf7d0;">
-          <span style="width: 8px; height: 8px; border-radius: 50%; background: #16a34a;"></span>
-          Светло-зелёный: Полный доступ
-        </span>
-        <span style="display: inline-flex; align-items: center; gap: 0.35rem; background: #fef9c3; color: #854d0e; padding: 3px 8px; border-radius: 6px; border: 1px solid #fef08a;">
-          <span style="width: 8px; height: 8px; border-radius: 50%; background: #ca8a04;"></span>
-          Светло-жёлтый: Только просмотр
-        </span>
-        <span style="display: inline-flex; align-items: center; gap: 0.35rem; background: #fef2f2; color: #991b1b; padding: 3px 8px; border-radius: 6px; border: 1px solid #fecaca;">
-          <span style="width: 8px; height: 8px; border-radius: 50%; background: #dc2626;"></span>
-          Светло-красный: Недоступен
-        </span>
-      </div>
-
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;" data-testid="capabilities-table">
-        <thead>
-          <tr style="border-bottom: 2px solid #e2e8f0; text-align: left;">
-            <th style="padding: 0.5rem;">Площадка</th>
-            <th style="padding: 0.5rem; text-align: center;">Поиск</th>
-            <th style="padding: 0.5rem; text-align: center;">Размещение</th>
-            <th style="padding: 0.5rem; text-align: center;">Изменение</th>
-            <th style="padding: 0.5rem; text-align: center;" title="Автоматическое снятие объявлений коннектором">Автоснятие</th>
-            <th style="padding: 0.5rem; text-align: center;" title="Автоматическое перевыставление объявлений коннектором">Автоперевыставление</th>
-            <th style="padding: 0.5rem; text-align: center;">Сообщения</th>
-            <th style="padding: 0.5rem; text-align: center;">Доставка</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for mp in marketplaces %}
-          <tr style="border-bottom: 1px solid #e2e8f0; background: {{ mp.status_bg }};" data-testid="row-mp-{{ mp.key }}">
-            <td style="padding: 0.5rem; font-weight: 600;">
-              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: {{ mp.status_dot }}; margin-right: 6px;" title="{{ mp.status_label }}"></span>
-              {{ mp.title }}
-            </td>
-            <td style="padding: 0.5rem; text-align: center;">{{ "✓" if mp.caps.search else "—" }}</td>
-            <td style="padding: 0.5rem; text-align: center;">{{ "✓" if mp.caps.publish else "—" }}</td>
-            <td style="padding: 0.5rem; text-align: center;">{{ "✓" if mp.caps.update else "—" }}</td>
-            <td style="padding: 0.5rem; text-align: center;">{{ "✓" if (mp.auto_unpublish or mp.caps.unpublish) else "—" }}</td>
-            <td style="padding: 0.5rem; text-align: center;">{{ "✓" if (mp.auto_relist or mp.caps.relist) else "—" }}</td>
-            <td style="padding: 0.5rem; text-align: center;">{{ "✓" if mp.caps.messages_read else "—" }}</td>
-            <td style="padding: 0.5rem; text-align: center;">{{ "✓" if mp.caps.delivery_parse else "—" }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+  <div class="stack-md">
+    <!-- Легенда возможностей и цветов в одну meta-строку -->
+    <div class="meta-legend" data-testid="mp-status-legend">
+      <span class="meta-status-colors" data-colors="{{ 'green'|status_hex }} {{ 'yellow'|status_hex }} {{ 'red'|status_hex }}">
+        Матрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен
+      </span>
+      <span class="text-muted">·</span>
+      <span><span class="cap-badge active">Пск</span> поиск · <span class="cap-badge active">Рзм</span> размещение · <span class="cap-badge active">Изм</span> изменение · <span class="cap-badge active">Снт</span> снятие · <span class="cap-badge active">Прв</span> перевыставление · <span class="cap-badge active">Сбщ</span> сообщения · <span class="cap-badge active">Дст</span> доставка</span>
     </div>
 
     <!-- Marketplaces Accordions & Config Form -->
-    <form method="POST" action="/ui/settings/marketplaces" class="card" style="padding: 1.25rem; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px;" data-testid="form-marketplaces">
-      <h2 style="font-size: 1.15rem; font-weight: 600; margin-top: 0; margin-bottom: 1rem;">Настройки доступа и срок жизни</h2>
-      
-      <div style="margin-bottom: 1.25rem;">
-        <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Срок жизни объявления (дней)</label>
-        <input type="number" name="listing_ttl_days" value="{{ listing_ttl_days }}" style="width: 120px; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" min="1" max="365" data-testid="input-listing-ttl">
+    <form method="POST" action="/ui/settings/marketplaces" class="card" data-testid="form-marketplaces">
+      <div class="form-group row-align">
+        <label class="label">Срок жизни по умолчанию (дней):</label>
+        <input type="number" name="listing_ttl_days" value="{{ listing_ttl_days }}" class="input input-sm ttl-input" min="1" max="365" data-testid="input-listing-ttl">
       </div>
 
-      <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem;">
+      <!-- Группа 1: Публикация -->
+      <h2 class="section-title">Публикация</h2>
+      <div class="mp-list">
         {% for mp in marketplaces %}
-        <details id="mp-{{ mp.key }}" style="border: 1px solid {{ mp.status_border }}; border-left: 5px solid {{ mp.status_dot }}; background: {{ mp.status_bg }}; border-radius: 8px; padding: 0.75rem;" {% if mp.search or mp.publish %}open{% endif %} data-testid="details-mp-{{ mp.key }}">
-          <summary style="font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
-            <span>{{ mp.title }}</span>
-            <span style="font-size: 0.75rem; font-weight: 500; padding: 2px 8px; border-radius: 9999px; background: {{ mp.badge_bg }}; color: {{ mp.badge_text }}; border: 1px solid {{ mp.badge_border }};" data-testid="badge-status-{{ mp.key }}">{{ mp.status_label }}</span>
-          </summary>
-          <div style="margin-top: 0.75rem;">
-            <!-- Прямой вход и управление сессией / приложением -->
-            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 0.85rem; padding: 8px 10px; background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.06); border-radius: 8px;">
+        {% if mp.can_publish %}
+        <details id="mp-{{ mp.key }}" class="mp-card border-{{ mp.status_tone }}" data-testid="details-mp-{{ mp.key }}" data-testid-row="row-mp-{{ mp.key }}" data-status-bg="{{ mp.status_bg }}">
+          <summary class="mp-summary" data-testid="row-mp-{{ mp.key }}">
+            <div class="mp-summary-left">
+              <span class="status-dot dot-{{ mp.status_tone }}" title="{{ mp.status_label }}"></span>
+              <span class="mp-title">{{ mp.title }}</span>
+              <span class="badge badge-status text-xs" data-testid="badge-status-{{ mp.key }}">{{ mp.status_label }}</span>
+              <div class="mp-badges">
+                <span class="cap-badge {% if mp.caps.search %}active{% endif %}" title="Поиск">Пск</span>
+                <span class="cap-badge {% if mp.caps.publish %}active{% endif %}" title="Размещение">Рзм</span>
+                <span class="cap-badge {% if mp.caps.update %}active{% endif %}" title="Изменение">Изм</span>
+                <span class="cap-badge {% if mp.auto_unpublish or mp.caps.unpublish %}active{% endif %}" title="Автоснятие">Снт</span>
+                <span class="cap-badge {% if mp.auto_relist or mp.caps.relist %}active{% endif %}" title="Автоперевыставление">Прв</span>
+                <span class="cap-badge {% if mp.caps.messages_read %}active{% endif %}" title="Сообщения">Сбщ</span>
+                <span class="cap-badge {% if mp.caps.delivery_parse %}active{% endif %}" title="Доставка">Дст</span>
+              </div>
+            </div>
+            <div class="mp-summary-right" onclick="event.stopPropagation()">
+              <label class="chip-toggle"><input type="checkbox" name="mp_{{ mp.key }}_search" {% if mp.search %}checked{% endif %}><span>Поиск</span></label>
+              <label class="chip-toggle"><input type="checkbox" name="mp_{{ mp.key }}_publish" {% if mp.publish %}checked{% endif %}><span>Размещение</span></label>
               {% if mp.login_url %}
-              <a href="{{ mp.login_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; font-size: 0.82rem;" data-testid="btn-login-{{ mp.key }}">
-                🔗 Открыть сайт для входа ↗
-              </a>
-              {% endif %}
-              {% if mp.phone_platform %}
-              <button type="submit" form="form-open-phone-{{ mp.key }}" class="btn btn-sm btn-secondary" style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; font-weight: 600; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 4px;" data-testid="btn-phone-{{ mp.key }}">
-                📱 Открыть на телефоне
-              </button>
+              <a href="{{ mp.login_url }}" target="_blank" rel="noopener" class="link-external" title="Открыть сайт">↗</a>
               {% endif %}
             </div>
-            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem;">{{ 'Прямой доступ' if mp.access_mode == 'DIRECT' else 'Через приложение' }}</div>
-            <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 0.5rem;">
-              <label style="font-size: 0.875rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer;">
-                <input type="checkbox" name="mp_{{ mp.key }}_search" {% if mp.search %}checked{% endif %}>
-                <span>Поиск</span>
-              </label>
-              {% if mp.can_publish %}
-              <label style="font-size: 0.875rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer;">
-                <input type="checkbox" name="mp_{{ mp.key }}_publish" {% if mp.publish %}checked{% endif %}>
-                <span>Размещение</span>
-              </label>
-              {% else %}
-              <div style="font-size: 0.82rem; color: #64748b; display: flex; align-items: center; gap: 0.35rem; padding: 2px 8px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px;" title="Площадка используется только для мониторинга цен">
-                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #94a3b8;"></span>
-                <span>Только поиск</span>
+          </summary>
+          <div class="mp-body">
+            <div class="mp-top-bar">
+              <div class="mp-sys-params" data-testid="sys-params-{{ mp.key }}">
+                <span class="badge badge-neutral">Автоснятие: {% if mp.auto_unpublish or mp.caps.unpublish %}✓ Поддерживается{% else %}— Вручную{% endif %}</span>
+                <span class="badge badge-neutral">Автоперевыставление: {% if mp.auto_relist or mp.caps.relist %}✓ Поддерживается{% else %}— Вручную{% endif %}</span>
               </div>
-              {% endif %}
-            </div>
-            {% if mp.can_publish %}
-            <!-- Системные информационные параметры (только для чтения) -->
-            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.75rem; padding: 6px 10px; background: rgba(241, 245, 249, 0.75); border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.8rem;" data-testid="sys-params-{{ mp.key }}">
-              <div style="display: flex; align-items: center; gap: 4px;" title="Возможность автоматического снятия объявления коннектором">
-                <span style="color: #64748b;">Автоснятие:</span>
-                {% if mp.auto_unpublish or mp.caps.unpublish %}
-                  <span style="color: #15803d; font-weight: 600;">✓ Поддерживается</span>
-                {% else %}
-                  <span style="color: #64748b; font-weight: 500;">— Вручную</span>
+              <div class="row-align">
+                <span class="text-muted text-xs">{{ 'Прямой доступ' if mp.access_mode == 'DIRECT' else 'Через приложение' }}</span>
+                {% if mp.phone_platform %}
+                <button type="submit" form="form-open-phone-{{ mp.key }}" class="btn btn-xs btn-secondary" data-testid="btn-phone-{{ mp.key }}">📱 Телефон</button>
+                {% endif %}
+                {% if mp.login_url %}
+                <a href="{{ mp.login_url }}" target="_blank" rel="noopener" class="btn btn-xs btn-secondary" data-testid="btn-login-{{ mp.key }}">🔗 Войти ↗</a>
                 {% endif %}
               </div>
-              <span style="color: #cbd5e1;">•</span>
-              <div style="display: flex; align-items: center; gap: 4px;" title="Возможность автоматического перевыставления объявления коннектором">
-                <span style="color: #64748b;">Автоперевыставление:</span>
-                {% if mp.auto_relist or mp.caps.relist %}
-                  <span style="color: #15803d; font-weight: 600;">✓ Поддерживается</span>
-                {% else %}
-                  <span style="color: #64748b; font-weight: 500;">— Вручную</span>
-                {% endif %}
-              </div>
-              <span style="color: #94a3b8; font-size: 0.72rem; margin-left: auto;">(системный параметр)</span>
             </div>
-            <div style="margin-bottom: 0.75rem;">
-              <label style="font-size: 0.8rem; font-weight: 500; display: block; margin-bottom: 0.2rem;">Срок публикации на этой площадке (дней):</label>
-              <input type="number" name="mp_{{ mp.key }}_ttl" value="{{ mp.listing_ttl_days }}" style="width: 100px; padding: 0.4rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" min="1" max="365" data-testid="input-mp-ttl-{{ mp.key }}">
+
+            <div class="form-group row-align">
+              <label class="label">Срок публикации на площадке (дней):</label>
+              <input type="number" name="mp_{{ mp.key }}_ttl" value="{{ mp.listing_ttl_days }}" class="input input-sm ttl-input" min="1" max="365" data-testid="input-mp-ttl-{{ mp.key }}">
             </div>
-            <div style="margin-bottom: 0.75rem;">
-              <div style="font-size: 0.8rem; font-weight: 500; margin-bottom: 0.25rem;">Способы доставки для этой площадки:</div>
-              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px;">
+
+            <div class="form-group">
+              <div class="label">Способы доставки:</div>
+              <div class="carrier-chips">
                 {% for c in mp.carriers %}
-                <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.35rem;" title="{{ c.desc }}">
+                <label class="chip-toggle" title="{{ c.desc }}">
                   <input type="checkbox" name="mp_{{ mp.key }}_carrier_{{ c.key }}" {% if c.checked %}checked{% endif %} data-testid="cb-mp-carrier-{{ mp.key }}-{{ c.key }}">
                   <span>{{ c.title }}</span>
                 </label>
                 {% endfor %}
               </div>
             </div>
-            {% else %}
-            <div style="padding: 10px 12px; background: rgba(241, 245, 249, 0.7); border: 1px dashed #cbd5e1; border-radius: 8px; font-size: 0.82rem; color: #64748b; margin-bottom: 0.75rem;" data-testid="search-only-notice-{{ mp.key }}">
-              ℹ️ <strong>Площадка используется исключительно для мониторинга и поиска цен.</strong><br>
-              Параметры размещения, срок жизни объявлений, способы доставки и автоматическое снятие для данной площадки не применяются.
-            </div>
-            {% endif %}
+
             {% for sec in mp.secrets %}
-            <div style="margin-bottom: 0.5rem;">
-              <label style="font-size: 0.8rem; font-weight: 500; display: block; margin-bottom: 0.2rem;">{{ sec.label }}</label>
-              <input type="{{ sec.type }}" name="{{ sec.key }}" style="width: 100%; padding: 0.4rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="{{ 'заполнено' if sec.set else sec.placeholder }}">
-              <label style="font-size: 0.75rem; color: #64748b; display: inline-flex; align-items: center; gap: 0.25rem; margin-top: 0.2rem;"><input type="checkbox" name="clear_{{ sec.key }}"> Стереть</label>
+            <div class="form-group">
+              <label class="label">{{ sec.label }}</label>
+              <div class="secret-row">
+                <input type="{{ sec.type }}" name="{{ sec.key }}" class="input input-sm" placeholder="{{ 'заполнено' if sec.set else sec.placeholder }}">
+                <label class="clear-secret-label"><input type="checkbox" name="clear_{{ sec.key }}"> <span>Стереть</span></label>
+              </div>
             </div>
             {% endfor %}
           </div>
         </details>
+        {% endif %}
         {% endfor %}
       </div>
 
-      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.65rem;" data-testid="marketplaces-save-btn">Сохранить площадки</button>
+      <!-- Группа 2: Только мониторинг цен -->
+      <h2 class="section-title">Только мониторинг цен</h2>
+      <div class="table-container">
+        <table class="table-compact" data-testid="monitoring-table">
+          <thead>
+            <tr>
+              <th>Площадка</th>
+              <th>Мониторинг</th>
+              <th>Тип коннектора</th>
+              <th class="text-right">Сайт</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for mp in marketplaces %}
+            {% if not mp.can_publish %}
+            <tr data-testid="row-mp-{{ mp.key }}" data-status-bg="{{ mp.status_bg }}">
+              <td>
+                <span class="status-dot dot-{{ mp.status_tone }}" title="{{ mp.status_label }}"></span>
+                <strong>{{ mp.title }}</strong>
+                <span class="hidden" data-testid="search-only-notice-{{ mp.key }}">Площадка используется исключительно для мониторинга и поиска цен</span>
+              </td>
+              <td>
+                <label class="chip-toggle">
+                  <input type="checkbox" name="mp_{{ mp.key }}_search" {% if mp.search %}checked{% endif %}>
+                  <span>Поиск</span>
+                </label>
+              </td>
+              <td>
+                <span class="badge badge-neutral">{{ 'Прямой доступ' if mp.access_mode == 'DIRECT' else 'Через приложение' }}</span>
+              </td>
+              <td class="text-right">
+                {% if mp.login_url %}
+                <a href="{{ mp.login_url }}" target="_blank" rel="noopener" class="link-external" data-testid="btn-login-{{ mp.key }}">↗</a>
+                {% endif %}
+              </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="form-actions-right">
+        <button type="submit" class="btn btn-primary" data-testid="marketplaces-save-btn">Сохранить площадки</button>
+      </div>
     </form>
 
     {% for mp in marketplaces %}
       {% if mp.phone_platform %}
-      <form id="form-open-phone-{{ mp.key }}" method="POST" action="/ui/settings/marketplaces/{{ mp.key }}/open-phone" style="display: none;"></form>
+      <form id="form-open-phone-{{ mp.key }}" method="POST" action="/ui/settings/marketplaces/{{ mp.key }}/open-phone" class="hidden"></form>
       {% endif %}
     {% endfor %}
   </div>
@@ -241,10 +228,17 @@
 
   <!-- 3. ИИ (Text LLM & Image AI) -->
   {% if tab == 'ai' %}
-  <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-    <form method="POST" action="/ui/settings/ai" class="card" style="padding: 1.25rem; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px;" data-testid="form-ai">
-      <h2 style="font-size: 1.15rem; font-weight: 600; margin-top: 0; margin-bottom: 0.5rem;">Текстовый ИИ (Text LLM)</h2>
-      <p id="llm_hint" style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
+  <div class="stack-md">
+    <div class="form-group">
+      <label class="chip-toggle">
+        <input type="checkbox" id="toggle-unified-ai" checked onchange="toggleUnifiedAi(this.checked)">
+        <span>Единая модель для всех операций</span>
+      </label>
+    </div>
+
+    <form method="POST" action="/ui/settings/ai" class="card" data-testid="form-ai">
+      <h2 class="section-title">Текстовый ИИ (Text LLM)</h2>
+      <p id="llm_hint" class="section-subtitle">
         {% if llm_config.provider == 'gemini' %}
         Официальный REST API Google Gemini (<code>models/{model}:generateContent</code>).
         {% else %}
@@ -252,18 +246,18 @@
         {% endif %}
       </p>
 
-      <div style="margin-bottom: 1rem;">
-        <label for="llm_provider" style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Тип эндпоинта (Provider)</label>
-        <select name="llm_provider" id="llm_provider" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; background-color: #fff;" data-testid="select-llm-provider" onchange="updateLlmFields(this.value)">
+      <div class="form-group">
+        <label for="llm_provider" class="label">Тип эндпоинта (Provider)</label>
+        <select name="llm_provider" id="llm_provider" class="input" data-testid="select-llm-provider" onchange="updateLlmFields(this.value)">
           <option value="openai" {% if (llm_config.provider or 'openai') == 'openai' %}selected{% endif %}>OpenAI совместимый (POST /v1/chat/completions)</option>
           <option value="gemini" {% if llm_config.provider == 'gemini' %}selected{% endif %}>Google Gemini (generateContent REST API)</option>
         </select>
       </div>
 
-      <div style="margin-bottom: 1rem;">
-        <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">URL эндпоинта</label>
-        <input type="text" name="llm_endpoint" id="llm_endpoint" value="{{ llm_config.endpoint or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="https://api.openai.com/v1/chat/completions" data-testid="input-llm-endpoint">
-        <div id="llm_endpoint_help" style="font-size: 0.75rem; color: #94a3b8; margin-top: 3px;">
+      <div class="form-group">
+        <label class="label">URL эндпоинта</label>
+        <input type="text" name="llm_endpoint" id="llm_endpoint" value="{{ llm_config.endpoint or '' }}" class="input" placeholder="https://api.openai.com/v1/chat/completions" data-testid="input-llm-endpoint">
+        <div id="llm_endpoint_help" class="text-muted text-xs">
           {% if llm_config.provider == 'gemini' %}
           Базовый адрес API (по умолчанию https://generativelanguage.googleapis.com). Можно оставить пустым — модель указывается в поле ниже.
           {% else %}
@@ -271,22 +265,22 @@
           {% endif %}
         </div>
       </div>
-      <div style="margin-bottom: 1rem;">
-        <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">API Key</label>
-        <input type="password" name="llm_api_key" id="llm_api_key" value="{{ llm_config.api_key or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="sk-..." data-testid="input-llm-key">
+      <div class="form-group">
+        <label class="label">API Key</label>
+        <input type="password" name="llm_api_key" id="llm_api_key" value="{{ llm_config.api_key or '' }}" class="input" placeholder="sk-..." data-testid="input-llm-key">
       </div>
-      <div style="margin-bottom: 1.5rem;">
-        <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Модель</label>
-        <input type="text" name="llm_model" id="llm_model" value="{{ llm_config.model or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="gpt-4o-mini" data-testid="input-llm-model">
-        <div id="llm_model_help" style="font-size: 0.75rem; color: #94a3b8; margin-top: 3px;">
+      <div class="form-group">
+        <label class="label">Модель</label>
+        <input type="text" name="llm_model" id="llm_model" value="{{ llm_config.model or '' }}" class="input" placeholder="gpt-4o-mini" data-testid="input-llm-model">
+        <div id="llm_model_help" class="text-muted text-xs">
           {% if llm_config.provider == 'gemini' %}Например: <code>gemini-1.5-flash</code>, <code>gemini-2.0-flash</code> или <code>gemini-1.5-pro</code>{% else %}Например: <code>gpt-4o-mini</code>, <code>gpt-4o</code>{% endif %}
         </div>
       </div>
 
-      <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 1.5rem 0;">
+      <hr class="divider">
 
-      <h2 style="font-size: 1.15rem; font-weight: 600; margin-top: 0; margin-bottom: 0.5rem;">Графический ИИ (Image AI)</h2>
-      <p id="image_ai_hint" style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
+      <h2 class="section-title">Графический ИИ (Image AI)</h2>
+      <p id="image_ai_hint" class="section-subtitle">
         {% if image_ai_config.provider == 'gemini' %}
         Официальный REST API Google Gemini (поддержка моделей gemini-2.5-flash-image и Imagen 3).
         {% else %}
@@ -294,52 +288,51 @@
         {% endif %}
       </p>
 
-      <div style="margin-bottom: 1rem;">
-        <label for="image_ai_provider" style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Тип эндпоинта (Provider)</label>
-        <select name="image_ai_provider" id="image_ai_provider" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; background-color: #fff;" data-testid="select-image-ai-provider" onchange="updateImageAiFields(this.value)">
+      <div class="form-group">
+        <label for="image_ai_provider" class="label">Тип эндпоинта (Provider)</label>
+        <select name="image_ai_provider" id="image_ai_provider" class="input" data-testid="select-image-ai-provider" onchange="updateImageAiFields(this.value)">
           <option value="openai" {% if (image_ai_config.provider or 'openai') == 'openai' %}selected{% endif %}>OpenAI совместимый (POST /v1/images/edits)</option>
           <option value="gemini" {% if image_ai_config.provider == 'gemini' %}selected{% endif %}>Google Gemini (gemini-2.5-flash-image / Imagen 3)</option>
           <option value="cloudflare" {% if image_ai_config.provider == 'cloudflare' %}selected{% endif %}>Cloudflare Workers AI (/ai/run/ или Workers)</option>
         </select>
       </div>
 
-      <div style="margin-bottom: 1rem;">
-        <label id="image_ai_endpoint_label" style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">URL эндпоинта / Account ID</label>
-        <input type="text" name="image_ai_endpoint" id="image_ai_endpoint" value="{{ image_ai_config.endpoint or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="https://api.openai.com/v1/images/edits" data-testid="input-image-ai-endpoint">
-        <div id="image_ai_endpoint_help" style="font-size: 0.75rem; color: #94a3b8; margin-top: 3px;">
+      <div class="form-group">
+        <label id="image_ai_endpoint_label" class="label">URL эндпоинта / Account ID</label>
+        <input type="text" name="image_ai_endpoint" id="image_ai_endpoint" value="{{ image_ai_config.endpoint or '' }}" class="input" placeholder="https://api.openai.com/v1/images/edits" data-testid="input-image-ai-endpoint">
+        <div id="image_ai_endpoint_help" class="text-muted text-xs">
           {% if image_ai_config.provider == 'gemini' %}
           Базовый адрес API (по умолчанию https://generativelanguage.googleapis.com). Можно оставить пустым — модель указывается в полях ниже.
           {% elif image_ai_config.provider == 'cloudflare' %}
-          Укажите ваш Cloudflare Account ID (32-значный хэш) или полный URL: <code>https://api.cloudflare.com/client/v4/accounts/&lt;ACCOUNT_ID&gt;/ai/run/</code>.
+          Укажите ваш Cloudflare Account ID (32-значный хэш) или полный URL: <code>https://api.cloudflare.com/client/v4/accounts/&lt;id-аккаунта&gt;/ai/run/</code>.
           {% else %}
           URL OpenAI-совместимого эндпоинта (например, https://api.openai.com/v1/images/edits).
           {% endif %}
         </div>
       </div>
-      <div style="margin-bottom: 1rem;">
-        <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">API Key / Token</label>
-        <input type="password" name="image_ai_api_key" id="image_ai_api_key" value="{{ image_ai_config.api_key or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="sk-..." data-testid="input-image-ai-key">
+      <div class="form-group">
+        <label class="label">API Key / Token</label>
+        <input type="password" name="image_ai_api_key" id="image_ai_api_key" value="{{ image_ai_config.api_key or '' }}" class="input" placeholder="sk-..." data-testid="input-image-ai-key">
       </div>
 
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 1.5rem;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-          <div style="font-size: 0.95rem; font-weight: 600; color: #1e293b;">Настройки ИИ функций (отдельно для каждой операции)</div>
-        </div>
-        <p style="font-size: 0.78rem; color: #64748b; margin-top: 0; margin-bottom: 12px;">
-          Вы можете настроить индивидуальный эндпоинт (URL), провайдер, API ключ и модель для каждой функции отдельно. Если поле оставлено пустым, автоматически используется значение из общих настроек выше.
+      <!-- Индивидуальные настройки функций ИИ в свёрнутом details -->
+      <details id="details-individual-ai" class="details-compact">
+        <summary>Индивидуальные настройки функций ИИ (пыль, студия, фон)</summary>
+        <p class="section-subtitle">
+          Индивидуальный URL, провайдер, API ключ и модель для каждой функции. Если поле пустое, используется значение из общих настроек.
         </p>
 
         <!-- 1. Убрать пыль -->
-        <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 0.85rem;" data-testid="section-ai-func-dust">
-          <div style="font-size: 0.875rem; font-weight: 600; color: #334155; margin-bottom: 0.6rem;">1. 🧹 Удаление пыли и дефектов</div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.65rem; margin-bottom: 0.5rem;">
-            <div>
-              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Модель</label>
-              <input type="text" name="image_ai_model_dust" id="image_ai_model_dust" value="{{ image_ai_config.model_dust or image_ai_config.model or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="@cf/runwayml/stable-diffusion-v1-5-inpainting" data-testid="input-image-ai-model-dust">
+        <div class="card" data-testid="section-ai-func-dust">
+          <div class="font-medium text-sm">1. 🧹 Удаление пыли и дефектов</div>
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label class="label">Модель</label>
+              <input type="text" name="image_ai_model_dust" id="image_ai_model_dust" value="{{ image_ai_config.model_dust or image_ai_config.model or '' }}" class="input input-sm" placeholder="@cf/runwayml/stable-diffusion-v1-5-inpainting" data-testid="input-image-ai-model-dust">
             </div>
-            <div>
-              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Провайдер</label>
-              <select name="image_ai_provider_dust" id="image_ai_provider_dust" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; background: #fff;" data-testid="select-image-ai-provider-dust">
+            <div class="form-group">
+              <label class="label">Провайдер</label>
+              <select name="image_ai_provider_dust" id="image_ai_provider_dust" class="input input-sm" data-testid="select-image-ai-provider-dust">
                 <option value="" {% if not image_ai_config.provider_dust %}selected{% endif %}>Как в общих настройках</option>
                 <option value="cloudflare" {% if image_ai_config.provider_dust == 'cloudflare' %}selected{% endif %}>Cloudflare Workers AI</option>
                 <option value="gemini" {% if image_ai_config.provider_dust == 'gemini' %}selected{% endif %}>Google Gemini</option>
@@ -347,29 +340,29 @@
               </select>
             </div>
           </div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.65rem;">
-            <div>
-              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Индивидуальный URL / Account ID</label>
-              <input type="text" name="image_ai_endpoint_dust" id="image_ai_endpoint_dust" value="{{ image_ai_config.endpoint_dust or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="По умолчанию (из общих)" data-testid="input-image-ai-endpoint-dust">
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label class="label">Индивидуальный URL</label>
+              <input type="text" name="image_ai_endpoint_dust" id="image_ai_endpoint_dust" value="{{ image_ai_config.endpoint_dust or '' }}" class="input input-sm" placeholder="По умолчанию (из общих)" data-testid="input-image-ai-endpoint-dust">
             </div>
-            <div>
-              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Индивидуальный API Key / Token</label>
-              <input type="password" name="image_ai_api_key_dust" id="image_ai_api_key_dust" value="{{ image_ai_config.api_key_dust or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="По умолчанию (из общих)" data-testid="input-image-ai-key-dust">
+            <div class="form-group">
+              <label class="label">Индивидуальный API Key</label>
+              <input type="password" name="image_ai_api_key_dust" id="image_ai_api_key_dust" value="{{ image_ai_config.api_key_dust or '' }}" class="input input-sm" placeholder="По умолчанию (из общих)" data-testid="input-image-ai-key-dust">
             </div>
           </div>
         </div>
 
         <!-- 2. Продающее фото -->
-        <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 0.85rem;" data-testid="section-ai-func-selling">
-          <div style="font-size: 0.875rem; font-weight: 600; color: #334155; margin-bottom: 0.6rem;">2. 💎 Продающее фото (Студия / Свет)</div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.65rem; margin-bottom: 0.5rem;">
-            <div>
-              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Модель</label>
-              <input type="text" name="image_ai_model_selling" id="image_ai_model_selling" value="{{ image_ai_config.model_selling or image_ai_config.model or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="@cf/bria/remove-background" data-testid="input-image-ai-model-selling">
+        <div class="card" data-testid="section-ai-func-selling">
+          <div class="font-medium text-sm">2. 💎 Продающее фото (Студия / Свет)</div>
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label class="label">Модель</label>
+              <input type="text" name="image_ai_model_selling" id="image_ai_model_selling" value="{{ image_ai_config.model_selling or image_ai_config.model or '' }}" class="input input-sm" placeholder="@cf/bria/remove-background" data-testid="input-image-ai-model-selling">
             </div>
-            <div>
-              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Провайдер</label>
-              <select name="image_ai_provider_selling" id="image_ai_provider_selling" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; background: #fff;" data-testid="select-image-ai-provider-selling">
+            <div class="form-group">
+              <label class="label">Провайдер</label>
+              <select name="image_ai_provider_selling" id="image_ai_provider_selling" class="input input-sm" data-testid="select-image-ai-provider-selling">
                 <option value="" {% if not image_ai_config.provider_selling %}selected{% endif %}>Как в общих настройках</option>
                 <option value="cloudflare" {% if image_ai_config.provider_selling == 'cloudflare' %}selected{% endif %}>Cloudflare Workers AI</option>
                 <option value="gemini" {% if image_ai_config.provider_selling == 'gemini' %}selected{% endif %}>Google Gemini</option>
@@ -377,29 +370,29 @@
               </select>
             </div>
           </div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.65rem;">
-            <div>
-              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Индивидуальный URL / Account ID</label>
-              <input type="text" name="image_ai_endpoint_selling" id="image_ai_endpoint_selling" value="{{ image_ai_config.endpoint_selling or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="По умолчанию (из общих)" data-testid="input-image-ai-endpoint-selling">
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label class="label">Индивидуальный URL</label>
+              <input type="text" name="image_ai_endpoint_selling" id="image_ai_endpoint_selling" value="{{ image_ai_config.endpoint_selling or '' }}" class="input input-sm" placeholder="По умолчанию (из общих)" data-testid="input-image-ai-endpoint-selling">
             </div>
-            <div>
-              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Индивидуальный API Key / Token</label>
-              <input type="password" name="image_ai_api_key_selling" id="image_ai_api_key_selling" value="{{ image_ai_config.api_key_selling or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="По умолчанию (из общих)" data-testid="input-image-ai-key-selling">
+            <div class="form-group">
+              <label class="label">Индивидуальный API Key</label>
+              <input type="password" name="image_ai_api_key_selling" id="image_ai_api_key_selling" value="{{ image_ai_config.api_key_selling or '' }}" class="input input-sm" placeholder="По умолчанию (из общих)" data-testid="input-image-ai-key-selling">
             </div>
           </div>
         </div>
 
         <!-- 3. Замена фона -->
-        <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px;" data-testid="section-ai-func-bg">
-          <div style="font-size: 0.875rem; font-weight: 600; color: #334155; margin-bottom: 0.6rem;">3. 🎨 Замена фона</div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.65rem; margin-bottom: 0.5rem;">
-            <div>
-              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Модель</label>
-              <input type="text" name="image_ai_model_bg" id="image_ai_model_bg" value="{{ image_ai_config.model_bg or image_ai_config.model or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="@cf/bria/remove-background" data-testid="input-image-ai-model-bg">
+        <div class="card" data-testid="section-ai-func-bg">
+          <div class="font-medium text-sm">3. 🎨 Замена фона</div>
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label class="label">Модель</label>
+              <input type="text" name="image_ai_model_bg" id="image_ai_model_bg" value="{{ image_ai_config.model_bg or image_ai_config.model or '' }}" class="input input-sm" placeholder="@cf/bria/remove-background" data-testid="input-image-ai-model-bg">
             </div>
-            <div>
-              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Провайдер</label>
-              <select name="image_ai_provider_bg" id="image_ai_provider_bg" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; background: #fff;" data-testid="select-image-ai-provider-bg">
+            <div class="form-group">
+              <label class="label">Провайдер</label>
+              <select name="image_ai_provider_bg" id="image_ai_provider_bg" class="input input-sm" data-testid="select-image-ai-provider-bg">
                 <option value="" {% if not image_ai_config.provider_bg %}selected{% endif %}>Как в общих настройках</option>
                 <option value="cloudflare" {% if image_ai_config.provider_bg == 'cloudflare' %}selected{% endif %}>Cloudflare Workers AI</option>
                 <option value="gemini" {% if image_ai_config.provider_bg == 'gemini' %}selected{% endif %}>Google Gemini</option>
@@ -407,24 +400,33 @@
               </select>
             </div>
           </div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.65rem;">
-            <div>
-              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Индивидуальный URL / Account ID</label>
-              <input type="text" name="image_ai_endpoint_bg" id="image_ai_endpoint_bg" value="{{ image_ai_config.endpoint_bg or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="По умолчанию (из общих)" data-testid="input-image-ai-endpoint-bg">
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label class="label">Индивидуальный URL</label>
+              <input type="text" name="image_ai_endpoint_bg" id="image_ai_endpoint_bg" value="{{ image_ai_config.endpoint_bg or '' }}" class="input input-sm" placeholder="По умолчанию (из общих)" data-testid="input-image-ai-endpoint-bg">
             </div>
-            <div>
-              <label style="display: block; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.2rem; color: #475569;">Индивидуальный API Key / Token</label>
-              <input type="password" name="image_ai_api_key_bg" id="image_ai_api_key_bg" value="{{ image_ai_config.api_key_bg or '' }}" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" placeholder="По умолчанию (из общих)" data-testid="input-image-ai-key-bg">
+            <div class="form-group">
+              <label class="label">Индивидуальный API Key</label>
+              <input type="password" name="image_ai_api_key_bg" id="image_ai_api_key_bg" value="{{ image_ai_config.api_key_bg or '' }}" class="input input-sm" placeholder="По умолчанию (из общих)" data-testid="input-image-ai-key-bg">
             </div>
           </div>
         </div>
         <input type="hidden" name="image_ai_model" id="image_ai_model" value="{{ image_ai_config.model or '' }}">
-      </div>
+      </details>
 
-      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.65rem;" data-testid="ai-save-btn">Сохранить настройки ИИ</button>
+      <div class="form-actions-right">
+        <button type="submit" class="btn btn-primary" data-testid="ai-save-btn">Сохранить настройки ИИ</button>
+      </div>
     </form>
 
     <script>
+      function toggleUnifiedAi(unified) {
+        var details = document.getElementById('details-individual-ai');
+        if (details && unified) {
+          details.open = false;
+        }
+      }
+
       function updateLlmFields(provider) {
         var hint = document.getElementById('llm_hint');
         var endpoint = document.getElementById('llm_endpoint');
@@ -470,8 +472,8 @@
         } else if (provider === 'cloudflare') {
           if (epLabel) epLabel.innerText = 'URL эндпоинта / Account ID';
           if (hint) hint.innerHTML = 'Cloudflare Workers AI (прямой REST API <code>/ai/run/{model}</code> или ваш прокси-воркер).';
-          if (endpoint) endpoint.placeholder = 'https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/run/ (или ваш 32-значный Account ID)';
-          if (help) help.innerText = 'Укажите ваш Cloudflare Account ID (из панели dash.cloudflare.com) или полный URL: https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/run/';
+          if (endpoint) endpoint.placeholder = 'https://api.cloudflare.com/client/v4/accounts/<id-аккаунта>/ai/run/ (или ваш 32-значный Account ID)';
+          if (help) help.innerText = 'Укажите ваш Cloudflare Account ID (из панели dash.cloudflare.com) или полный URL: https://api.cloudflare.com/client/v4/accounts/<id-аккаунта>/ai/run/';
           if (key) key.placeholder = 'Cloudflare API Token';
           if (mDust) mDust.placeholder = '@cf/runwayml/stable-diffusion-v1-5-inpainting';
           if (mSelling) mSelling.placeholder = '@cf/bria/remove-background';
@@ -494,12 +496,12 @@
       if (imgProv) updateImageAiFields(imgProv.value);
     </script>
 
-    <div style="display: flex; gap: 1rem;">
-      <form method="POST" action="/ui/settings/test-llm" style="flex: 1;">
-        <button type="submit" class="btn btn-secondary" style="width: 100%;" data-testid="test-llm-btn">Проверить Text LLM</button>
+    <div class="split-row">
+      <form method="POST" action="/ui/settings/test-llm">
+        <button type="submit" class="btn btn-secondary" data-testid="test-llm-btn">Проверить Text LLM</button>
       </form>
-      <form method="POST" action="/ui/settings/test-image-ai" style="flex: 1;">
-        <button type="submit" class="btn btn-secondary" style="width: 100%;" data-testid="test-image-ai-btn">Проверить Image AI</button>
+      <form method="POST" action="/ui/settings/test-image-ai">
+        <button type="submit" class="btn btn-secondary" data-testid="test-image-ai-btn">Проверить Image AI</button>
       </form>
     </div>
   </div>
@@ -507,55 +509,64 @@
 
   <!-- 4. NOTION -->
   {% if tab == 'notion' %}
-  <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-    <form method="POST" action="/ui/settings/notion" class="card" style="padding: 1.25rem; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px;" data-testid="form-notion">
-      <h2 style="font-size: 1.15rem; font-weight: 600; margin-top: 0; margin-bottom: 1rem;">Интеграция с Notion</h2>
-      <div style="margin-bottom: 1rem;">
-        <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Notion Token</label>
-        <input type="password" name="notion_token" value="{{ notion_config.token or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="secret_..." data-testid="input-notion-token">
+  <div class="stack-md">
+    <form method="POST" action="/ui/settings/notion" class="card" data-testid="form-notion">
+      <h2 class="section-title">Интеграция с Notion</h2>
+      <div class="form-group">
+        <label class="label">Notion Token</label>
+        <input type="password" name="notion_token" value="{{ notion_config.token or '' }}" class="input" placeholder="secret_..." data-testid="input-notion-token">
       </div>
-      <div style="margin-bottom: 1rem;">
-        <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Database ID</label>
-        <input type="text" name="notion_database_id" value="{{ notion_config.database_id or '' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="1234567890abcdef..." data-testid="input-notion-database">
+      <div class="form-group">
+        <label class="label">Database ID</label>
+        <input type="text" name="notion_database_id" value="{{ notion_config.database_id or '' }}" class="input" placeholder="1234567890abcdef..." data-testid="input-notion-database">
       </div>
-      <div style="margin-bottom: 1rem;">
-        <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Свойство заголовка (Title Property)</label>
-        <input type="text" name="notion_title_prop" value="{{ notion_config.title_prop or 'Name' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Name" data-testid="input-notion-title">
+      <div class="form-group">
+        <label class="label">Свойство заголовка (Title Property)</label>
+        <input type="text" name="notion_title_prop" value="{{ notion_config.title_prop or 'Name' }}" class="input" placeholder="Name" data-testid="input-notion-title">
       </div>
-      <div style="margin-bottom: 1.5rem;">
-        <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Свойство даты (Date Property)</label>
-        <input type="text" name="notion_date_prop" value="{{ notion_config.date_prop or 'Date' }}" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Date" data-testid="input-notion-date">
+      <div class="form-group">
+        <label class="label">Свойство даты (Date Property)</label>
+        <input type="text" name="notion_date_prop" value="{{ notion_config.date_prop or 'Date' }}" class="input" placeholder="Date" data-testid="input-notion-date">
       </div>
 
-      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.65rem;" data-testid="notion-save-btn">Сохранить Notion</button>
+      <div class="form-actions-right">
+        <button type="submit" class="btn btn-primary" data-testid="notion-save-btn">Сохранить Notion</button>
+      </div>
     </form>
 
     <form method="POST" action="/ui/settings/test-notion">
-      <button type="submit" class="btn btn-secondary" style="width: 100%;" data-testid="test-notion-btn">Проверить подключение к Notion</button>
+      <button type="submit" class="btn btn-secondary full-width" data-testid="test-notion-btn">Проверить подключение к Notion</button>
     </form>
   </div>
   {% endif %}
 
   <!-- 5. ПОКУПКИ (Buy) -->
   {% if tab == 'buy' %}
-  <form method="POST" action="/ui/settings/buy" class="card" style="padding: 1.25rem; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px;" data-testid="form-buy">
-    <h2 style="font-size: 1.15rem; font-weight: 600; margin-top: 0; margin-bottom: 1rem;">Настройки покупок</h2>
-    <div style="margin-bottom: 1rem;">
-      <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Валюта сравнения по умолчанию</label>
-      <select name="default_currency" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" data-testid="select-default-currency">
+  <form method="POST" action="/ui/settings/buy" class="card" data-testid="form-buy">
+    <h2 class="section-title">Настройки покупок</h2>
+    <div class="form-group">
+      <label class="label">Валюта сравнения по умолчанию</label>
+      <select name="default_currency" class="input" data-testid="select-default-currency">
         <option value="CZK" {% if buy_config.default_currency == 'CZK' %}selected{% endif %}>CZK (Чешская крона)</option>
         <option value="EUR" {% if buy_config.default_currency == 'EUR' %}selected{% endif %}>EUR (Евро)</option>
         <option value="USD" {% if buy_config.default_currency == 'USD' %}selected{% endif %}>USD (Доллар)</option>
         <option value="PLN" {% if buy_config.default_currency == 'PLN' %}selected{% endif %}>PLN (Польский злотый)</option>
       </select>
     </div>
-    <div style="margin-bottom: 1.5rem;">
-      <label style="display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">Порог значительной выгоды комплекта (%)</label>
-      <input type="number" name="profit_threshold_pct" value="{{ buy_config.profit_threshold_pct or 25 }}" min="1" max="100" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;" data-testid="input-profit-threshold">
-      <small style="color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; display: block;">При превышении этого порога комплект помечается как выгодный и формируется уведомление.</small>
+    <div class="form-group">
+      <label class="label">Порог значительной выгоды комплекта (%)</label>
+      <input type="number" name="profit_threshold_pct" value="{{ buy_config.profit_threshold_pct or 25 }}" min="1" max="100" class="input" data-testid="input-profit-threshold">
+      <small class="text-muted text-xs">При превышении этого порога комплект помечается как выгодный и формируется уведомление.</small>
     </div>
-    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.65rem;" data-testid="buy-save-btn">Сохранить настройки покупок</button>
+    <div class="form-actions-right">
+      <button type="submit" class="btn btn-primary" data-testid="buy-save-btn">Сохранить настройки покупок</button>
+    </div>
   </form>
   {% endif %}
+
+  <!-- Meta footer: Версия -->
+  <div class="settings-meta-footer text-muted font-mono text-xs" data-testid="settings-version">
+    Версия: {{ app_version }}
+  </div>
 </div>
 {% endblock %}

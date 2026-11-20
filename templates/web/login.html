@@ -1,27 +1,33 @@
 {% extends "base.html" %}
 {% block title %}Вход — NextLife{% endblock %}
 {% block content %}
-<div class="card login-card centered">
-  <div class="brand-icon login-brand">⚡</div>
-  <h2 class="page-title">NextLife Re-Commerce</h2>
-  <p class="page-subtitle">
-    Введите секретный токен для авторизации и доступа к консоли управления
-  </p>
-  {% if error %}
-  <div class="info-box info-box-red row tight">
-    <span>⚠️</span>
-    <span>{{ error }}</span>
-  </div>
-  {% endif %}
-  <form method="POST" action="/ui/login" class="stack-3">
-    <input type="hidden" name="next_url" value="{{ next_url or '/ui/items' }}">
-    <div class="field">
-      <label class="field-label" for="token-input">Токен безопасности</label>
-      <input type="password" name="token" id="token-input" placeholder="Вставьте токен безопасности..." required autofocus autocomplete="current-password" class="input-text">
+<div class="login-wrapper">
+  <div class="card login-card p-4">
+    <div class="text-center mb-3">
+      <div class="brand-icon login-brand mb-2">⚡</div>
+      <h1 class="page-title m-0">NextLife Re-Commerce</h1>
+      <p class="text-muted text-xs mt-1">
+        Введите секретный токен для доступа к консоли управления
+      </p>
     </div>
-    <button type="submit" class="btn btn-primary">
-      Войти в систему
-    </button>
-  </form>
+
+    {% if error %}
+      <div class="toast toast-danger mb-3">
+        <span class="toast-icon">⚠️</span>
+        <div class="toast-body">{{ error }}</div>
+      </div>
+    {% endif %}
+
+    <form method="POST" action="/ui/login" class="form-stack">
+      <input type="hidden" name="next_url" value="{{ next_url or '/ui/items' }}">
+      <div class="form-group mb-3">
+        <label class="form-label text-xs" for="token-input">Токен безопасности</label>
+        <input type="password" name="token" id="token-input" placeholder="Вставьте токен..." required autofocus autocomplete="current-password" class="input">
+      </div>
+      <button type="submit" class="btn btn-primary w-full">
+        Войти в систему
+      </button>
+    </form>
+  </div>
 </div>
 {% endblock %}
