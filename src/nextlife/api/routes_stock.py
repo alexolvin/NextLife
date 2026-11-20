@@ -242,6 +242,7 @@ def screen_photo_stand(
             "items": items_data,
             "items_json": _json.dumps(items_data, ensure_ascii=False),
             "codes_param": codes,
+            "focus_mode": True,
         },
     )
 
