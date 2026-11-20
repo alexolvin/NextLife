@@ -129,8 +129,24 @@ def status_tone(status_val: str | None) -> str:
     return STATUS_TONE_MAP.get(raw, "neutral")
 
 
+def status_hex(level: str) -> str:
+    """Return background hex color for legacy test compatibility."""
+    colors = {
+        "full": "#f0fdf4",
+        "view_only": "#fefce8",
+        "disabled": "#fef2f2",
+        "green": "#f0fdf4",
+        "yellow": "#fefce8",
+        "red": "#fef2f2",
+    }
+    return colors.get(str(level).lower(), "#f8fafc")
+
+
 def register_ui_filters(env: Any) -> None:
     """Register all presentation filters in the Jinja environment."""
     env.filters["platform_name"] = platform_name
     env.filters["status_label"] = status_label
     env.filters["status_tone"] = status_tone
+    env.filters["status_hex"] = status_hex
+    env.globals["status_hex"] = status_hex
+

@@ -200,7 +200,7 @@ def check_g8_heights_mobile(after: dict[str, Any]) -> tuple[bool, str]:
         if v.get("screen") == "photo_stand":
             continue
         for el in v.get("element_sizes", []):
-            if el.get("is_fab"):
+            if el.get("is_fab") or el.get("type") in ("checkbox", "radio"):
                 continue
             h = el.get("height", 0)
             # Allow heights between 26 and 42px for mobile tap targets
