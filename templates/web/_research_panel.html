@@ -28,7 +28,7 @@
     {% if research.links %}
     <ul data-testid="research-links" class="pl-3">
       {% for l in research.links %}
-      <li><a href="{{ l.url }}" target="_blank" rel="noopener">{{ l.title }} — {{ l.marketplace }}</a></li>
+      <li><a href="{{ l.url }}" target="_blank" rel="noopener">{{ l.title }} — {{ l.marketplace | platform_name }}</a></li>
       {% endfor %}
     </ul>
     {% endif %}

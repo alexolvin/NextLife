@@ -30,7 +30,7 @@
       <div class="card p-3 mb-2" data-testid="batch-item-{{ loop.index }}">
         <div class="row-between mb-1">
           <div>
-            <span class="font-bold text-sm">{{ item.marketplace | platform_name }}</span>
+            <span class="font-bold text-sm" data-marketplace="{{ item.marketplace }}">{{ item.marketplace | platform_name }}</span>
             {% if item.item_code %}
               <a href="/ui/stock/{{ item.item_code }}" class="text-accent text-xs ml-1">#{{ item.item_code }}</a>
             {% endif %}

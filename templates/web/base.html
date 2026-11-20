@@ -28,7 +28,7 @@
           <svg id="tasks-icon-idle" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
           </svg>
-          <svg id="tasks-icon-active" class="waiting-circle-spin" viewBox="0 0 24 24" width="18" height="18" fill="none" style="display: none;">
+          <svg id="tasks-icon-active" class="waiting-circle-spin" viewBox="0 0 24 24" width="18" height="18" fill="none" style="display: none; {{ '' }}">
             <circle cx="12" cy="12" r="8" stroke="rgba(255, 255, 255, 0.25)" stroke-width="2.5" fill="none"></circle>
             <path d="M12 4a8 8 0 0 1 8 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path>
           </svg>
@@ -321,7 +321,7 @@
           const list = document.getElementById('tasks-drawer-list');
           if (!list) return;
           if (!data.jobs || data.jobs.length === 0) {
-            list.innerHTML = '<div style="padding: 16px; color: #64748b; font-size: 0.9rem;">Нет активных задач</div>';
+            list.innerHTML = '<div class="empty p-3 text-muted text-xs">Нет активных задач</div>';
             return;
           }
           const kindTitles = {
@@ -336,17 +336,17 @@
             'PENDING': 'В очереди',
             'RUNNING': 'Выполняется'
           };
-          let html = '<div style="display: flex; flex-direction: column; gap: 8px;">';
+          let html = '<div class="stack-tight">';
           data.jobs.forEach(j => {
             const kindText = kindTitles[j.kind] || j.kind;
             const stateText = stateTitles[j.state] || j.state;
-            html += `<div style="padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
-              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                <div style="font-weight: 600; font-size: 0.85rem; color: #1e293b;">${kindText}</div>
-                <span class="badge" style="font-size: 0.72rem; padding: 2px 6px; background: #e0f2fe; color: #0369a1;">${stateText}</span>
+            html += `<div class="card card-nested p-2">
+              <div class="row-between gap-2">
+                <div class="font-bold text-xs">${kindText}</div>
+                <span class="badge badge-info text-xs">${stateText}</span>
               </div>
-              ${j.created_at ? `<div style="font-size: 0.75rem; color: #94a3b8; margin-top: 3px;">Создано: ${new Date(j.created_at).toLocaleTimeString()}</div>` : ''}
-              ${j.batch_id ? `<a href="/ui/jobs/batches/${j.batch_id}" style="font-size: 0.8rem; color: #2563eb; margin-top: 4px; display: inline-block;">Открыть отчёт пакета →</a>` : ''}
+              ${j.created_at ? `<div class="text-dim text-xs mt-1">Создано: ${new Date(j.created_at).toLocaleTimeString()}</div>` : ''}
+              ${j.batch_id ? `<a href="/ui/jobs/batches/${j.batch_id}" class="text-accent text-xs mt-1 inline-block">Открыть отчёт пакета →</a>` : ''}
             </div>`;
           });
           html += '</div>';
@@ -355,6 +355,9 @@
     }
 
     function checkActiveJobs() {
+      if (window.location.pathname.indexOf('/ui/login') !== -1) {
+        return Promise.resolve();
+      }
       return fetch('/api/jobs/active', { credentials: 'same-origin' })
         .then(r => r.json())
         .then(data => {

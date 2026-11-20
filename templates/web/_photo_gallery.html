@@ -23,7 +23,7 @@
     cursor: grabbing;
   }
   .thumb-card.drag-over {
-    border: 2px dashed #0284c7 !important;
+    border: 2px dashed var(--c-accent);
     transform: scale(1.05);
   }
   .slider-fullscreen-btn {
@@ -34,7 +34,7 @@
     height: 36px;
     border-radius: 8px;
     background: rgba(15, 23, 42, 0.65);
-    color: #ffffff;
+    color: var(--c-surface);
     border: 1px solid rgba(255, 255, 255, 0.25);
     display: flex;
     align-items: center;
@@ -61,7 +61,7 @@
   {% if photos and photos|length > 0 %}
   <div class="slider-container" id="main-slider" data-testid="photo-slider">
     <button type="button" class="slider-arrow slider-prev" id="btn-slider-prev" onclick="changeSlide(-1)" aria-label="Предыдущее фото" data-testid="slider-prev">‹</button>
-    <img id="slider-main-img" class="slider-img" src="{{ photos[0].url or missing_src }}" alt="Предпросмотр фото" data-testid="slider-current-image" onclick="openActiveLightbox(this.src)" style="cursor: pointer;" title="Нажмите для полноэкранного просмотра">
+    <img id="slider-main-img" class="slider-img cursor-pointer" src="{{ photos[0].url or missing_src }}" alt="Предпросмотр фото" data-testid="slider-current-image" onclick="openActiveLightbox(this.src)" title="Нажмите для полноэкранного просмотра">
     <button type="button" class="slider-arrow slider-next" id="btn-slider-next" onclick="changeSlide(1)" aria-label="Следующее фото" data-testid="slider-next">›</button>
     <button type="button" class="slider-fullscreen-btn" id="btn-slider-fullscreen" onclick="openActiveLightbox()" title="Полноэкранный просмотр" aria-label="Полноэкранный просмотр" data-testid="btn-open-fullscreen">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -80,22 +80,18 @@
     {% for photo in photos %}
     <div class="thumb-card {% if loop.first %}active{% endif %}" id="thumb-item-{{ loop.index0 }}" onclick="selectSlide({{ loop.index0 }})" data-url="{{ photo.url }}" data-role="{{ photo.role }}" data-id="{{ photo.display_id or photo.id }}" data-testid="thumb-item-{{ loop.index0 }}" draggable="true" ondragstart="handleThumbDragStart(event, {{ loop.index0 }})" ondragover="handleThumbDragOver(event)" ondrop="handleThumbDrop(event, {{ loop.index0 }})" ondragend="handleThumbDragEnd(event)" title="Перетащите для изменения порядка">
       {% if photo.broken %}
-      <div class="thumb-broken" data-testid="photo-broken-mark" title="Файл фото не найден"
-           style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#e9ecef;color:#6c757d;font-size:10px;text-align:center;padding:2px;">🚫 файл не найден</div>
+      <div class="thumb-broken" data-testid="photo-broken-mark" title="Файл фото не найден">🚫 файл не найден</div>
       {% else %}
       <img src="{{ photo.url }}" alt="Миниатюра {{ loop.index }}">
       {% endif %}
       {% if photo.role in ('PUBLISH', 'PROCESSED') %}
-      <span class="thumb-processed-badge" data-testid="thumb-processed-badge"
-            style="position:absolute;top:0;left:0;background:rgba(0,0,0,.55);color:#fff;font-size:9px;line-height:1;padding:2px 4px;border-radius:0 0 6px 0;z-index:1;">обработано</span>
+      <span class="thumb-processed-badge" data-testid="thumb-processed-badge">обработано</span>
       {% endif %}
       {% if photo.is_cover %}
-      <span data-testid="photo-cover-mark" title="Обложка предмета"
-            style="position:absolute;bottom:0;left:0;background:var(--c-accent);color:#fff;font-size:9px;line-height:1;padding:2px 4px;border-radius:0 6px 0 0;z-index:1;">обложка</span>
+      <span class="thumb-cover-badge" data-testid="photo-cover-mark" title="Обложка предмета">обложка</span>
       {% endif %}
       {% if photo.ai %}
-      <span data-testid="photo-ai-mark" title="Изображение изменено генеративно"
-            style="position:absolute;bottom:0;right:0;background:rgba(0,0,0,.78);color:#ffd54d;font-size:9px;line-height:1;padding:2px 4px;border-radius:0 0 0 6px;z-index:1;">AI</span>
+      <span class="thumb-ai-badge" data-testid="photo-ai-mark" title="Изображение изменено генеративно">AI</span>
       {% endif %}
       {% if photo.id %}
       <form method="POST" action="/ui/items/{{ item.code }}/photos/{{ photo.id }}/delete" onsubmit="event.stopPropagation(); return confirm('Удалить эту фотографию?');">
@@ -194,31 +190,31 @@
 <!-- Upload form (§5.3: Снять камерой и Загрузить из галереи) -->
 <div class="card" data-testid="photo-upload-section">
   <div class="card-title">Добавить фотографии</div>
-  <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
-    <label class="btn btn-primary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" data-testid="btn-upload-camera">
+  <div class="row-center gap-2 mb-3 flex-wrap">
+    <label class="btn btn-primary cursor-pointer row-center gap-2" data-testid="btn-upload-camera">
       📸 Снять на камеру
-      <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handleDirectUpload(this.files, 'ORIGINAL')">
+      <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleDirectUpload(this.files, 'ORIGINAL')">
     </label>
-    <label class="btn btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" data-testid="btn-upload-gallery">
+    <label class="btn btn-secondary cursor-pointer row-center gap-2" data-testid="btn-upload-gallery">
       🖼 Загрузить из галереи
-      <input type="file" accept="image/*" multiple style="display: none;" onchange="handleDirectUpload(this.files, 'ORIGINAL')">
+      <input type="file" accept="image/*" multiple class="hidden" onchange="handleDirectUpload(this.files, 'ORIGINAL')">
     </label>
   </div>
 
   <!-- Animated Progress Bar Container -->
-  <div id="upload-progress-box" style="display: none; margin-top: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;" data-testid="upload-progress-box">
-    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; margin-bottom: 6px;">
-      <span id="upload-progress-text" style="font-weight: 600; color: #1e293b;">Загружено 0 из 0</span>
-      <span id="upload-progress-percent" style="font-weight: 700; color: #0284c7;">0%</span>
+  <div id="upload-progress-box" class="card card-nested p-3 mt-2 hidden" data-testid="upload-progress-box">
+    <div class="row-between text-xs mb-1">
+      <span id="upload-progress-text" class="font-bold">Загружено 0 из 0</span>
+      <span id="upload-progress-percent" class="font-bold text-accent">0%</span>
     </div>
-    <div style="background: #e2e8f0; border-radius: 999px; height: 10px; overflow: hidden; width: 100%;">
-      <div id="upload-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #2563eb, #38bdf8); transition: width 0.25s ease; border-radius: 999px;"></div>
+    <div class="progress-track">
+      <div id="upload-progress-bar" class="progress-fill"></div>
     </div>
   </div>
 
   <!-- Error Message Banner -->
-  <div id="upload-error-box" style="display: none; margin-top: 10px; padding: 10px 14px; border-radius: 8px; background: #fee2e2; border: 1px solid #ef4444; color: #991b1b; font-size: 0.88rem;" data-testid="upload-error-box">
-    <strong>Ошибка загрузки:</strong> <span id="upload-error-message"></span>
+  <div id="upload-error-box" class="toast toast-danger mt-2 hidden" data-testid="upload-error-box">
+    <div class="toast-body"><strong>Ошибка загрузки:</strong> <span id="upload-error-message"></span></div>
   </div>
 </div>
 
@@ -498,7 +494,7 @@
       const mark = document.createElement('span');
       mark.setAttribute('data-testid', 'photo-cover-mark');
       mark.setAttribute('title', 'Обложка предмета');
-      mark.style.cssText = 'position:absolute;bottom:0;left:0;background:var(--c-accent);color:#fff;font-size:9px;line-height:1;padding:2px 4px;border-radius:0 6px 0 0;z-index:1;';
+      mark.className = 'thumb-cover-badge';
       mark.textContent = 'обложка';
       firstCard.appendChild(mark);
     }

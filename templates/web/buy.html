@@ -17,7 +17,7 @@
       
       <button type="button" class="btn btn-secondary btn-icon relative" @click="showFilters = !showFilters" title="Фильтры бюджета и доставки">
         <span>⚙</span>
-        <span class="unread-dot" x-show="hasCustomFilters" :style="hasCustomFilters ? 'display: block;' : 'display: none;'"></span>
+        <span class="unread-dot" x-show="hasCustomFilters"></span>
       </button>
 
       <span data-testid="search-tags-hint" class="flex-shrink-0">
@@ -37,7 +37,7 @@
     </div>
 
     <!-- Collapsible Advanced Search Filters -->
-    <div class="card card-nested p-2 mt-2" x-show="showFilters" x-transition :style="showFilters ? 'display: block;' : 'display: none;'">
+    <div class="card card-nested p-2 mt-2" x-show="showFilters" x-transition>
       <div class="row-between mb-2">
         <span class="font-bold text-xs text-muted">Бюджет и доставка</span>
         <button type="button" class="btn btn-secondary btn-xs btn-icon" @click="showFilters = false">✕</button>

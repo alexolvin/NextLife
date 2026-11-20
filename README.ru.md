@@ -2,7 +2,7 @@
 
 **Языки:** [English](README.md) | Русский
 
-**Версия:** 2026.11.95
+**Версия:** 2026.11.100
 
 <p align="left">
   <img alt="Лицензия" src="https://img.shields.io/badge/лицензия-MIT-blue.svg">

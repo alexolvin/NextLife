@@ -304,7 +304,7 @@
           {% if image_ai_config.provider == 'gemini' %}
           Базовый адрес API (по умолчанию https://generativelanguage.googleapis.com). Можно оставить пустым — модель указывается в полях ниже.
           {% elif image_ai_config.provider == 'cloudflare' %}
-          Укажите ваш Cloudflare Account ID (32-значный хэш) или полный URL: <code>https://api.cloudflare.com/client/v4/accounts/&lt;ACCOUNT_ID&gt;/ai/run/</code>.
+          Укажите ваш Cloudflare Account ID (32-значный хэш) или полный URL: <code>https://api.cloudflare.com/client/v4/accounts/&lt;id-аккаунта&gt;/ai/run/</code>.
           {% else %}
           URL OpenAI-совместимого эндпоинта (например, https://api.openai.com/v1/images/edits).
           {% endif %}
@@ -472,8 +472,8 @@
         } else if (provider === 'cloudflare') {
           if (epLabel) epLabel.innerText = 'URL эндпоинта / Account ID';
           if (hint) hint.innerHTML = 'Cloudflare Workers AI (прямой REST API <code>/ai/run/{model}</code> или ваш прокси-воркер).';
-          if (endpoint) endpoint.placeholder = 'https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/run/ (или ваш 32-значный Account ID)';
-          if (help) help.innerText = 'Укажите ваш Cloudflare Account ID (из панели dash.cloudflare.com) или полный URL: https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/run/';
+          if (endpoint) endpoint.placeholder = 'https://api.cloudflare.com/client/v4/accounts/<id-аккаунта>/ai/run/ (или ваш 32-значный Account ID)';
+          if (help) help.innerText = 'Укажите ваш Cloudflare Account ID (из панели dash.cloudflare.com) или полный URL: https://api.cloudflare.com/client/v4/accounts/<id-аккаунта>/ai/run/';
           if (key) key.placeholder = 'Cloudflare API Token';
           if (mDust) mDust.placeholder = '@cf/runwayml/stable-diffusion-v1-5-inpainting';
           if (mSelling) mSelling.placeholder = '@cf/bria/remove-background';

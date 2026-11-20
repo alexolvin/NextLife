@@ -6,7 +6,7 @@
   <div class="breadcrumbs-row">
     <nav class="breadcrumbs" aria-label="Навигация">
       <a href="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}" class="breadcrumb-link" data-testid="btn-back-to-item">
-        ← К предмету #{{ listing.item_code }}
+        ← Назад к предмету #{{ listing.item_code }}
       </a>
       <span class="breadcrumb-sep">/</span>
       <a href="/ui/listings" class="breadcrumb-link text-muted" data-testid="btn-back-listings">
@@ -42,7 +42,7 @@
   <div class="card p-3 mb-3">
     <div class="row-between flex-wrap gap-2">
       <div>
-        <h1 class="page-title">{{ listing.marketplace_key | platform_name }}</h1>
+        <h1 class="page-title" data-marketplace="{{ listing.marketplace_key }}">{{ listing.marketplace_key | platform_name }}</h1>
         <div class="text-muted text-sm mt-1">
           Предмет: <a href="/ui/stock/{{ listing.item_code }}#listings" class="text-accent font-semibold" data-testid="link-item-code">#{{ listing.item_code }} {{ item.title if item else '' }}</a>
         </div>

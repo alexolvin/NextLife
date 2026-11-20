@@ -10,9 +10,9 @@
   --c-brand:         #801432;
   --c-brand-hover:   #6a1029;
   --c-brand-soft:    #fbeef2;
-  --c-accent:        #481e78;
-  --c-accent-hov:    #35155a;
-  --c-accent-light:  #f5f3ff;
+  --c-accent:        #a83e0c;
+  --c-accent-hov:    #822f08;
+  --c-accent-light:  #fff7ed;
 
   /* Ссылки (единственное применение синего цвета) */
   --c-link:          #2563eb;
@@ -595,7 +595,7 @@ code {
 .wz-select:focus {
   outline: none;
   border-color: var(--c-accent);
-  box-shadow: 0 0 0 3px rgba(72, 30, 120, 0.1);
+  box-shadow: 0 0 0 3px rgba(168, 62, 12, 0.1);
 }
 
 textarea.input-text,
@@ -1960,6 +1960,10 @@ select.input-text {
   transform: translate(-50%, -10px);
   pointer-events: none;
 }
+.toast-banner.toast-success { background: var(--c-success-bg); color: var(--c-success-text); border: 1px solid var(--c-success-bdr); }
+.toast-banner.toast-warning { background: var(--c-warning-bg); color: var(--c-warning-text); border: 1px solid var(--c-warning-bdr); }
+.toast-banner.toast-info { background: var(--c-accent-light); color: var(--c-accent); border: 1px solid var(--c-border); }
+.toast-banner.toast-danger { background: var(--c-danger-bg); color: var(--c-danger-text); border: 1px solid var(--c-danger-bdr); }
 
 /* Escalated */
 .escalated-actions { display: flex; gap: var(--sp-2); margin-top: var(--sp-2); }
@@ -2088,7 +2092,7 @@ select.input-text {
   max-width: 380px;
   height: 100%;
   background: var(--c-surface);
-  box-shadow: -4px 0 16px rgba(72, 30, 120, 0.1);
+  box-shadow: -4px 0 16px rgba(168, 62, 12, 0.1);
   display: flex;
   flex-direction: column;
 }
