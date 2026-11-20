@@ -1515,8 +1515,8 @@
         "is_fab": false
       }
     ],
-    "first_item_top": 108,
-    "visible_text": "⚡\nNextLife\nВнимание\n5 требует действий\n⚠️\nОшибки размещения и «Не снято»\nНажмите для перехода\n1\n🎁\nВыгодные комплекты\nНажмите для перехода\n4\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
+    "first_item_top": 99,
+    "visible_text": "⚡\nNextLife\nВнимание\n5 требует действий\n⚠️\nОшибки размещения и «Не снято»\n1\n→\n🎁\nВыгодные комплекты\n4\n→\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "attention",
     "viewport": "390",
@@ -1624,7 +1624,7 @@
       }
     ],
     "first_item_top": 156,
-    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.94\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМои данные\nИмя продавца \nПочтовый индекс (PSČ) \nТелефон \nМесто встреч по умолчанию \nСохранить\nВерсия: 2026.11.94\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
+    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.95\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМои данные\nИмя продавца \nПочтовый индекс (PSČ) \nТелефон \nМесто встреч по умолчанию \nСохранить\nВерсия: 2026.11.95\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "settings_profile",
     "viewport": "390",
@@ -2411,7 +2411,7 @@
       }
     ],
     "first_item_top": 319,
-    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.94\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМатрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен\n·\nПск поиск · Рзм размещение · Изм изменение · Снт снятие · Прв перевыставление · Сбщ сообщения · Дст доставка\nСрок жизни по умолчанию (дней): \nПубликация\nTrhKnih.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nHyperinzerce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nSbazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nFacebook Marketplace\nНедоступен\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAnnonce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAukro.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nVinted\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.sk\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nMimibazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\neBay\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nТолько мониторинг цен\nПлощадка\tМониторинг\tТип коннектора\tСайт\n Willhaben\t\nПоиск\n\tЧерез приложение\t↗\n Kleinanzeigen\t\nПоиск\n\tЧерез приложение\t↗\n OLX\t\nПоиск\n\tЧерез приложение\t↗\nСохранить площадки\nВерсия: 2026.11.94\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
+    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.95\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМатрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен\n·\nПск поиск · Рзм размещение · Изм изменение · Снт снятие · Прв перевыставление · Сбщ сообщения · Дст доставка\nСрок жизни по умолчанию (дней): \nПубликация\nTrhKnih.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nHyperinzerce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nSbazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nFacebook Marketplace\nНедоступен\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAnnonce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAukro.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nVinted\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.sk\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nMimibazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\neBay\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nТолько мониторинг цен\nПлощадка\tМониторинг\tТип коннектора\tСайт\n Willhaben\t\nПоиск\n\tЧерез приложение\t↗\n Kleinanzeigen\t\nПоиск\n\tЧерез приложение\t↗\n OLX\t\nПоиск\n\tЧерез приложение\t↗\nСохранить площадки\nВерсия: 2026.11.95\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "settings_marketplaces",
     "viewport": "390",
@@ -3198,7 +3198,7 @@
       }
     ],
     "first_item_top": 319,
-    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.94\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМатрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен\n·\nПск поиск · Рзм размещение · Изм изменение · Снт снятие · Прв перевыставление · Сбщ сообщения · Дст доставка\nСрок жизни по умолчанию (дней): \nПубликация\nTrhKnih.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nАвтоснятие: ✓ Поддерживается\nАвтоперевыставление: ✓ Поддерживается\nПрямой доступ 🔗 Войти ↗\nСрок публикации на площадке (дней): \nСпособы доставки:\nЛичная встреча / Osobní odběr\nZásilkovna / Packeta\nBalíkovna (Česká pošta)\nČeská pošta\nPPL CZ\nGLS\nКурьер DPD / PPL\nEmail аккаунта TrhKnih.cz\nСтереть\nПароль аккаунта TrhKnih.cz\nСтереть\nHyperinzerce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nSbazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nFacebook Marketplace\nНедоступен\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAnnonce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAukro.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nVinted\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.sk\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nMimibazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\neBay\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nТолько мониторинг цен\nПлощадка\tМониторинг\tТип коннектора\tСайт\n Willhaben\t\nПоиск\n\tЧерез приложение\t↗\n Kleinanzeigen\t\nПоиск\n\tЧерез приложение\t↗\n OLX\t\nПоиск\n\tЧерез приложение\t↗\nСохранить площадки\nВерсия: 2026.11.94\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
+    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.95\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМатрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен\n·\nПск поиск · Рзм размещение · Изм изменение · Снт снятие · Прв перевыставление · Сбщ сообщения · Дст доставка\nСрок жизни по умолчанию (дней): \nПубликация\nTrhKnih.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nАвтоснятие: ✓ Поддерживается\nАвтоперевыставление: ✓ Поддерживается\nПрямой доступ 🔗 Войти ↗\nСрок публикации на площадке (дней): \nСпособы доставки:\nЛичная встреча / Osobní odběr\nZásilkovna / Packeta\nBalíkovna (Česká pošta)\nČeská pošta\nPPL CZ\nGLS\nКурьер DPD / PPL\nEmail аккаунта TrhKnih.cz\nСтереть\nПароль аккаунта TrhKnih.cz\nСтереть\nHyperinzerce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nSbazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nFacebook Marketplace\nНедоступен\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAnnonce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAukro.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nVinted\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.sk\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nMimibazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\neBay\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nТолько мониторинг цен\nПлощадка\tМониторинг\tТип коннектора\tСайт\n Willhaben\t\nПоиск\n\tЧерез приложение\t↗\n Kleinanzeigen\t\nПоиск\n\tЧерез приложение\t↗\n OLX\t\nПоиск\n\tЧерез приложение\t↗\nСохранить площадки\nВерсия: 2026.11.95\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "settings_marketplaces_open",
     "viewport": "390",
@@ -3539,7 +3539,7 @@
       }
     ],
     "first_item_top": 184,
-    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.94\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nЕдиная модель для всех операций\nТекстовый ИИ (Text LLM)\n\nOpenAI-совместимый эндпоинт POST /v1/chat/completions.\n\nТип эндпоинта (Provider) \nOpenAI совместимый (POST /v1/chat/completions)\nGoogle Gemini (generateContent REST API)\nURL эндпоинта \nURL OpenAI-совместимого эндпоинта (например, https://api.openai.com/v1/chat/completions).\nAPI Key \nМодель \nНапример: gpt-4o-mini, gpt-4o\nГрафический ИИ (Image AI)\n\nCloudflare Workers AI (прямой REST API /ai/run/{model} или ваш прокси-воркер).\n\nТип эндпоинта (Provider) \nOpenAI совместимый (POST /v1/images/edits)\nGoogle Gemini (gemini-2.5-flash-image / Imagen 3)\nCloudflare Workers AI (/ai/run/ или Workers)\nURL эндпоинта / Account ID \nУкажите ваш Cloudflare Account ID (из панели dash.cloudflare.com) или полный URL: https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/run/\nAPI Key / Token \nИндивидуальные настройки функций ИИ (пыль, студия, фон)\nСохранить настройки ИИ\nПроверить Text LLM\nПроверить Image AI\nВерсия: 2026.11.94\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
+    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.95\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nЕдиная модель для всех операций\nТекстовый ИИ (Text LLM)\n\nOpenAI-совместимый эндпоинт POST /v1/chat/completions.\n\nТип эндпоинта (Provider) \nOpenAI совместимый (POST /v1/chat/completions)\nGoogle Gemini (generateContent REST API)\nURL эндпоинта \nURL OpenAI-совместимого эндпоинта (например, https://api.openai.com/v1/chat/completions).\nAPI Key \nМодель \nНапример: gpt-4o-mini, gpt-4o\nГрафический ИИ (Image AI)\n\nCloudflare Workers AI (прямой REST API /ai/run/{model} или ваш прокси-воркер).\n\nТип эндпоинта (Provider) \nOpenAI совместимый (POST /v1/images/edits)\nGoogle Gemini (gemini-2.5-flash-image / Imagen 3)\nCloudflare Workers AI (/ai/run/ или Workers)\nURL эндпоинта / Account ID \nУкажите ваш Cloudflare Account ID (из панели dash.cloudflare.com) или полный URL: https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/run/\nAPI Key / Token \nИндивидуальные настройки функций ИИ (пыль, студия, фон)\nСохранить настройки ИИ\nПроверить Text LLM\nПроверить Image AI\nВерсия: 2026.11.95\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "settings_ai",
     "viewport": "390",
@@ -3659,7 +3659,7 @@
       }
     ],
     "first_item_top": 156,
-    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.94\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nИнтеграция с Notion\nNotion Token \nDatabase ID \nСвойство заголовка (Title Property) \nСвойство даты (Date Property) \nСохранить Notion\nПроверить подключение к Notion\nВерсия: 2026.11.94\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
+    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.95\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nИнтеграция с Notion\nNotion Token \nDatabase ID \nСвойство заголовка (Title Property) \nСвойство даты (Date Property) \nСохранить Notion\nПроверить подключение к Notion\nВерсия: 2026.11.95\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "settings_notion",
     "viewport": "390",
@@ -3714,7 +3714,7 @@
         "name": "q",
         "id": "",
         "text": "",
-        "width": 258,
+        "width": 203,
         "height": 36,
         "top": 102,
         "is_fab": false
@@ -3724,15 +3724,15 @@
         "type": "submit",
         "name": "",
         "id": "",
-        "text": "Найти",
-        "width": 76,
+        "text": "",
+        "width": 36,
         "height": 36,
-        "top": 102,
+        "top": 99,
         "is_fab": false
       }
     ],
     "first_item_top": null,
-    "visible_text": "⚡\nNextLife\nСообщения\nНайти\nВсе\nНепрочитанные (0)\nЭскалированные (0)\nДиалогов не найдено.\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
+    "visible_text": "⚡\nNextLife\nСообщения\n \nВсе\nНепрочитанные 0\nЭскалированные 0\n💬\nДиалогов не найдено\nВ этой категории нет сообщений\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "messages",
     "viewport": "390",
@@ -3800,42 +3800,20 @@
         "name": "query",
         "id": "",
         "text": "4U",
-        "width": 308,
+        "width": 203,
         "height": 36,
-        "top": 115,
+        "top": 112,
         "is_fab": false
       },
       {
-        "tag": "input",
-        "type": "number",
-        "name": "budget",
+        "tag": "button",
+        "type": "button",
+        "name": "",
         "id": "",
-        "text": "",
-        "width": 140,
+        "text": "⚙",
+        "width": 36,
         "height": 36,
-        "top": 159,
-        "is_fab": false
-      },
-      {
-        "tag": "select",
-        "type": "",
-        "name": "currency",
-        "id": "",
-        "text": "CZK\nEUR\nPLN",
-        "width": 76,
-        "height": 36,
-        "top": 159,
-        "is_fab": false
-      },
-      {
-        "tag": "input",
-        "type": "text",
-        "name": "postal_code",
-        "id": "",
-        "text": "",
-        "width": 100,
-        "height": 36,
-        "top": 206,
+        "top": 112,
         "is_fab": false
       },
       {
@@ -3844,9 +3822,9 @@
         "name": "",
         "id": "",
         "text": "",
-        "width": 50,
-        "height": 42,
-        "top": 203,
+        "width": 36,
+        "height": 36,
+        "top": 112,
         "is_fab": false
       },
       {
@@ -3854,15 +3832,15 @@
         "type": "",
         "name": "sort",
         "id": "",
-        "text": "Итого ↑ (сначала дешёвые)\nЦена",
-        "width": 216,
+        "text": "Сначала дешёвые\nЦена товара ↑\n",
+        "width": 140,
         "height": 36,
-        "top": 513,
+        "top": 287,
         "is_fab": false
       }
     ],
-    "first_item_top": 98,
-    "visible_text": "⚡\nNextLife\nПокупки\nCZK\nEUR\nPLN\n💡 Теги: +слово или +\"фраза\" — обязательное присутствие в названии/описании; -слово или -\"фраза\" — обязательное отсутствие.\nПрошлые поиски:\n🔍 4U\n🔍 Ai server\n🔍 Rtx 3090\n🔍 X570\n🔍 DDR4 32 -SODIMM -\"SO-DIMM\" -RDIMM\n🔍 MateBook\n🔍 Huawei\nВсе\nНовые\nБ/у\nВсе\nОтдельно\nВ комплекте\nИтого ↑ (сначала дешёвые)\nЦена товара ↑\nНовые объявления\nvinted\nБ/у\nczarna koszulka\nТовар: 50.35 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 50.35 CZK\nvinted\nБ/у\nКомплект\nBalík pre chlapca\nТовар: 123.39 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 123.39 CZK\nvinted\nБ/у\nCiapka lindex 2-4 roky\nТовар: 123.39 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 123.39 CZK\nvinted\nБ/у\nZelený pletený svetrík\nТовар: 123.39 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 123.39 CZK\nsbazar_cz\nБ/у\nWandSticker4U® - Opakovaně použitelné samolepky na okno pro děti, Králík a ježek, Samolepicí |\nТовар: 59.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 138 CZK\nsbazar_cz\nБ/у\nRifle Made 4.U jeans 122/128\nТовар: 80.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 159 CZK\nvinted\nБ/у\nNohavice 3/4 dĺžka\nТовар: 172.74 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 172.74 CZK\nvinted\nБ/у\nWhite woman sweater / M\nТовар: 172.74 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 172.74 CZK\nsbazar_cz\nБ/у\nКомплект\nPřepínač D-Link DKVM-4U pro 4 PC\nТовар: 95.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 174 CZK\nsbazar_cz\nБ/у\nBaterie NOKIA BL-4U\nТовар: 100.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 179 CZK\nvinted\nБ/у\nDievčenské spoločenské šaty\nТовар: 197.42 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 197.42 CZK\nsbazar_cz\nБ/у\nBaterie Nokia BL-4U\nТовар: 150.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 229 CZK\nvinted\nБ/у\nDievčenské oteplovačky zimné nohavice do snehu\nТовар: 246.78 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 246.78 CZK\nsbazar_cz\nБ/у\nBaterie NOKIA BL-4U\nТовар: 199.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 278 CZK\nsbazar_cz\nБ/у\nNokia 8800 baterie BL-6X BL-5X BL-5C BL-4U BLD-3\nТовар: 200.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 279 CZK\nvinted\nБ/у\nDetské 3/4 nohavice Puma - veľ. 140\nТовар: 296.13 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 296.13 CZK\nvinted\nБ/у\n3 krásné kabelky\nТовар: 320.81 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 320.81 CZK\nsbazar_cz\nБ/у\nFA-4U Elekroinstalace\nТовар: 390.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 469 CZK\nsbazar_cz\nБ/у\n12\" maxi singl Britney Spears - I'm A Slave 4 U\nТовар: 390.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 469 CZK\nsbazar_cz\nБ/у\nD-Link DKVM-4U 4portový KVM přepínač s kabely\nТовар: 400.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 479 CZK\nbazos_cz\nБ/у\nNávody kovo frézek:\nТовар: 490.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 569 CZK\nsbazar_cz\nБ/у\nNávod frézky FA-4U\nТовар: 690.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 769 CZK\nbazos_cz\nБ/у\nNová racková skříň Landberg 10” nástěnná 4U 280x130\nТовар: 700.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 779 CZK\nvinted\nНовый\nPredám sadu pohárov borske nový bór\nТовар: 1110.49 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 1110.49 CZK\nsbazar_cz\nБ/у\nSSSR | PLYNOVÁ MASKA GP-4U\nТовар: 1150.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 1229 CZK\nvinted\nБ/у\nOveral Burton vel 92\nТовар: 1233.88 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 1233.88 CZK\nvinted\nБ/у\nJordan 4 Retro Red Thunder\nТовар: 1233.88 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 1233.88 CZK\nbazos_cz\nБ/у\nRACK 4U, hloubka 30 cm\nТовар: 1400.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 1479 CZK\nbazos_cz\nБ/у\nRack skříň 19\" DATACOM IPC 4U/485 mm, bez zdroje\nТовар: 1890.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 1969 CZK\nbazos_cz\nБ/у\nSupermicro 4U CSE-846, 24xLFF\nТовар: 2900.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 2979 CZK\nsbazar_cz\nБ/у\n38 38,5 40 skialpové boty DYNAFIT ZZERO 4U\nТовар: 3420.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 3499 CZK\nbazos_cz\nБ/у\nBadmintonová raketa Li-ning Bladex 800 red\nТовар: 3490.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 3569 CZK\nbazos_cz\nБ/у\nBadmintonová raketa Li-ning Bladex 700 blue\nТовар: 3890.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 3969 CZK\nbazos_cz\nБ/у\nКомплект\nPC Skříně do racku\nТовар: 5000.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 5079 CZK\nbazos_cz\nБ/у\nКомплект\nDigitální mixpult PreSonus RM32AI + 2m kabel DB-25 to 8x XLR\nТовар: 16000.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 16079 CZK\nbazos_cz\nБ/у\nMechanický invalidní vozík\nТовар: 20000.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 20079 CZK\nbazos_cz\nБ/у\nКомплект\nZvuková sestava včetně mixu\nТовар: 26000.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 26079 CZK\nbazos_cz\nБ/у\nКомплект\nEpyc 7551 32C/64T + 96GB Ram\nТовар: 32000.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 32079 CZK\nbazos_cz\nБ/у\nNETTI 4U CE Plus, vozík polohovací\nТовар: 35000.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 35079 CZK\nbazos_cz\nБ/у\nFrézka na kov FA 4U\nТовар: 50000.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 50079 CZK\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
+    "first_item_top": 99,
+    "visible_text": "⚡\nNextLife\nПокупки\n⚙\n?\nПрошлые поиски:\n🔍 4U\n🔍 Ai server\n🔍 Rtx 3090\n🔍 X570\n🔍 DDR4 32 -SODIMM -\"SO-DIMM\" -RDIMM\n🔍 MateBook\n🔍 Huawei\nВсе\nНовые\nБ/у\n \nВсе\nШтучно\nКомплекты\nСначала дешёвые\nЦена товара ↑\nНовые\nVinted Б/у\nczarna koszulka\nДоставка: доставка не указана (0 CZK)\n50.35 CZK\nТовар: 50.35 CZK\n⚙\n↗\nVinted Б/у Комплект\nBalík pre chlapca\nДоставка: доставка не указана (0 CZK)\n123.39 CZK\nТовар: 123.39 CZK\n⚙\n↗\nVinted Б/у\nCiapka lindex 2-4 roky\nДоставка: доставка не указана (0 CZK)\n123.39 CZK\nТовар: 123.39 CZK\n⚙\n↗\nVinted Б/у\nZelený pletený svetrík\nДоставка: доставка не указана (0 CZK)\n123.39 CZK\nТовар: 123.39 CZK\n⚙\n↗\nSbazar.cz Б/у\nWandSticker4U® - Opakovaně použitelné samolepky na okno pro děti, Králík a ježek, Samolepicí |\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n138 CZK\nТовар: 59.00 CZK\n⚙\n↗\nSbazar.cz Б/у\nRifle Made 4.U jeans 122/128\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n159 CZK\nТовар: 80.00 CZK\n⚙\n↗\nVinted Б/у\nNohavice 3/4 dĺžka\nДоставка: доставка не указана (0 CZK)\n172.74 CZK\nТовар: 172.74 CZK\n⚙\n↗\nVinted Б/у\nWhite woman sweater / M\nДоставка: доставка не указана (0 CZK)\n172.74 CZK\nТовар: 172.74 CZK\n⚙\n↗\nSbazar.cz Б/у Комплект\nPřepínač D-Link DKVM-4U pro 4 PC\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n174 CZK\nТовар: 95.00 CZK\n⚙\n↗\nSbazar.cz Б/у\nBaterie NOKIA BL-4U\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n179 CZK\nТовар: 100.00 CZK\n⚙\n↗\nVinted Б/у\nDievčenské spoločenské šaty\nДоставка: доставка не указана (0 CZK)\n197.42 CZK\nТовар: 197.42 CZK\n⚙\n↗\nSbazar.cz Б/у\nBaterie Nokia BL-4U\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n229 CZK\nТовар: 150.00 CZK\n⚙\n↗\nVinted Б/у\nDievčenské oteplovačky zimné nohavice do snehu\nДоставка: доставка не указана (0 CZK)\n246.78 CZK\nТовар: 246.78 CZK\n⚙\n↗\nSbazar.cz Б/у\nBaterie NOKIA BL-4U\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n278 CZK\nТовар: 199.00 CZK\n⚙\n↗\nSbazar.cz Б/у\nNokia 8800 baterie BL-6X BL-5X BL-5C BL-4U BLD-3\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n279 CZK\nТовар: 200.00 CZK\n⚙\n↗\nVinted Б/у\nDetské 3/4 nohavice Puma - veľ. 140\nДоставка: доставка не указана (0 CZK)\n296.13 CZK\nТовар: 296.13 CZK\n⚙\n↗\nVinted Б/у\n3 krásné kabelky\nДоставка: доставка не указана (0 CZK)\n320.81 CZK\nТовар: 320.81 CZK\n⚙\n↗\nSbazar.cz Б/у\nFA-4U Elekroinstalace\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n469 CZK\nТовар: 390.00 CZK\n⚙\n↗\nSbazar.cz Б/у\n12\" maxi singl Britney Spears - I'm A Slave 4 U\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n469 CZK\nТовар: 390.00 CZK\n⚙\n↗\nSbazar.cz Б/у\nD-Link DKVM-4U 4portový KVM přepínač s kabely\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n479 CZK\nТовар: 400.00 CZK\n⚙\n↗\nBazoš.cz Б/у\nNávody kovo frézek:\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n569 CZK\nТовар: 490.00 CZK\n⚙\n↗\nSbazar.cz Б/у\nNávod frézky FA-4U\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n769 CZK\nТовар: 690.00 CZK\n⚙\n↗\nBazoš.cz Б/у\nNová racková skříň Landberg 10” nástěnná 4U 280x130\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n779 CZK\nТовар: 700.00 CZK\n⚙\n↗\nVinted Новый\nPredám sadu pohárov borske nový bór\nДоставка: доставка не указана (0 CZK)\n1110.49 CZK\nТовар: 1110.49 CZK\n⚙\n↗\nSbazar.cz Б/у\nSSSR | PLYNOVÁ MASKA GP-4U\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n1229 CZK\nТовар: 1150.00 CZK\n⚙\n↗\nVinted Б/у\nOveral Burton vel 92\nДоставка: доставка не указана (0 CZK)\n1233.88 CZK\nТовар: 1233.88 CZK\n⚙\n↗\nVinted Б/у\nJordan 4 Retro Red Thunder\nДоставка: доставка не указана (0 CZK)\n1233.88 CZK\nТовар: 1233.88 CZK\n⚙\n↗\nBazoš.cz Б/у\nRACK 4U, hloubka 30 cm\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n1479 CZK\nТовар: 1400.00 CZK\n⚙\n↗\nBazoš.cz Б/у\nRack skříň 19\" DATACOM IPC 4U/485 mm, bez zdroje\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n1969 CZK\nТовар: 1890.00 CZK\n⚙\n↗\nBazoš.cz Б/у\nSupermicro 4U CSE-846, 24xLFF\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n2979 CZK\nТовар: 2900.00 CZK\n⚙\n↗\nSbazar.cz Б/у\n38 38,5 40 skialpové boty DYNAFIT ZZERO 4U\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n3499 CZK\nТовар: 3420.00 CZK\n⚙\n↗\nBazoš.cz Б/у\nBadmintonová raketa Li-ning Bladex 800 red\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n3569 CZK\nТовар: 3490.00 CZK\n⚙\n↗\nBazoš.cz Б/у\nBadmintonová raketa Li-ning Bladex 700 blue\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n3969 CZK\nТовар: 3890.00 CZK\n⚙\n↗\nBazoš.cz Б/у Комплект\nPC Skříně do racku\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n5079 CZK\nТовар: 5000.00 CZK\n⚙\n↗\nBazoš.cz Б/у Комплект\nDigitální mixpult PreSonus RM32AI + 2m kabel DB-25 to 8x XLR\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n16079 CZK\nТовар: 16000.00 CZK\n⚙\n↗\nBazoš.cz Б/у\nMechanický invalidní vozík\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n20079 CZK\nТовар: 20000.00 CZK\n⚙\n↗\nBazoš.cz Б/у Комплект\nZvuková sestava včetně mixu\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n26079 CZK\nТовар: 26000.00 CZK\n⚙\n↗\nBazoš.cz Б/у Комплект\nEpyc 7551 32C/64T + 96GB Ram\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n32079 CZK\nТовар: 32000.00 CZK\n⚙\n↗\nBazoš.cz Б/у\nNETTI 4U CE Plus, vozík polohovací\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n35079 CZK\nТовар: 35000.00 CZK\n⚙\n↗\nBazoš.cz Б/у\nFrézka na kov FA 4U\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n50079 CZK\nТовар: 50000.00 CZK\n⚙\n↗\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "buy",
     "viewport": "390",
@@ -3914,14 +3892,14 @@
         "name": "",
         "id": "",
         "text": "↻ Пересчитать оценку",
-        "width": 174,
+        "width": 166,
         "height": 36,
-        "top": 663,
+        "top": 636,
         "is_fab": false
       }
     ],
-    "first_item_top": 102,
-    "visible_text": "⚡\nNextLife\n← Назад к покупкам\nАнализ выгодности комплекта\nСтандартный комплект\nczarna koszulka\nПо частям:\n1000 CZK\nКомплект:\n50 CZK\nВыгода:\n95.0%\nСоставляющие комплекта (оценка ИИ)\n3 дет.\nОсновное устройство (czarna koszulka)\n1 шт. • оценок: 5\n500 CZK\nобразцы ↗\nКомплектный адаптер питания и кабели\n1 шт. • оценок: 5\n300 CZK\nобразцы ↗\nАксессуары и упаковка\n1 шт. • оценок: 5\n200 CZK\nобразцы ↗\n↻ Пересчитать оценку\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
+    "first_item_top": 84,
+    "visible_text": "⚡\nNextLife\n← Назад к покупкам\nАнализ выгодности комплекта\nСтандартный комплект\nczarna koszulka\nПо частям:\n1000 CZK\nКомплект:\n50 CZK\nВыгода:\n95.0%\nСоставляющие комплекта (оценка ИИ)\n3 дет.\nОсновное устройство (czarna koszulka)\n1 шт. · оценок: 5\n500 CZK образцы ↗\nКомплектный адаптер питания и кабели\n1 шт. · оценок: 5\n300 CZK образцы ↗\nАксессуары и упаковка\n1 шт. · оценок: 5\n200 CZK образцы ↗\n↻ Пересчитать оценку\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "buy_kit",
     "viewport": "390",
@@ -4659,7 +4637,7 @@
         "text": "",
         "width": 138,
         "height": 32,
-        "top": -1707,
+        "top": -1704,
         "is_fab": false
       },
       {
@@ -4670,7 +4648,7 @@
         "text": "",
         "width": 138,
         "height": 32,
-        "top": -1675,
+        "top": -1672,
         "is_fab": false
       },
       {
@@ -4681,7 +4659,7 @@
         "text": "‹ Вернуться",
         "width": 109,
         "height": 36,
-        "top": -1648,
+        "top": -1645,
         "is_fab": false
       },
       {
@@ -4692,7 +4670,7 @@
         "text": "Вперёд ›",
         "width": 85,
         "height": 36,
-        "top": -1648,
+        "top": -1645,
         "is_fab": false
       },
       {
@@ -4703,7 +4681,7 @@
         "text": "899.00",
         "width": 713,
         "height": 36,
-        "top": -1477,
+        "top": -1474,
         "is_fab": false
       },
       {
@@ -4714,7 +4692,7 @@
         "text": "CZK\nEUR",
         "width": 80,
         "height": 36,
-        "top": -1477,
+        "top": -1474,
         "is_fab": false
       },
       {
@@ -4725,7 +4703,7 @@
         "text": "✓",
         "width": 31,
         "height": 36,
-        "top": -1477,
+        "top": -1474,
         "is_fab": false
       },
       {
@@ -4736,7 +4714,7 @@
         "text": "899.00",
         "width": 140,
         "height": 38,
-        "top": -1421,
+        "top": -1418,
         "is_fab": false
       },
       {
@@ -4747,7 +4725,7 @@
         "text": "CZK\nEUR\nPLN",
         "width": 72,
         "height": 38,
-        "top": -1420,
+        "top": -1417,
         "is_fab": false
       },
       {
@@ -4758,7 +4736,7 @@
         "text": "",
         "width": 40,
         "height": 38,
-        "top": -1424,
+        "top": -1421,
         "is_fab": false
       },
       {
@@ -4769,7 +4747,7 @@
         "text": "Mobile Pre M-AUDIO",
         "width": 816,
         "height": 38,
-        "top": -1352,
+        "top": -1349,
         "is_fab": false
       },
       {
@@ -4780,7 +4758,7 @@
         "text": "",
         "width": 44,
         "height": 38,
-        "top": -1352,
+        "top": -1349,
         "is_fab": false
       },
       {
@@ -4791,7 +4769,7 @@
         "text": "По умолчанию\nПо цене (сначала ",
         "width": 421,
         "height": 36,
-        "top": -1225,
+        "top": -1222,
         "is_fab": false
       },
       {
@@ -4802,7 +4780,7 @@
         "text": "‹\nВернуться",
         "width": 116,
         "height": 36,
-        "top": -867,
+        "top": -864,
         "is_fab": false
       },
       {
@@ -4813,7 +4791,7 @@
         "text": "Вперёд\n›",
         "width": 92,
         "height": 36,
-        "top": -867,
+        "top": -864,
         "is_fab": false
       },
       {
@@ -4824,7 +4802,7 @@
         "text": "‹",
         "width": 36,
         "height": 36,
-        "top": -298,
+        "top": -295,
         "is_fab": false
       },
       {
@@ -4835,7 +4813,7 @@
         "text": "›",
         "width": 36,
         "height": 36,
-        "top": -298,
+        "top": -295,
         "is_fab": false
       },
       {
@@ -4846,7 +4824,7 @@
         "text": "",
         "width": 36,
         "height": 36,
-        "top": -610,
+        "top": -607,
         "is_fab": false
       },
       {
@@ -4857,7 +4835,7 @@
         "text": "×",
         "width": 28,
         "height": 28,
-        "top": 75,
+        "top": 78,
         "is_fab": false
       },
       {
@@ -4868,7 +4846,7 @@
         "text": "×",
         "width": 28,
         "height": 28,
-        "top": 75,
+        "top": 78,
         "is_fab": false
       },
       {
@@ -4879,7 +4857,7 @@
         "text": "×",
         "width": 28,
         "height": 28,
-        "top": 75,
+        "top": 78,
         "is_fab": false
       },
       {
@@ -4890,7 +4868,7 @@
         "text": "×",
         "width": 28,
         "height": 28,
-        "top": 75,
+        "top": 78,
         "is_fab": false
       },
       {
@@ -4901,7 +4879,7 @@
         "text": "×",
         "width": 28,
         "height": 28,
-        "top": 75,
+        "top": 78,
         "is_fab": false
       },
       {
@@ -4912,7 +4890,7 @@
         "text": "×",
         "width": 28,
         "height": 28,
-        "top": 75,
+        "top": 78,
         "is_fab": false
       },
       {
@@ -4923,7 +4901,7 @@
         "text": "×",
         "width": 28,
         "height": 28,
-        "top": 75,
+        "top": 78,
         "is_fab": false
       },
       {
@@ -4934,7 +4912,7 @@
         "text": "×",
         "width": 28,
         "height": 28,
-        "top": 75,
+        "top": 78,
         "is_fab": false
       },
       {
@@ -4945,7 +4923,7 @@
         "text": "×",
         "width": 28,
         "height": 28,
-        "top": 75,
+        "top": 78,
         "is_fab": false
       },
       {
@@ -4956,7 +4934,7 @@
         "text": "×",
         "width": 28,
         "height": 28,
-        "top": 75,
+        "top": 78,
         "is_fab": false
       },
       {
@@ -4967,7 +4945,7 @@
         "text": "×",
         "width": 28,
         "height": 28,
-        "top": 75,
+        "top": 78,
         "is_fab": false
       },
       {
@@ -4978,7 +4956,7 @@
         "text": "×",
         "width": 28,
         "height": 28,
-        "top": 75,
+        "top": 78,
         "is_fab": false
       },
       {
@@ -4989,7 +4967,7 @@
         "text": "",
         "width": 36,
         "height": 36,
-        "top": 3107,
+        "top": 3110,
         "is_fab": false
       },
       {
@@ -5000,7 +4978,7 @@
         "text": "",
         "width": 36,
         "height": 36,
-        "top": 3107,
+        "top": 3110,
         "is_fab": false
       },
       {
@@ -5011,7 +4989,7 @@
         "text": "",
         "width": 36,
         "height": 36,
-        "top": 3107,
+        "top": 3110,
         "is_fab": false
       },
       {
@@ -5022,7 +5000,7 @@
         "text": "",
         "width": 36,
         "height": 36,
-        "top": 3107,
+        "top": 3110,
         "is_fab": false
       },
       {
@@ -5033,7 +5011,7 @@
         "text": "★ Обложка",
         "width": 95,
         "height": 32,
-        "top": 3109,
+        "top": 3112,
         "is_fab": false
       },
       {
@@ -5044,7 +5022,7 @@
         "text": "",
         "width": 36,
         "height": 36,
-        "top": 3107,
+        "top": 3110,
         "is_fab": false
       },
       {
@@ -5055,7 +5033,7 @@
         "text": "‹\nВернуться",
         "width": 120,
         "height": 44,
-        "top": 3288,
+        "top": 3291,
         "is_fab": false
       },
       {
@@ -5066,7 +5044,7 @@
         "text": "Вперёд\n›",
         "width": 96,
         "height": 44,
-        "top": 3288,
+        "top": 3291,
         "is_fab": false
       },
       {
@@ -5077,7 +5055,7 @@
         "text": "950",
         "width": 455,
         "height": 36,
-        "top": 3442,
+        "top": 3445,
         "is_fab": false
       },
       {
@@ -5088,7 +5066,7 @@
         "text": "1100",
         "width": 455,
         "height": 36,
-        "top": 3442,
+        "top": 3445,
         "is_fab": false
       },
       {
@@ -5099,7 +5077,7 @@
         "text": "300",
         "width": 302,
         "height": 36,
-        "top": 3528,
+        "top": 3531,
         "is_fab": false
       },
       {
@@ -5110,7 +5088,7 @@
         "text": "200",
         "width": 302,
         "height": 36,
-        "top": 3528,
+        "top": 3531,
         "is_fab": false
       },
       {
@@ -5121,7 +5099,7 @@
         "text": "50",
         "width": 302,
         "height": 36,
-        "top": 3528,
+        "top": 3531,
         "is_fab": false
       },
       {
@@ -5132,7 +5110,7 @@
         "text": "Сохранить МГХ",
         "width": 922,
         "height": 36,
-        "top": 3588,
+        "top": 3591,
         "is_fab": false
       },
       {
@@ -5143,7 +5121,7 @@
         "text": "‹\nВернуться",
         "width": 120,
         "height": 44,
-        "top": 3672,
+        "top": 3675,
         "is_fab": false
       },
       {
@@ -5154,7 +5132,7 @@
         "text": "Вперёд\n›",
         "width": 96,
         "height": 44,
-        "top": 3672,
+        "top": 3675,
         "is_fab": false
       },
       {
@@ -5165,7 +5143,7 @@
         "text": "Покупатель оплачивает доставку",
         "width": 922,
         "height": 36,
-        "top": 3815,
+        "top": 3818,
         "is_fab": false
       },
       {
@@ -5176,7 +5154,7 @@
         "text": "Сохранить политику доставки",
         "width": 922,
         "height": 36,
-        "top": 3879,
+        "top": 3882,
         "is_fab": false
       },
       {
@@ -5187,7 +5165,7 @@
         "text": "Личная встреча / Osobní odběr ",
         "width": 786,
         "height": 36,
-        "top": 4065,
+        "top": 4068,
         "is_fab": false
       },
       {
@@ -5198,7 +5176,7 @@
         "text": "+ Добавить",
         "width": 106,
         "height": 36,
-        "top": 4065,
+        "top": 4068,
         "is_fab": false
       },
       {
@@ -5209,7 +5187,7 @@
         "text": "✕",
         "width": 32,
         "height": 36,
-        "top": 4129,
+        "top": 4132,
         "is_fab": false
       },
       {
@@ -5220,7 +5198,7 @@
         "text": "0",
         "width": 140,
         "height": 36,
-        "top": 4198,
+        "top": 4201,
         "is_fab": false
       },
       {
@@ -5231,7 +5209,7 @@
         "text": "✕",
         "width": 32,
         "height": 36,
-        "top": 4333,
+        "top": 4336,
         "is_fab": false
       },
       {
@@ -5242,7 +5220,7 @@
         "text": "89",
         "width": 140,
         "height": 36,
-        "top": 4402,
+        "top": 4405,
         "is_fab": false
       },
       {
@@ -5253,7 +5231,7 @@
         "text": "Сохранить опции доставки",
         "width": 896,
         "height": 36,
-        "top": 4525,
+        "top": 4528,
         "is_fab": false
       },
       {
@@ -5264,7 +5242,7 @@
         "text": "‹\nВернуться",
         "width": 120,
         "height": 44,
-        "top": 4622,
+        "top": 4625,
         "is_fab": false
       },
       {
@@ -5275,7 +5253,7 @@
         "text": "Вперёд\n›",
         "width": 96,
         "height": 44,
-        "top": 4622,
+        "top": 4625,
         "is_fab": false
       },
       {
@@ -5286,7 +5264,7 @@
         "text": "Готов к продаже",
         "width": 148,
         "height": 36,
-        "top": 4873,
+        "top": 4876,
         "is_fab": false
       },
       {
@@ -5297,7 +5275,7 @@
         "text": "Mobile Pre M-AUDIO (preamp / a",
         "width": 926,
         "height": 36,
-        "top": 4991,
+        "top": 4994,
         "is_fab": false
       },
       {
@@ -5308,7 +5286,7 @@
         "text": "На полке с одеждой",
         "width": 926,
         "height": 36,
-        "top": 5065,
+        "top": 5068,
         "is_fab": false
       },
       {
@@ -5319,7 +5297,7 @@
         "text": "899.00",
         "width": 457,
         "height": 36,
-        "top": 5139,
+        "top": 5142,
         "is_fab": false
       },
       {
@@ -5330,7 +5308,7 @@
         "text": "CZK\nEUR\nPLN",
         "width": 457,
         "height": 36,
-        "top": 5139,
+        "top": 5142,
         "is_fab": false
       },
       {
@@ -5341,7 +5319,7 @@
         "text": "Русский\nЧешский\nАнглийский\nНем",
         "width": 926,
         "height": 36,
-        "top": 5225,
+        "top": 5228,
         "is_fab": false
       },
       {
@@ -5352,7 +5330,7 @@
         "text": "",
         "width": 926,
         "height": 36,
-        "top": 6048,
+        "top": 6051,
         "is_fab": false
       },
       {
@@ -5363,7 +5341,7 @@
         "text": "Сохранить",
         "width": 952,
         "height": 36,
-        "top": 6269,
+        "top": 6272,
         "is_fab": false
       },
       {
@@ -5374,7 +5352,7 @@
         "text": "‹\nВернуться",
         "width": 120,
         "height": 44,
-        "top": 6338,
+        "top": 6341,
         "is_fab": false
       },
       {
@@ -5385,7 +5363,7 @@
         "text": "Вперёд\n›",
         "width": 96,
         "height": 44,
-        "top": 6338,
+        "top": 6341,
         "is_fab": false
       },
       {
@@ -5396,7 +5374,7 @@
         "text": "🔄 Ревизия",
         "width": 96,
         "height": 36,
-        "top": 6413,
+        "top": 6416,
         "is_fab": false
       },
       {
@@ -5407,7 +5385,7 @@
         "text": "⚡ Подготовить",
         "width": 125,
         "height": 36,
-        "top": 6413,
+        "top": 6416,
         "is_fab": false
       },
       {
@@ -5418,7 +5396,7 @@
         "text": "Пакет для Facebook",
         "width": 151,
         "height": 36,
-        "top": 6413,
+        "top": 6416,
         "is_fab": false
       },
       {
@@ -5429,7 +5407,7 @@
         "text": "⚡ Подготовить объявления для п",
         "width": 330,
         "height": 36,
-        "top": 6682,
+        "top": 6685,
         "is_fab": false
       },
       {
@@ -5440,7 +5418,7 @@
         "text": "‹\nВернуться",
         "width": 120,
         "height": 44,
-        "top": 6775,
+        "top": 6778,
         "is_fab": false
       },
       {
@@ -5451,7 +5429,7 @@
         "text": "Вперёд\n›",
         "width": 96,
         "height": 44,
-        "top": 6775,
+        "top": 6778,
         "is_fab": false
       },
       {
@@ -5462,7 +5440,7 @@
         "text": "✓ Отметить проданным",
         "width": 208,
         "height": 36,
-        "top": 6963,
+        "top": 6966,
         "is_fab": false
       },
       {
@@ -5473,7 +5451,7 @@
         "text": "‹\nВернуться",
         "width": 120,
         "height": 44,
-        "top": 7032,
+        "top": 7035,
         "is_fab": false
       },
       {
@@ -5484,7 +5462,7 @@
         "text": "Вперёд\n›",
         "width": 96,
         "height": 44,
-        "top": 7032,
+        "top": 7035,
         "is_fab": false
       },
       {
@@ -5495,11 +5473,11 @@
         "text": "‹\nВернуться",
         "width": 120,
         "height": 44,
-        "top": 7245,
+        "top": 7248,
         "is_fab": false
       }
     ],
-    "first_item_top": 3156,
+    "first_item_top": 3159,
     "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\n←\n#283\nОценён\n⋯\nMobile Pre M-AUDIO (preamp / audio interface / zvuková karta)\n📍 На полке с одеждой\n‹ Вернуться\nЭтап 1/8: Оценка\nВперёд ›\nОценка\nФото\nМГХ\nДоставка\nОписание\nОбъявления\nПродажа\nГарантия\nЭтап 1. Оценка цены аналогов\nЦена продажи:\nCZK\nEUR\n✓\n \nCZK\nEUR\nPLN\n \n💡 Теги: +слово или +\"фраза\" — обязательно, -слово или -\"фраза\" — исключить.\nНайдено предложений: 3\nПо умолчанию\nПо цене (сначала дешевле)\nПо цене (сначала дороже)\nПо наименованию (А – Я)\nПо наименованию (Я – А)\nVINTED\nДругое\nLine 6 POD UX1 interfejs audio ↗\n952.59 CZK\nVINTED\nДругое\n🎧 MEE audio Connect HUB – Bluetooth vysielač/prijímač k TV a audio systému ↗\n1895.23 CZK\nAUKRO_CZ\nДругое\nŠIKOVNÝ 70W BLUETOOTH AUDIO SYSTÉM SENCOR SSS 3900 - VÝHODNÁ KOUPĚ ↗\nАукцион\n‹\nВернуться\nЭтап 1/8: Оценка\nВперёд\n›\nЭтап 2. Фотографии\n📷 Фотостенд\nФотогалерея (12)\n12 фото\n‹\n›\n1 / 12\nОбработано\nобработано\nобложка\n×\nобработано\n×\nобработано\n×\n×\nобработано\n×\nобработано\n×\n×\nобработано\n×\nобработано\n×\nобработано\n×\nобработано\n×\nобработано\n×\n★ Обложка\nДобавить фотографии\n📸 Снять на камеру\n🖼 Загрузить из галереи\n‹\nВернуться\nЭтап /:\nВперёд\n›\nЭтап 3. МГХ (массо-габаритные характеристики)\nВЕС ТОВАРА (Г)\nВЕС В УПАКОВКЕ (Г)\nДЛИНА (ММ)\nШИРИНА (ММ)\nВЫСОТА (ММ)\nСохранить МГХ\n‹\nВернуться\nЭтап /:\nВперёд\n›\nЭтап 4. Доставка\nКТО ПЛАТИТ ЗА ДОСТАВКУ\nПокупатель оплачивает доставку сверху\nДоставка включена в стоимость\nТолько личный самовывоз\nСохранить политику доставки\nПеревозчики\nКонструктор автоматически подбирает базовые тарифы чешских служб (Zásilkovna, Balíkovna, Česká pošta). При ручном изменении тарифа он помечается как Ручная цена.\nДОБАВИТЬ СЛУЖБУ ДОСТАВКИ:\nЛичная встреча / Osobní odběr (уже выбран)\nZásilkovna (výdejní místo / Z-BOX) (уже выбран)\nBalíkovna (Česká pošta / AlzaBox) (от 79 Kč)\nČeská pošta (Balík Do ruky) (от 129 Kč)\nKurýr DPD / PPL (na adresu) (от 129 Kč)\nPPL (Parcelshop / Parcelbox) (от 76 Kč)\nGLS (ParcelShop / ParcelBox) (от 69 Kč)\n+ Добавить\nЛичная встреча / Osobní odběr\nБазовый авто-тариф: 0 Kč\nАвто-тариф\n✕\nТАРИФ ДОСТАВКИ\nKč\nИТОГО ПОКУПАТЕЛЮ\n899 Kč\nНА РУКИ ПРОДАВЦУ\n899 Kč\nZásilkovna (výdejní místo / Z-BOX)\nБазовый авто-тариф: 89 Kč\nАвто-тариф\n✕\nТАРИФ ДОСТАВКИ\nKč\nИТОГО ПОКУПАТЕЛЮ\n988 Kč\nНА РУКИ ПРОДАВЦУ\n899 Kč\nСохранить опции доставки\n‹\nВернуться\nЭтап /:\nВперёд\n›\nЧек-лист «Готов к продаже»\n✓ ≥ 1 фото предмета\n✓ Указаны МГХ (вес и габариты)\n✓ Выбрана политика доставки\n✓ Заполнено описание\n✓ Задана цена продажи\nГотов к продаже\nОсновное\nНАИМЕНОВАНИЕ\nМЕСТО НА СКЛАДЕ\nЦЕНА\nВАЛЮТА\nCZK\nEUR\nPLN\nЯЗЫК ОПИСАНИЯ\nРусский\nЧешский\nАнглийский\nНемецкий\nПольский\nТекст объявления\nОПИСАНИЕ\nИСПОЛЬЗОВАНИЕ\nТЕХНИЧЕСКИЕ ХАРАКТЕРИСТИКИ\nЗаметки оператора\nВидны только вам, в объявления не попадают\nГарантия\nСРОК ГАРАНТИИ (МЕСЯЦЕВ, ОСТАВЬТЕ ПУСТЫМ ЕСЛИ БЕЗ ГАРАНТИИ)\nУСЛОВИЯ ГАРАНТИИ ДЛЯ ТЕКСТА ОБЪЯВЛЕНИЙ\nСохранить\n‹\nВернуться\nЭтап /:\nВперёд\n›\nЭтап 6. Объявления на площадках (0)\n🔄 Ревизия\n⚡ Подготовить\nПакет для Facebook\nНе ставится в очередь\nTrhKnih.cz — TrhKnih.cz принимает исключительно книги: «Na webových stránkách www.trhknih.cz je umístěno internetové tržiště, prostřednictvím kterého mohou jeho uživatelé nakupovat a prodávat knihy. Kniha znamená knihu v listinné originální podobě» (Obchodní podmínky čl. 1.2). Видеокарта в очередь публикации не ставится. Доказательство: evidence/trhknih_cz/rules/obchodni_podminky.html\nMimibazar.cz — Mimibazar.cz specializes exclusively in baby, children and family goods. Computer hardware is prohibited.\nОбъявления ещё не подготовлены.\n\n\n⚡ Подготовить объявления для площадок\n‹\nВернуться\nЭтап /:\nВперёд\n›\nЭтап 7. Продажа\n\nКогда предмет продан покупателю, нажмите кнопку ниже. Объявления будут автоматически сняты со всех площадок, и статус перейдёт в «Продан».\n\n✓ Отметить проданным\n‹\nВернуться\nЭтап /:\nВперёд\n›\nЭтап 8. Гарантия\nДля этого предмета гарантия не указана (срок гарантии: пусто).\n‹\nВернуться\nЭтап /:\n✓ На склад",
     "console_errors": [],
     "screen": "stock_item",
@@ -5905,8 +5883,8 @@
         "is_fab": false
       }
     ],
-    "first_item_top": 108,
-    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВнимание\n5 требует действий\n⚠️\nОшибки размещения и «Не снято»\nНажмите для перехода\n1\n🎁\nВыгодные комплекты\nНажмите для перехода\n4",
+    "first_item_top": 99,
+    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВнимание\n5 требует действий\n⚠️\nОшибки размещения и «Не снято»\n1\n→\n🎁\nВыгодные комплекты\n4\n→",
     "console_errors": [],
     "screen": "attention",
     "viewport": "1366",
@@ -6014,7 +5992,7 @@
       }
     ],
     "first_item_top": 156,
-    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.94\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМои данные\nИмя продавца \nПочтовый индекс (PSČ) \nТелефон \nМесто встреч по умолчанию \nСохранить\nВерсия: 2026.11.94",
+    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.95\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМои данные\nИмя продавца \nПочтовый индекс (PSČ) \nТелефон \nМесто встреч по умолчанию \nСохранить\nВерсия: 2026.11.95",
     "console_errors": [],
     "screen": "settings_profile",
     "viewport": "1366",
@@ -6801,7 +6779,7 @@
       }
     ],
     "first_item_top": 256,
-    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.94\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМатрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен\n·\nПск поиск · Рзм размещение · Изм изменение · Снт снятие · Прв перевыставление · Сбщ сообщения · Дст доставка\nСрок жизни по умолчанию (дней): \nПубликация\nTrhKnih.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nHyperinzerce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nSbazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nFacebook Marketplace\nНедоступен\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAnnonce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAukro.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nVinted\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.sk\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nMimibazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\neBay\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nТолько мониторинг цен\nПлощадка\tМониторинг\tТип коннектора\tСайт\n Willhaben\t\nПоиск\n\tЧерез приложение\t↗\n Kleinanzeigen\t\nПоиск\n\tЧерез приложение\t↗\n OLX\t\nПоиск\n\tЧерез приложение\t↗\nСохранить площадки\nВерсия: 2026.11.94",
+    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.95\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМатрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен\n·\nПск поиск · Рзм размещение · Изм изменение · Снт снятие · Прв перевыставление · Сбщ сообщения · Дст доставка\nСрок жизни по умолчанию (дней): \nПубликация\nTrhKnih.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nHyperinzerce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nSbazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nFacebook Marketplace\nНедоступен\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAnnonce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAukro.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nVinted\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.sk\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nMimibazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\neBay\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nТолько мониторинг цен\nПлощадка\tМониторинг\tТип коннектора\tСайт\n Willhaben\t\nПоиск\n\tЧерез приложение\t↗\n Kleinanzeigen\t\nПоиск\n\tЧерез приложение\t↗\n OLX\t\nПоиск\n\tЧерез приложение\t↗\nСохранить площадки\nВерсия: 2026.11.95",
     "console_errors": [],
     "screen": "settings_marketplaces",
     "viewport": "1366",
@@ -7588,7 +7566,7 @@
       }
     ],
     "first_item_top": 256,
-    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.94\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМатрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен\n·\nПск поиск · Рзм размещение · Изм изменение · Снт снятие · Прв перевыставление · Сбщ сообщения · Дст доставка\nСрок жизни по умолчанию (дней): \nПубликация\nTrhKnih.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nАвтоснятие: ✓ Поддерживается\nАвтоперевыставление: ✓ Поддерживается\nПрямой доступ 🔗 Войти ↗\nСрок публикации на площадке (дней): \nСпособы доставки:\nЛичная встреча / Osobní odběr\nZásilkovna / Packeta\nBalíkovna (Česká pošta)\nČeská pošta\nPPL CZ\nGLS\nКурьер DPD / PPL\nEmail аккаунта TrhKnih.cz\nСтереть\nПароль аккаунта TrhKnih.cz\nСтереть\nHyperinzerce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nSbazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nFacebook Marketplace\nНедоступен\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAnnonce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAukro.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nVinted\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.sk\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nMimibazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\neBay\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nТолько мониторинг цен\nПлощадка\tМониторинг\tТип коннектора\tСайт\n Willhaben\t\nПоиск\n\tЧерез приложение\t↗\n Kleinanzeigen\t\nПоиск\n\tЧерез приложение\t↗\n OLX\t\nПоиск\n\tЧерез приложение\t↗\nСохранить площадки\nВерсия: 2026.11.94",
+    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.95\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМатрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен\n·\nПск поиск · Рзм размещение · Изм изменение · Снт снятие · Прв перевыставление · Сбщ сообщения · Дст доставка\nСрок жизни по умолчанию (дней): \nПубликация\nTrhKnih.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nАвтоснятие: ✓ Поддерживается\nАвтоперевыставление: ✓ Поддерживается\nПрямой доступ 🔗 Войти ↗\nСрок публикации на площадке (дней): \nСпособы доставки:\nЛичная встреча / Osobní odběr\nZásilkovna / Packeta\nBalíkovna (Česká pošta)\nČeská pošta\nPPL CZ\nGLS\nКурьер DPD / PPL\nEmail аккаунта TrhKnih.cz\nСтереть\nПароль аккаунта TrhKnih.cz\nСтереть\nHyperinzerce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nSbazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nFacebook Marketplace\nНедоступен\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAnnonce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAukro.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nVinted\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.sk\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nMimibazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\neBay\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nТолько мониторинг цен\nПлощадка\tМониторинг\tТип коннектора\tСайт\n Willhaben\t\nПоиск\n\tЧерез приложение\t↗\n Kleinanzeigen\t\nПоиск\n\tЧерез приложение\t↗\n OLX\t\nПоиск\n\tЧерез приложение\t↗\nСохранить площадки\nВерсия: 2026.11.95",
     "console_errors": [],
     "screen": "settings_marketplaces_open",
     "viewport": "1366",
@@ -7929,7 +7907,7 @@
       }
     ],
     "first_item_top": 184,
-    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.94\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nЕдиная модель для всех операций\nТекстовый ИИ (Text LLM)\n\nOpenAI-совместимый эндпоинт POST /v1/chat/completions.\n\nТип эндпоинта (Provider) \nOpenAI совместимый (POST /v1/chat/completions)\nGoogle Gemini (generateContent REST API)\nURL эндпоинта \nURL OpenAI-совместимого эндпоинта (например, https://api.openai.com/v1/chat/completions).\nAPI Key \nМодель \nНапример: gpt-4o-mini, gpt-4o\nГрафический ИИ (Image AI)\n\nCloudflare Workers AI (прямой REST API /ai/run/{model} или ваш прокси-воркер).\n\nТип эндпоинта (Provider) \nOpenAI совместимый (POST /v1/images/edits)\nGoogle Gemini (gemini-2.5-flash-image / Imagen 3)\nCloudflare Workers AI (/ai/run/ или Workers)\nURL эндпоинта / Account ID \nУкажите ваш Cloudflare Account ID (из панели dash.cloudflare.com) или полный URL: https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/run/\nAPI Key / Token \nИндивидуальные настройки функций ИИ (пыль, студия, фон)\nСохранить настройки ИИ\nПроверить Text LLM\nПроверить Image AI\nВерсия: 2026.11.94",
+    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.95\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nЕдиная модель для всех операций\nТекстовый ИИ (Text LLM)\n\nOpenAI-совместимый эндпоинт POST /v1/chat/completions.\n\nТип эндпоинта (Provider) \nOpenAI совместимый (POST /v1/chat/completions)\nGoogle Gemini (generateContent REST API)\nURL эндпоинта \nURL OpenAI-совместимого эндпоинта (например, https://api.openai.com/v1/chat/completions).\nAPI Key \nМодель \nНапример: gpt-4o-mini, gpt-4o\nГрафический ИИ (Image AI)\n\nCloudflare Workers AI (прямой REST API /ai/run/{model} или ваш прокси-воркер).\n\nТип эндпоинта (Provider) \nOpenAI совместимый (POST /v1/images/edits)\nGoogle Gemini (gemini-2.5-flash-image / Imagen 3)\nCloudflare Workers AI (/ai/run/ или Workers)\nURL эндпоинта / Account ID \nУкажите ваш Cloudflare Account ID (из панели dash.cloudflare.com) или полный URL: https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/run/\nAPI Key / Token \nИндивидуальные настройки функций ИИ (пыль, студия, фон)\nСохранить настройки ИИ\nПроверить Text LLM\nПроверить Image AI\nВерсия: 2026.11.95",
     "console_errors": [],
     "screen": "settings_ai",
     "viewport": "1366",
@@ -8049,7 +8027,7 @@
       }
     ],
     "first_item_top": 156,
-    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.94\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nИнтеграция с Notion\nNotion Token \nDatabase ID \nСвойство заголовка (Title Property) \nСвойство даты (Date Property) \nСохранить Notion\nПроверить подключение к Notion\nВерсия: 2026.11.94",
+    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.95\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nИнтеграция с Notion\nNotion Token \nDatabase ID \nСвойство заголовка (Title Property) \nСвойство даты (Date Property) \nСохранить Notion\nПроверить подключение к Notion\nВерсия: 2026.11.95",
     "console_errors": [],
     "screen": "settings_notion",
     "viewport": "1366",
@@ -8104,7 +8082,7 @@
         "name": "q",
         "id": "",
         "text": "",
-        "width": 684,
+        "width": 203,
         "height": 36,
         "top": 102,
         "is_fab": false
@@ -8114,15 +8092,15 @@
         "type": "submit",
         "name": "",
         "id": "",
-        "text": "Найти",
-        "width": 76,
+        "text": "",
+        "width": 36,
         "height": 36,
-        "top": 102,
+        "top": 99,
         "is_fab": false
       }
     ],
     "first_item_top": null,
-    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nСообщения\nНайти\nВсе\nНепрочитанные (0)\nЭскалированные (0)\nДиалогов не найдено.",
+    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nСообщения\n \nВсе\nНепрочитанные 0\nЭскалированные 0\n💬\nДиалогов не найдено\nВ этой категории нет сообщений",
     "console_errors": [],
     "screen": "messages",
     "viewport": "1366",
@@ -8190,42 +8168,20 @@
         "name": "query",
         "id": "",
         "text": "4U",
-        "width": 436,
+        "width": 203,
         "height": 36,
-        "top": 118,
+        "top": 112,
         "is_fab": false
       },
       {
-        "tag": "input",
-        "type": "number",
-        "name": "budget",
+        "tag": "button",
+        "type": "button",
+        "name": "",
         "id": "",
-        "text": "",
-        "width": 140,
+        "text": "⚙",
+        "width": 36,
         "height": 36,
-        "top": 118,
-        "is_fab": false
-      },
-      {
-        "tag": "select",
-        "type": "",
-        "name": "currency",
-        "id": "",
-        "text": "CZK\nEUR\nPLN",
-        "width": 76,
-        "height": 36,
-        "top": 118,
-        "is_fab": false
-      },
-      {
-        "tag": "input",
-        "type": "text",
-        "name": "postal_code",
-        "id": "",
-        "text": "",
-        "width": 100,
-        "height": 36,
-        "top": 118,
+        "top": 112,
         "is_fab": false
       },
       {
@@ -8234,9 +8190,9 @@
         "name": "",
         "id": "",
         "text": "",
-        "width": 50,
-        "height": 42,
-        "top": 115,
+        "width": 36,
+        "height": 36,
+        "top": 112,
         "is_fab": false
       },
       {
@@ -8244,15 +8200,15 @@
         "type": "",
         "name": "sort",
         "id": "",
-        "text": "Итого ↑ (сначала дешёвые)\nЦена",
-        "width": 216,
+        "text": "Сначала дешёвые\nЦена товара ↑\n",
+        "width": 140,
         "height": 36,
-        "top": 300,
+        "top": 245,
         "is_fab": false
       }
     ],
-    "first_item_top": 98,
-    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nПокупки\nCZK\nEUR\nPLN\n💡 Теги: +слово или +\"фраза\" — обязательное присутствие в названии/описании; -слово или -\"фраза\" — обязательное отсутствие.\nПрошлые поиски:\n🔍 4U\n🔍 Ai server\n🔍 Rtx 3090\n🔍 X570\n🔍 DDR4 32 -SODIMM -\"SO-DIMM\" -RDIMM\n🔍 MateBook\n🔍 Huawei\nВсе\nНовые\nБ/у\nВсе\nОтдельно\nВ комплекте\nИтого ↑ (сначала дешёвые)\nЦена товара ↑\nНовые объявления\nvinted\nБ/у\nczarna koszulka\nТовар: 50.35 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 50.35 CZK\nvinted\nБ/у\nКомплект\nBalík pre chlapca\nТовар: 123.39 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 123.39 CZK\nvinted\nБ/у\nCiapka lindex 2-4 roky\nТовар: 123.39 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 123.39 CZK\nvinted\nБ/у\nZelený pletený svetrík\nТовар: 123.39 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 123.39 CZK\nsbazar_cz\nБ/у\nWandSticker4U® - Opakovaně použitelné samolepky na okno pro děti, Králík a ježek, Samolepicí |\nТовар: 59.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 138 CZK\nsbazar_cz\nБ/у\nRifle Made 4.U jeans 122/128\nТовар: 80.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 159 CZK\nvinted\nБ/у\nNohavice 3/4 dĺžka\nТовар: 172.74 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 172.74 CZK\nvinted\nБ/у\nWhite woman sweater / M\nТовар: 172.74 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 172.74 CZK\nsbazar_cz\nБ/у\nКомплект\nPřepínač D-Link DKVM-4U pro 4 PC\nТовар: 95.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 174 CZK\nsbazar_cz\nБ/у\nBaterie NOKIA BL-4U\nТовар: 100.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 179 CZK\nvinted\nБ/у\nDievčenské spoločenské šaty\nТовар: 197.42 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 197.42 CZK\nsbazar_cz\nБ/у\nBaterie Nokia BL-4U\nТовар: 150.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 229 CZK\nvinted\nБ/у\nDievčenské oteplovačky zimné nohavice do snehu\nТовар: 246.78 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 246.78 CZK\nsbazar_cz\nБ/у\nBaterie NOKIA BL-4U\nТовар: 199.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 278 CZK\nsbazar_cz\nБ/у\nNokia 8800 baterie BL-6X BL-5X BL-5C BL-4U BLD-3\nТовар: 200.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 279 CZK\nvinted\nБ/у\nDetské 3/4 nohavice Puma - veľ. 140\nТовар: 296.13 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 296.13 CZK\nvinted\nБ/у\n3 krásné kabelky\nТовар: 320.81 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 320.81 CZK\nsbazar_cz\nБ/у\nFA-4U Elekroinstalace\nТовар: 390.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 469 CZK\nsbazar_cz\nБ/у\n12\" maxi singl Britney Spears - I'm A Slave 4 U\nТовар: 390.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 469 CZK\nsbazar_cz\nБ/у\nD-Link DKVM-4U 4portový KVM přepínač s kabely\nТовар: 400.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 479 CZK\nbazos_cz\nБ/у\nNávody kovo frézek:\nТовар: 490.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 569 CZK\nsbazar_cz\nБ/у\nNávod frézky FA-4U\nТовар: 690.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 769 CZK\nbazos_cz\nБ/у\nNová racková skříň Landberg 10” nástěnná 4U 280x130\nТовар: 700.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 779 CZK\nvinted\nНовый\nPredám sadu pohárov borske nový bór\nТовар: 1110.49 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 1110.49 CZK\nsbazar_cz\nБ/у\nSSSR | PLYNOVÁ MASKA GP-4U\nТовар: 1150.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 1229 CZK\nvinted\nБ/у\nOveral Burton vel 92\nТовар: 1233.88 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 1233.88 CZK\nvinted\nБ/у\nJordan 4 Retro Red Thunder\nТовар: 1233.88 CZK\nДоставка: доставка не указана (0 CZK)\nИтого: 1233.88 CZK\nbazos_cz\nБ/у\nRACK 4U, hloubka 30 cm\nТовар: 1400.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 1479 CZK\nbazos_cz\nБ/у\nRack skříň 19\" DATACOM IPC 4U/485 mm, bez zdroje\nТовар: 1890.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 1969 CZK\nbazos_cz\nБ/у\nSupermicro 4U CSE-846, 24xLFF\nТовар: 2900.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 2979 CZK\nsbazar_cz\nБ/у\n38 38,5 40 skialpové boty DYNAFIT ZZERO 4U\nТовар: 3420.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 3499 CZK\nbazos_cz\nБ/у\nBadmintonová raketa Li-ning Bladex 800 red\nТовар: 3490.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 3569 CZK\nbazos_cz\nБ/у\nBadmintonová raketa Li-ning Bladex 700 blue\nТовар: 3890.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 3969 CZK\nbazos_cz\nБ/у\nКомплект\nPC Skříně do racku\nТовар: 5000.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 5079 CZK\nbazos_cz\nБ/у\nКомплект\nDigitální mixpult PreSonus RM32AI + 2m kabel DB-25 to 8x XLR\nТовар: 16000.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 16079 CZK\nbazos_cz\nБ/у\nMechanický invalidní vozík\nТовар: 20000.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 20079 CZK\nbazos_cz\nБ/у\nКомплект\nZvuková sestava včetně mixu\nТовар: 26000.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 26079 CZK\nbazos_cz\nБ/у\nКомплект\nEpyc 7551 32C/64T + 96GB Ram\nТовар: 32000.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 32079 CZK\nbazos_cz\nБ/у\nNETTI 4U CE Plus, vozík polohovací\nТовар: 35000.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 35079 CZK\nbazos_cz\nБ/у\nFrézka na kov FA 4U\nТовар: 50000.00 CZK\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\nИтого: 50079 CZK",
+    "first_item_top": 99,
+    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nПокупки\n⚙\n?\nПрошлые поиски:\n🔍 4U\n🔍 Ai server\n🔍 Rtx 3090\n🔍 X570\n🔍 DDR4 32 -SODIMM -\"SO-DIMM\" -RDIMM\n🔍 MateBook\n🔍 Huawei\nВсе\nНовые\nБ/у\n \nВсе\nШтучно\nКомплекты\nСначала дешёвые\nЦена товара ↑\nНовые\nVinted Б/у\nczarna koszulka\nДоставка: доставка не указана (0 CZK)\n50.35 CZK\nТовар: 50.35 CZK\n⚙\n↗\nVinted Б/у Комплект\nBalík pre chlapca\nДоставка: доставка не указана (0 CZK)\n123.39 CZK\nТовар: 123.39 CZK\n⚙\n↗\nVinted Б/у\nCiapka lindex 2-4 roky\nДоставка: доставка не указана (0 CZK)\n123.39 CZK\nТовар: 123.39 CZK\n⚙\n↗\nVinted Б/у\nZelený pletený svetrík\nДоставка: доставка не указана (0 CZK)\n123.39 CZK\nТовар: 123.39 CZK\n⚙\n↗\nSbazar.cz Б/у\nWandSticker4U® - Opakovaně použitelné samolepky na okno pro děti, Králík a ježek, Samolepicí |\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n138 CZK\nТовар: 59.00 CZK\n⚙\n↗\nSbazar.cz Б/у\nRifle Made 4.U jeans 122/128\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n159 CZK\nТовар: 80.00 CZK\n⚙\n↗\nVinted Б/у\nNohavice 3/4 dĺžka\nДоставка: доставка не указана (0 CZK)\n172.74 CZK\nТовар: 172.74 CZK\n⚙\n↗\nVinted Б/у\nWhite woman sweater / M\nДоставка: доставка не указана (0 CZK)\n172.74 CZK\nТовар: 172.74 CZK\n⚙\n↗\nSbazar.cz Б/у Комплект\nPřepínač D-Link DKVM-4U pro 4 PC\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n174 CZK\nТовар: 95.00 CZK\n⚙\n↗\nSbazar.cz Б/у\nBaterie NOKIA BL-4U\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n179 CZK\nТовар: 100.00 CZK\n⚙\n↗\nVinted Б/у\nDievčenské spoločenské šaty\nДоставка: доставка не указана (0 CZK)\n197.42 CZK\nТовар: 197.42 CZK\n⚙\n↗\nSbazar.cz Б/у\nBaterie Nokia BL-4U\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n229 CZK\nТовар: 150.00 CZK\n⚙\n↗\nVinted Б/у\nDievčenské oteplovačky zimné nohavice do snehu\nДоставка: доставка не указана (0 CZK)\n246.78 CZK\nТовар: 246.78 CZK\n⚙\n↗\nSbazar.cz Б/у\nBaterie NOKIA BL-4U\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n278 CZK\nТовар: 199.00 CZK\n⚙\n↗\nSbazar.cz Б/у\nNokia 8800 baterie BL-6X BL-5X BL-5C BL-4U BLD-3\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n279 CZK\nТовар: 200.00 CZK\n⚙\n↗\nVinted Б/у\nDetské 3/4 nohavice Puma - veľ. 140\nДоставка: доставка не указана (0 CZK)\n296.13 CZK\nТовар: 296.13 CZK\n⚙\n↗\nVinted Б/у\n3 krásné kabelky\nДоставка: доставка не указана (0 CZK)\n320.81 CZK\nТовар: 320.81 CZK\n⚙\n↗\nSbazar.cz Б/у\nFA-4U Elekroinstalace\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n469 CZK\nТовар: 390.00 CZK\n⚙\n↗\nSbazar.cz Б/у\n12\" maxi singl Britney Spears - I'm A Slave 4 U\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n469 CZK\nТовар: 390.00 CZK\n⚙\n↗\nSbazar.cz Б/у\nD-Link DKVM-4U 4portový KVM přepínač s kabely\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n479 CZK\nТовар: 400.00 CZK\n⚙\n↗\nBazoš.cz Б/у\nNávody kovo frézek:\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n569 CZK\nТовар: 490.00 CZK\n⚙\n↗\nSbazar.cz Б/у\nNávod frézky FA-4U\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n769 CZK\nТовар: 690.00 CZK\n⚙\n↗\nBazoš.cz Б/у\nNová racková skříň Landberg 10” nástěnná 4U 280x130\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n779 CZK\nТовар: 700.00 CZK\n⚙\n↗\nVinted Новый\nPredám sadu pohárov borske nový bór\nДоставка: доставка не указана (0 CZK)\n1110.49 CZK\nТовар: 1110.49 CZK\n⚙\n↗\nSbazar.cz Б/у\nSSSR | PLYNOVÁ MASKA GP-4U\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n1229 CZK\nТовар: 1150.00 CZK\n⚙\n↗\nVinted Б/у\nOveral Burton vel 92\nДоставка: доставка не указана (0 CZK)\n1233.88 CZK\nТовар: 1233.88 CZK\n⚙\n↗\nVinted Б/у\nJordan 4 Retro Red Thunder\nДоставка: доставка не указана (0 CZK)\n1233.88 CZK\nТовар: 1233.88 CZK\n⚙\n↗\nBazoš.cz Б/у\nRACK 4U, hloubka 30 cm\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n1479 CZK\nТовар: 1400.00 CZK\n⚙\n↗\nBazoš.cz Б/у\nRack skříň 19\" DATACOM IPC 4U/485 mm, bez zdroje\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n1969 CZK\nТовар: 1890.00 CZK\n⚙\n↗\nBazoš.cz Б/у\nSupermicro 4U CSE-846, 24xLFF\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n2979 CZK\nТовар: 2900.00 CZK\n⚙\n↗\nSbazar.cz Б/у\n38 38,5 40 skialpové boty DYNAFIT ZZERO 4U\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n3499 CZK\nТовар: 3420.00 CZK\n⚙\n↗\nBazoš.cz Б/у\nBadmintonová raketa Li-ning Bladex 800 red\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n3569 CZK\nТовар: 3490.00 CZK\n⚙\n↗\nBazoš.cz Б/у\nBadmintonová raketa Li-ning Bladex 700 blue\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n3969 CZK\nТовар: 3890.00 CZK\n⚙\n↗\nBazoš.cz Б/у Комплект\nPC Skříně do racku\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n5079 CZK\nТовар: 5000.00 CZK\n⚙\n↗\nBazoš.cz Б/у Комплект\nDigitální mixpult PreSonus RM32AI + 2m kabel DB-25 to 8x XLR\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n16079 CZK\nТовар: 16000.00 CZK\n⚙\n↗\nBazoš.cz Б/у\nMechanický invalidní vozík\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n20079 CZK\nТовар: 20000.00 CZK\n⚙\n↗\nBazoš.cz Б/у Комплект\nZvuková sestava včetně mixu\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n26079 CZK\nТовар: 26000.00 CZK\n⚙\n↗\nBazoš.cz Б/у Комплект\nEpyc 7551 32C/64T + 96GB Ram\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n32079 CZK\nТовар: 32000.00 CZK\n⚙\n↗\nBazoš.cz Б/у\nNETTI 4U CE Plus, vozík polohovací\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n35079 CZK\nТовар: 35000.00 CZK\n⚙\n↗\nBazoš.cz Б/у\nFrézka na kov FA 4U\nДоставка: Zásilkovna (≈ оценка) (79 CZK)\n50079 CZK\nТовар: 50000.00 CZK\n⚙\n↗",
     "console_errors": [],
     "screen": "buy",
     "viewport": "1366",
@@ -8304,13 +8260,13 @@
         "name": "",
         "id": "",
         "text": "↻ Пересчитать оценку",
-        "width": 174,
+        "width": 166,
         "height": 36,
-        "top": 549,
+        "top": 424,
         "is_fab": false
       }
     ],
-    "first_item_top": 102,
+    "first_item_top": 84,
     "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\n← Назад к покупкам\nАнализ выгодности комплекта\nСтандартный комплект\nczarna koszulka\nПо частям:\n1000 CZK\nКомплект:\n50 CZK\nВыгода:\n95.0%\nСоставляющие комплекта (оценка ИИ)\n3 дет.\nКомпонент\tКол-во\tМедиана\tЦен\tСсылки\nОсновное устройство (czarna koszulka)\t1\t500 CZK\t5\tобразцы ↗\nКомплектный адаптер питания и кабели\t1\t300 CZK\t5\tобразцы ↗\nАксессуары и упаковка\t1\t200 CZK\t5\tобразцы ↗\n↻ Пересчитать оценку",
     "console_errors": [],
     "screen": "buy_kit",

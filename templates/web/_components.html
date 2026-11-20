@@ -42,7 +42,7 @@
       {% if item.is_divider %}
         <hr class="menu-divider">
       {% elif item.method == 'post' %}
-        <form method="post" action="{{ item.url }}" style="margin: 0;">
+        <form method="post" action="{{ item.url }}" class="inline-form">
           {% for k, v in (item.params or {}).items() %}
             <input type="hidden" name="{{ k }}" value="{{ v }}">
           {% endfor %}
@@ -61,7 +61,7 @@
 {% endmacro %}
 
 {% macro list_row(href=None, thumb_url=None, title="", subtitle="", price=None, badge_label=None, badge_tone='neutral', right_html=None, testid=None) %}
-<div class="row list-row" {% if testid %}data-testid="{{ testid }}"{% endif %} {% if href %}onclick="window.location='{{ href }}'" style="cursor: pointer;"{% endif %}>
+<div class="row list-row {% if href %}cursor-pointer{% endif %}" {% if testid %}data-testid="{{ testid }}"{% endif %} {% if href %}onclick="window.location='{{ href }}'"{% endif %}>
   <div class="list-row-thumb">
     {% if thumb_url %}
       <img src="{{ thumb_url }}" alt="" class="thumb-img" loading="lazy">

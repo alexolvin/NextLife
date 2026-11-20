@@ -1,189 +1,178 @@
 {% extends "base.html" %}
+{% import "_components.html" as ui %}
 
 {% block content %}
-<div class="buy-container" style="padding: 16px; max-width: 900px; margin: 0 auto;" data-testid="buy-screen">
-  <div style="margin-bottom: 16px;">
-    <h1 style="font-size: 1.4rem; font-weight: 700; margin: 0 0 12px 0;">Покупки</h1>
-
-    <!-- Search Form (§8.1.1) -->
-    <form method="post" action="/ui/buy/search" class="card"
-          x-data="{ searching: false }"
-          @submit="searching = true"
-          style="padding: 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 16px;">
-      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 6px;">
-        <input type="text" name="query" value="{{ current_request.query if current_request else '' }}" placeholder="Что вы хотите купить? (на любом языке)" required
-               class="input-field" style="flex: 2; min-width: 200px; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px;" data-testid="buy-query-input">
-        <input type="number" step="any" min="0" name="budget" value="{{ current_request.budget if current_request and current_request.budget else '' }}" placeholder="Бюджет (необяз.)"
-               style="width: 140px; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;" data-testid="buy-budget-input">
-        <select name="currency" class="input-field" style="padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;">
-          <option value="CZK" {% if current_request and current_request.currency == 'CZK' %}selected{% endif %}>CZK</option>
-          <option value="EUR" {% if current_request and current_request.currency == 'EUR' %}selected{% endif %}>EUR</option>
-          <option value="PLN" {% if current_request and current_request.currency == 'PLN' %}selected{% endif %}>PLN</option>
-        </select>
-        <input type="text" name="postal_code" value="{{ current_request.postal_code if current_request and current_request.postal_code else '' }}" placeholder="PSČ (11000)" style="width: 100px; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;">
-        <button type="submit" class="btn btn-primary"
-                style="height: 42px; min-width: 46px; padding: 0 14px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;"
-                title="Найти" aria-label="Найти"
-                data-testid="btn-buy-search" :disabled="searching">
-          <template x-if="!searching">
-            <span style="display: inline-flex; align-items: center; justify-content: center;">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            </span>
-          </template>
-          <template x-if="searching">
-            <span style="display: inline-flex; align-items: center; justify-content: center;">
-              <svg style="animation: spin 1s linear infinite; width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
-            </span>
-          </template>
-        </button>
-      </div>
-      <div style="font-size: 0.76rem; color: #64748b; line-height: 1.35; margin-top: 4px;" data-testid="search-tags-hint">
-        💡 Теги: <code>+слово</code> или <code>+"фраза"</code> — обязательное присутствие в названии/описании; <code>-слово</code> или <code>-"фраза"</code> — обязательное отсутствие.
-      </div>
-    </form>
-
-    <!-- Past Searches (§8.1.7) -->
-    {% if requests %}
-      <div style="margin-bottom: 16px;">
-        <span style="font-size: 0.8rem; color: #64748b; font-weight: 600; display: block; margin-bottom: 6px;">Прошлые поиски:</span>
-        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;">
-          {% for r in requests %}
-            <a href="/ui/buy?request_id={{ r.id }}" class="chip"
-               style="padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; text-decoration: none; white-space: nowrap; {{ 'background: #2563eb; color: #fff;' if current_request and current_request.id == r.id else 'background: #f1f5f9; color: #334155;' }}">
-              🔍 {{ r.query }}
-            </a>
-          {% endfor %}
-        </div>
-      </div>
-    {% endif %}
-
-    <!-- Segment Filters & Sort Row (§8.1.6) -->
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-      <!-- Condition & Type Segments -->
-      <div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: center;">
-        <!-- Condition -->
-        <div style="display: flex; background: #f1f5f9; border-radius: 6px; padding: 2px;">
-          <a href="/ui/buy?request_id={{ current_request.id if current_request else '' }}&condition=all&offer_type={{ offer_type }}&sort={{ sort }}"
-             style="padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; text-decoration: none; {{ 'background: #2563eb; color: #fff;' if condition == 'all' else 'color: #475569;' }}">Все</a>
-          <a href="/ui/buy?request_id={{ current_request.id if current_request else '' }}&condition=new&offer_type={{ offer_type }}&sort={{ sort }}"
-             style="padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; text-decoration: none; {{ 'background: #2563eb; color: #fff;' if condition == 'new' else 'color: #475569;' }}">Новые</a>
-          <a href="/ui/buy?request_id={{ current_request.id if current_request else '' }}&condition=used&offer_type={{ offer_type }}&sort={{ sort }}"
-             style="padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; text-decoration: none; {{ 'background: #2563eb; color: #fff;' if condition == 'used' else 'color: #475569;' }}">Б/у</a>
-        </div>
-
-        <!-- Offer Type -->
-        <div style="display: flex; background: #f1f5f9; border-radius: 6px; padding: 2px;">
-          <a href="/ui/buy?request_id={{ current_request.id if current_request else '' }}&condition={{ condition }}&offer_type=all&sort={{ sort }}"
-             style="padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; text-decoration: none; {{ 'background: #2563eb; color: #fff;' if offer_type == 'all' else 'color: #475569;' }}">Все</a>
-          <a href="/ui/buy?request_id={{ current_request.id if current_request else '' }}&condition={{ condition }}&offer_type=single&sort={{ sort }}"
-             style="padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; text-decoration: none; {{ 'background: #2563eb; color: #fff;' if offer_type == 'single' else 'color: #475569;' }}">Отдельно</a>
-          <a href="/ui/buy?request_id={{ current_request.id if current_request else '' }}&condition={{ condition }}&offer_type=kit&sort={{ sort }}"
-             style="padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; text-decoration: none; {{ 'background: #2563eb; color: #fff;' if offer_type == 'kit' else 'color: #475569;' }}">В комплекте</a>
-        </div>
-      </div>
-
-      <!-- Sort selector -->
-      <form method="get" action="/ui/buy" style="margin: 0;">
-        <input type="hidden" name="request_id" value="{{ current_request.id if current_request else '' }}">
-        <input type="hidden" name="condition" value="{{ condition }}">
-        <input type="hidden" name="offer_type" value="{{ offer_type }}">
-        <select name="sort" onchange="this.form.submit()" class="input-field" style="padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" data-testid="buy-sort-select">
-          <option value="total_asc" {% if sort == 'total_asc' %}selected{% endif %}>Итого ↑ (сначала дешёвые)</option>
-          <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Цена товара ↑</option>
-          <option value="recent" {% if sort == 'recent' %}selected{% endif %}>Новые объявления</option>
-        </select>
-      </form>
-    </div>
+<div class="buy-page" data-testid="buy-screen">
+  <div class="page-head">
+    <h1>Покупки</h1>
   </div>
 
-  <!-- Candidates Cards (§8.1.4) -->
+  <!-- Search Form with Collapsible Filters -->
+  <form method="post" action="/ui/buy/search" class="card p-3 mb-3"
+        x-data="{ searching: false, showFilters: false, hasCustomFilters: {{ 'true' if current_request and (current_request.budget or current_request.postal_code) else 'false' }} }"
+        @submit="searching = true">
+    <div class="search-compact-row gap-2">
+      <input type="text" name="query" value="{{ current_request.query if current_request else '' }}" placeholder="Что вы хотите купить? (на любом языке)" required
+             class="input flex-1" data-testid="buy-query-input">
+      
+      <button type="button" class="btn btn-secondary btn-icon relative" @click="showFilters = !showFilters" title="Фильтры бюджета и доставки">
+        <span>⚙</span>
+        <span class="unread-dot" x-show="hasCustomFilters" :style="hasCustomFilters ? 'display: block;' : 'display: none;'"></span>
+      </button>
+
+      <span data-testid="search-tags-hint" class="flex-shrink-0">
+        {{ ui.help_popover('Теги: +слово или +"фраза" — обязательное присутствие; -слово или -"фраза" — исключение.') }}
+      </span>
+
+      <button type="submit" class="btn btn-primary btn-icon flex-shrink-0"
+              title="Найти" aria-label="Найти"
+              data-testid="btn-buy-search" :disabled="searching">
+        <template x-if="!searching">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </template>
+        <template x-if="searching">
+          <svg class="spin-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
+        </template>
+      </button>
+    </div>
+
+    <!-- Collapsible Advanced Search Filters -->
+    <div class="card card-nested p-2 mt-2" x-show="showFilters" x-transition :style="showFilters ? 'display: block;' : 'display: none;'">
+      <div class="row-between mb-2">
+        <span class="font-bold text-xs text-muted">Бюджет и доставка</span>
+        <button type="button" class="btn btn-secondary btn-xs btn-icon" @click="showFilters = false">✕</button>
+      </div>
+      <div class="grid-3-col gap-2">
+        <div class="form-group">
+          <label class="form-label text-xs">Бюджет:</label>
+          <input type="number" step="any" min="0" name="budget" value="{{ current_request.budget if current_request and current_request.budget else '' }}" placeholder="Необязательно" class="input" data-testid="buy-budget-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label text-xs">Валюта:</label>
+          <select name="currency" class="select">
+            <option value="CZK" {% if current_request and current_request.currency == 'CZK' %}selected{% endif %}>CZK</option>
+            <option value="EUR" {% if current_request and current_request.currency == 'EUR' %}selected{% endif %}>EUR</option>
+            <option value="PLN" {% if current_request and current_request.currency == 'PLN' %}selected{% endif %}>PLN</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label text-xs">PSČ (индекс):</label>
+          <input type="text" name="postal_code" value="{{ current_request.postal_code if current_request and current_request.postal_code else '' }}" placeholder="11000" class="input">
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <!-- Past Searches -->
+  {% if requests %}
+    <div class="mb-3">
+      <div class="text-dim text-xs font-semibold mb-1">Прошлые поиски:</div>
+      <div class="tabs tabs-chips">
+        {% for r in requests %}
+          <a href="/ui/buy?request_id={{ r.id }}" class="tab {% if current_request and current_request.id == r.id %}active{% endif %}">
+            🔍 {{ r.query }}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Segment Filters & Sort Row -->
+  <div class="toolbar-wrap mb-3">
+    <div class="row-center flex-wrap gap-2">
+      <!-- Condition -->
+      <div class="seg">
+        <a href="/ui/buy?request_id={{ current_request.id if current_request else '' }}&condition=all&offer_type={{ offer_type }}&sort={{ sort }}" class="seg-btn {% if condition == 'all' %}active{% endif %}">Все</a>
+        <a href="/ui/buy?request_id={{ current_request.id if current_request else '' }}&condition=new&offer_type={{ offer_type }}&sort={{ sort }}" class="seg-btn {% if condition == 'new' %}active{% endif %}">Новые</a>
+        <a href="/ui/buy?request_id={{ current_request.id if current_request else '' }}&condition=used&offer_type={{ offer_type }}&sort={{ sort }}" class="seg-btn {% if condition == 'used' %}active{% endif %}">Б/у</a>
+      </div>
+
+      <!-- Offer Type -->
+      <div class="seg">
+        <a href="/ui/buy?request_id={{ current_request.id if current_request else '' }}&condition={{ condition }}&offer_type=all&sort={{ sort }}" class="seg-btn {% if offer_type == 'all' %}active{% endif %}">Все</a>
+        <a href="/ui/buy?request_id={{ current_request.id if current_request else '' }}&condition={{ condition }}&offer_type=single&sort={{ sort }}" class="seg-btn {% if offer_type == 'single' %}active{% endif %}">Штучно</a>
+        <a href="/ui/buy?request_id={{ current_request.id if current_request else '' }}&condition={{ condition }}&offer_type=kit&sort={{ sort }}" class="seg-btn {% if offer_type == 'kit' %}active{% endif %}">Комплекты</a>
+      </div>
+    </div>
+
+    <!-- Sort Selector -->
+    <form method="get" action="/ui/buy" class="toolbar-sort">
+      <input type="hidden" name="request_id" value="{{ current_request.id if current_request else '' }}">
+      <input type="hidden" name="condition" value="{{ condition }}">
+      <input type="hidden" name="offer_type" value="{{ offer_type }}">
+      <select name="sort" onchange="this.form.submit()" class="select select-compact" data-testid="buy-sort-select" aria-label="Сортировка">
+        <option value="total_asc" {% if sort == 'total_asc' %}selected{% endif %}>Сначала дешёвые</option>
+        <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Цена товара ↑</option>
+        <option value="recent" {% if sort == 'recent' %}selected{% endif %}>Новые</option>
+      </select>
+    </form>
+  </div>
+
+  <!-- Candidates List -->
   {% if not candidates %}
-    <div style="padding: 40px; text-align: center; color: #64748b; background: #fff; border-radius: 10px; border: 1px solid #e2e8f0;">
-      Предложений не найдено. Попробуйте другой запрос или измените фильтры.
+    <div class="empty">
+      <div class="empty-icon">🔍</div>
+      <div class="empty-title">Предложений не найдено</div>
+      <div class="empty-text">Попробуйте другой запрос или измените фильтры.</div>
     </div>
   {% else %}
-    <div style="display: flex; flex-direction: column; gap: 12px;">
+    <div class="stack-tight">
       {% for c in candidates %}
-        <div class="card" style="padding: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; display: flex; flex-direction: column; overflow: hidden;" data-testid="buy-candidate-card">
-          <div style="padding: 14px; flex: 1;">
-            <!-- Line 1: Title (Full width) -->
-            <div style="width: 100%;">
-              <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 6px;">
-                <span class="badge" style="font-size: 0.75rem; padding: 2px 6px;">{{ c.marketplace_key }}</span>
-                <span class="badge" style="font-size: 0.75rem; padding: 2px 6px; background: #f1f5f9;">
-                  {{ 'Новый' if c.condition == 'new' else 'Б/у' }}
-                </span>
-                {% if c.offer_type == 'kit' %}
-                  <span class="badge" style="font-size: 0.75rem; padding: 2px 6px; background: #fef3c7; color: #92400e;">
-                    Комплект
+        <div class="card list-row" data-testid="buy-candidate-card">
+          <!-- 48px Photo Thumb -->
+          <div class="list-row-thumb">
+            {% if c.image_url %}
+              <img src="{{ c.image_url }}" alt="{{ c.title_original }}" class="thumb-img">
+            {% else %}
+              <span class="thumb-placeholder">📦</span>
+            {% endif %}
+          </div>
+
+          <div class="list-row-body">
+            <div class="row-center flex-wrap gap-1 mb-1">
+              <span class="badge badge-neutral text-xs">{{ c.marketplace_key | platform_name }}</span>
+              <span class="badge badge-neutral text-xs">{{ 'Новый' if c.condition == 'new' else 'Б/у' }}</span>
+              {% if c.offer_type == 'kit' %}
+                <span class="badge badge-warning text-xs">Комплект</span>
+              {% endif %}
+              {% if c.offer_type == 'kit' and c.kit_info %}
+                {% if c.kit_info.profit_percent > 0 %}
+                  <span class="badge badge-success text-xs font-bold" data-testid="badge-kit-profit">
+                    +{{ c.kit_info.profit_percent }}% выгода
+                  </span>
+                {% else %}
+                  <span class="badge badge-danger text-xs font-bold">
+                    {{ c.kit_info.profit_percent }}%
                   </span>
                 {% endif %}
-                {% if c.offer_type == 'kit' and c.kit_info %}
-                  {% if c.kit_info.profit_percent > 0 %}
-                    <span class="badge" style="background: #dcfce7; color: #15803d; font-weight: 700; padding: 2px 6px; font-size: 0.75rem;" data-testid="badge-kit-profit">
-                      Дешевле частей на {{ c.kit_info.profit_percent }}%
-                    </span>
-                  {% else %}
-                    <span class="badge" style="background: #fee2e2; color: #991b1b; font-weight: 700; padding: 2px 6px; font-size: 0.75rem;">
-                      Дороже частей на {{ c.kit_info.profit_percent | abs }}%
-                    </span>
-                  {% endif %}
-                {% endif %}
-              </div>
-
-              <div style="font-size: 1.05rem; font-weight: 700; color: #0f172a; line-height: 1.35; word-break: break-word;">
-                {{ c.title_ru }}
-              </div>
-              {% if c.title_original and c.title_original != c.title_ru %}
-                <div style="font-size: 0.82rem; color: #64748b; margin-top: 3px; word-break: break-word;">
-                  Оригинал: {{ c.title_original }}
-                </div>
               {% endif %}
             </div>
 
-            <!-- Line 2: Photo and Price -->
-            <div style="display: flex; gap: 12px; align-items: center; justify-content: space-between; background: #f8fafc; padding: 10px; border-radius: 8px; margin-top: 10px;">
-              <div style="flex-shrink: 0;">
-                {% if c.image_url %}
-                  <img src="{{ c.image_url }}" alt="{{ c.title_original }}" style="width: 72px; height: 72px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: #e2e8f0; display: block;">
-                {% else %}
-                  <div style="width: 72px; height: 72px; border-radius: 8px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: #94a3b8;">📦</div>
-                {% endif %}
+            <div class="font-semibold text-sm line-clamp-2">
+              {{ c.title_ru }}
+            </div>
+            {% if c.title_original and c.title_original != c.title_ru %}
+              <div class="text-dim text-xs truncate mt-1">
+                Оригинал: {{ c.title_original }}
               </div>
+            {% endif %}
 
-              <div style="flex: 1; text-align: right; min-width: 0;">
-                <div style="font-size: 0.85rem; color: #64748b;">
-                  Товар: <strong style="color: #1e293b;">{{ c.price }} {{ c.currency }}</strong>
-                </div>
-                <div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">
-                  Доставка: {{ c.shipping_desc }} ({{ c.shipping_cost }} {{ c.currency }})
-                </div>
-                <div style="font-size: 1.25rem; font-weight: 800; color: #15803d; margin-top: 3px;">
-                  Итого: {{ c.total_price }} {{ c.currency }}
-                </div>
-              </div>
+            <div class="text-dim text-xs mt-1">
+              Доставка: {{ c.shipping_desc }} ({{ c.shipping_cost }} {{ c.currency }})
             </div>
           </div>
 
-          <!-- Bottom Actions Frame: Equal width pictogram buttons filling 100% -->
-          <div class="card-actions-bar" data-testid="buy-candidate-actions">
-            <a href="/ui/buy/kits/{{ c.id }}" class="card-action-btn" data-testid="btn-analyze-kit"
-               title="Анализировать комплект" aria-label="Анализировать комплект">
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                <line x1="12" y1="22.08" x2="12" y2="12"></line>
-              </svg>
+          <div class="list-row-right">
+            <div class="text-right">
+              <div class="font-bold text-accent text-sm">{{ c.total_price }} {{ c.currency }}</div>
+              <div class="text-dim text-xs">Товар: {{ c.price }} {{ c.currency }}</div>
+            </div>
+            <a href="/ui/buy/kits/{{ c.id }}" class="btn btn-secondary btn-xs btn-icon" data-testid="btn-analyze-kit" title="Анализ комплекта">
+              ⚙
             </a>
             {% if c.external_url %}
-              <a href="{{ c.external_url }}" target="_blank" rel="noopener noreferrer" class="card-action-btn action-primary"
-                 title="Открыть на площадке" aria-label="Открыть на площадке"
-                 data-testid="btn-open-candidate">
-                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                  <polyline points="15 3 21 3 21 9"></polyline>
-                  <line x1="10" y1="14" x2="21" y2="3"></line>
-                </svg>
+              <a href="{{ c.external_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs btn-icon" title="Открыть на площадке" data-testid="btn-open-candidate">
+                ↗
               </a>
             {% endif %}
           </div>
