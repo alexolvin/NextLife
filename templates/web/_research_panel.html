@@ -6,7 +6,7 @@
    явное сообщение. Без найденных аналогов вариантов текста нет.
    Контекст: item (code), research (dict|None), research_notice, research_back.
 #}
-<div class="card research-block" id="wz-research" data-testid="research-panel" style="margin-top:16px">
+<div class="card research-block mt-3" id="wz-research" data-testid="research-panel">
   <h4 class="card-title">Разведка рынка</h4>
   <form method="post" action="/ui/items/{{ item.code }}/research">
     <input type="hidden" name="next" value="{{ research_back or '' }}">
@@ -26,7 +26,7 @@
     <div class="info-box-amber" data-testid="research-message">{{ research.message }}</div>
     {% endif %}
     {% if research.links %}
-    <ul data-testid="research-links" style="padding-left:18px">
+    <ul data-testid="research-links" class="pl-3">
       {% for l in research.links %}
       <li><a href="{{ l.url }}" target="_blank" rel="noopener">{{ l.title }} — {{ l.marketplace }}</a></li>
       {% endfor %}

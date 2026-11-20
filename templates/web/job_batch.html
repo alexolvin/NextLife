@@ -1,85 +1,88 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="batch-report-container" data-testid="batch-report" style="max-width: 600px; margin: 0 auto; padding: 16px;">
-  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
-    <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Отчёт размещения</h1>
-    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+<div class="batch-report-container" data-testid="batch-report">
+  <div class="page-head">
+    <h1>Отчёт размещения</h1>
+    <div class="page-head-actions">
       {% if summary.item_code %}
-      <a href="/ui/stock/{{ summary.item_code }}#listings" class="btn btn-secondary" style="font-size: 0.85rem; padding: 6px 12px; font-weight: 600;" data-testid="btn-back-to-item-from-batch">
-        ← Назад к предмету #{{ summary.item_code }}
-      </a>
+        <a href="/ui/stock/{{ summary.item_code }}#listings" class="btn btn-secondary btn-sm" data-testid="btn-back-to-item-from-batch">
+          ← К предмету #{{ summary.item_code }}
+        </a>
       {% endif %}
-      <a href="/ui/listings" class="btn btn-secondary" style="font-size: 0.85rem; padding: 6px 12px; color: #64748b;">К объявлениям</a>
+      <a href="/ui/listings" class="btn btn-secondary btn-sm">К объявлениям</a>
     </div>
   </div>
 
-  <!-- Summary banner -->
-  <div class="card" style="padding: 16px; margin-bottom: 20px; border-radius: 12px; background: var(--bg-card, #fff); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    <div style="font-weight: 600; margin-bottom: 8px;">Пакет {{ summary.batch_id[:8] }}</div>
-    <div style="display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.9rem;">
-      <span class="badge" style="background: #e6f4ea; color: #137333; padding: 4px 8px; border-radius: 6px; font-weight: 500;">Успешно {{ summary.succeeded }}</span>
-      <span class="badge" style="background: #fce8e6; color: #c5221f; padding: 4px 8px; border-radius: 6px; font-weight: 500;">Ошибки {{ summary.failed }}</span>
-      <span class="badge" style="background: #e8f0fe; color: #1a73e8; padding: 4px 8px; border-radius: 6px; font-weight: 500;">Выполняется {{ summary.running + summary.pending }}</span>
+  <!-- Summary Banner -->
+  <div class="card p-3 mb-3">
+    <div class="font-semibold text-sm mb-1">Пакет {{ summary.batch_id[:8] }}</div>
+    <div class="row-center flex-wrap gap-2 text-xs">
+      <span class="badge badge-success">Успешно {{ summary.succeeded }}</span>
+      <span class="badge badge-danger">Ошибки {{ summary.failed }}</span>
+      <span class="badge badge-info">Выполняется {{ summary.running + summary.pending }}</span>
     </div>
   </div>
 
-  <!-- Listings report list -->
-  <div class="batch-items" style="display: flex; flex-direction: column; gap: 12px;">
+  <!-- Batch Items Table / List -->
+  <div class="stack-tight">
     {% for item in items or summary["items"] %}
-    <div class="card" data-testid="batch-item-{{ loop.index }}" style="padding: 16px; border-radius: 12px; background: var(--bg-card, #fff); border: 1px solid var(--border-color, #e0e0e0);">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-        <div>
-          <span style="font-weight: 700; font-size: 0.95rem;">{{ item.marketplace }}</span>
-          {% if item.item_code %}
-          <a href="/ui/stock/{{ item.item_code }}" style="margin-left: 8px; color: var(--color-primary, #1a73e8); font-size: 0.85rem; text-decoration: none;">#{{ item.item_code }}</a>
-          {% endif %}
+      <div class="card p-3 mb-2" data-testid="batch-item-{{ loop.index }}">
+        <div class="row-between mb-1">
+          <div>
+            <span class="font-bold text-sm">{{ item.marketplace | platform_name }}</span>
+            {% if item.item_code %}
+              <a href="/ui/stock/{{ item.item_code }}" class="text-accent text-xs ml-1">#{{ item.item_code }}</a>
+            {% endif %}
+          </div>
+          <div>
+            {% if item.state == 'SUCCESS' %}
+              <span class="badge badge-success text-xs">Размещено</span>
+            {% elif item.state == 'FAILED' %}
+              <span class="badge badge-danger text-xs">Ошибка</span>
+            {% elif item.state == 'RUNNING' %}
+              <span class="badge badge-info text-xs">Размещается…</span>
+            {% else %}
+              <span class="badge badge-neutral text-xs">В очереди</span>
+            {% endif %}
+          </div>
         </div>
-        <div>
-          {% if item.state == 'SUCCESS' %}
-          <span class="badge" style="background: #e6f4ea; color: #137333; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">Размещено</span>
-          {% elif item.state == 'FAILED' %}
-          <span class="badge" style="background: #fce8e6; color: #c5221f; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">Ошибка</span>
-          {% elif item.state == 'RUNNING' %}
-          <span class="badge" style="background: #e8f0fe; color: #1a73e8; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">Размещается…</span>
-          {% else %}
-          <span class="badge" style="background: #f1f3f4; color: #5f6368; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">В очереди</span>
-          {% endif %}
-        </div>
-      </div>
 
-      {% if item.listing_title %}
-      <div style="font-size: 0.9rem; color: var(--text-color, #202124); margin-bottom: 8px;">{{ item.listing_title }}</div>
-      {% endif %}
-
-      {% if item.state == 'SUCCESS' and item.external_url %}
-      <div style="margin-top: 8px;">
-        <a href="{{ item.external_url }}" target="_blank" rel="noopener noreferrer"
-           title="Открыть на площадке" aria-label="Открыть на площадке"
-           style="color: #2563eb; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; padding: 0 8px;">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-            <polyline points="15 3 21 3 21 9"></polyline>
-            <line x1="10" y1="14" x2="21" y2="3"></line>
-          </svg>
-        </a>
-      </div>
-      {% endif %}
-
-      {% if item.state == 'FAILED' %}
-      <div style="margin-top: 8px; padding: 10px; background: #fdf2f2; border-radius: 8px; font-size: 0.85rem; color: #b71c1c;">
-        {% if item.error_code %}
-        <div style="font-weight: 600; margin-bottom: 4px;">{{ item.error_code }}</div>
+        {% if item.listing_title %}
+          <div class="text-xs text-muted mb-1">{{ item.listing_title }}</div>
         {% endif %}
-        <div style="margin-bottom: 6px;">{{ item.error_hint or item.error_text }}</div>
-        {% if item.action_label and item.action_url %}
-        <a href="{{ item.action_url }}" class="btn btn-sm btn-primary" style="display: inline-block; padding: 4px 10px; font-size: 0.8rem; text-decoration: none; border-radius: 6px; background: #c5221f; color: #fff; margin-top: 4px;">
-          {{ item.action_label }}
-        </a>
+
+        {% if item.state == 'SUCCESS' and item.external_url %}
+          <div class="mt-1">
+            <a href="{{ item.external_url }}" target="_blank" rel="noopener noreferrer"
+               title="Открыть на площадке" aria-label="Открыть на площадке"
+               class="btn btn-secondary btn-xs btn-icon">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+            </a>
+          </div>
+        {% endif %}
+
+        {% if item.state == 'FAILED' %}
+          <div class="p-2 rounded bg-danger-light text-danger text-xs mt-1">
+            {% if item.error_code %}
+              <div class="font-bold mb-1">{{ item.error_code }}</div>
+            {% endif %}
+            <details class="details-compact">
+              <summary class="cursor-pointer">{{ (item.error_hint or item.error_text or 'Неизвестная ошибка') | truncate(60) }}</summary>
+              <div class="mt-1">{{ item.error_hint or item.error_text }}</div>
+            </details>
+            {% if item.action_label and item.action_url %}
+              <a href="{{ item.action_url }}" class="btn btn-danger btn-xs mt-2 inline-block">
+                {{ item.action_label }}
+              </a>
+            {% endif %}
+          </div>
         {% endif %}
       </div>
-      {% endif %}
-    </div>
     {% endfor %}
   </div>
 </div>

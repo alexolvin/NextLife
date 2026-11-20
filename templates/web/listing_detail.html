@@ -1,26 +1,26 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="listing-detail-container" style="padding: 16px; max-width: 800px; margin: 0 auto;" data-testid="listing-detail-screen">
-  <!-- Top Navigation & Status -->
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-      <a href="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}" class="btn btn-secondary btn-sm" style="min-height: 38px; display: inline-flex; align-items: center; font-weight: 600;" data-testid="btn-back-to-item">
-        ← Назад к предмету #{{ listing.item_code }}
+<div class="listing-detail-container" data-testid="listing-detail-screen">
+  <!-- Top Navigation Breadcrumbs -->
+  <div class="breadcrumbs-row">
+    <nav class="breadcrumbs" aria-label="Навигация">
+      <a href="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}" class="breadcrumb-link" data-testid="btn-back-to-item">
+        ← К предмету #{{ listing.item_code }}
       </a>
-      <a href="/ui/listings" class="btn btn-secondary btn-sm" style="min-height: 38px; display: inline-flex; align-items: center; color: #64748b;" data-testid="btn-back-listings">
-        Все объявления системы
+      <span class="breadcrumb-sep">/</span>
+      <a href="/ui/listings" class="breadcrumb-link text-muted" data-testid="btn-back-listings">
+        Все объявления
       </a>
-    </div>
-    <div style="display: flex; gap: 8px; align-items: center;">
-      <span class="badge" style="font-size: 0.85rem; padding: 4px 10px; border-radius: 6px;">{{ listing.status }}</span>
+    </nav>
+    <div class="header-badges">
+      <span class="badge badge-{{ listing.status | status_tone }}">{{ listing.status | status_label }}</span>
       {% set open_url = listing.external_url or (listing | marketplace_url) if (listing.status in ('PUBLISHED', 'UPDATING') or listing.external_url) else None %}
       {% if open_url %}
-        <a href="{{ open_url }}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm"
+        <a href="{{ open_url }}" target="_blank" rel="noopener" class="btn btn-secondary btn-xs btn-icon"
            title="Открыть на площадке" aria-label="Открыть на площадке"
-           style="min-width: 36px; height: 36px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; color: #2563eb; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; text-decoration: none;"
            data-testid="btn-external-link">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
             <polyline points="15 3 21 3 21 9"></polyline>
             <line x1="10" y1="14" x2="21" y2="3"></line>
@@ -32,23 +32,22 @@
 
   <!-- Notice Alerts -->
   {% if request.query_params.get('notice') == 'delete_forbidden' %}
-    <div class="alert alert-danger" style="margin-bottom: 16px; padding: 12px 14px; background: #fee2e2; border: 1px solid #f87171; border-radius: 8px; color: #991b1b;" data-testid="alert-delete-forbidden">
-      <strong>⚠️ Удаление заблокировано:</strong> {{ request.query_params.get('reason') or 'Нельзя удалить объявление, пока оно опубликовано на площадке. Сначала снимите его с размещения.' }}
+    <div class="toast toast-danger" data-testid="alert-delete-forbidden">
+      <span class="toast-icon">⚠️</span>
+      <div class="toast-body"><strong>Удаление заблокировано:</strong> {{ request.query_params.get('reason') or 'Нельзя удалить объявление, пока оно опубликовано на площадке. Сначала снимите его с размещения.' }}</div>
     </div>
   {% endif %}
 
-  <!-- Header Info Card -->
-  <div class="card" style="padding: 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 16px;">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+  <!-- Header Info -->
+  <div class="card p-3 mb-3">
+    <div class="row-between flex-wrap gap-2">
       <div>
-        <h1 style="font-size: 1.3rem; font-weight: 800; margin: 0 0 6px 0;">
-          {{ listing.marketplace_key }}
-        </h1>
-        <div style="font-size: 0.9rem; color: #64748b;">
-          Предмет: <a href="/ui/stock/{{ listing.item_code }}#listings" style="color: #2563eb; font-weight: 600;" data-testid="link-item-code">#{{ listing.item_code }} {{ item.title if item else '' }}</a>
+        <h1 class="page-title">{{ listing.marketplace_key | platform_name }}</h1>
+        <div class="text-muted text-sm mt-1">
+          Предмет: <a href="/ui/stock/{{ listing.item_code }}#listings" class="text-accent font-semibold" data-testid="link-item-code">#{{ listing.item_code }} {{ item.title if item else '' }}</a>
         </div>
       </div>
-      <div style="font-size: 0.85rem; color: #64748b; text-align: right;">
+      <div class="text-muted text-xs text-right">
         {% if listing.first_published_at %}
           <div>Первое размещение: {{ listing.first_published_at | date_dmy }}</div>
         {% endif %}
@@ -59,228 +58,225 @@
     </div>
   </div>
 
-  <!-- Main Edit Form -->
-  <form method="post" action="/ui/listings/{{ listing.id }}/save" class="card" style="padding: 20px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 16px;">
-    <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
-    <h2 style="font-size: 1.1rem; font-weight: 700; margin-top: 0; margin-bottom: 16px;">Содержимое объявления</h2>
+  <!-- 2-Column Layout on Desktop -->
+  <div class="grid-2-col gap-3 mb-4">
+    <!-- Left Column: Edit Form -->
+    <div class="col-main">
+      <form method="post" action="/ui/listings/{{ listing.id }}/save" class="card p-3">
+        <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
+        <h2 class="card-title">Содержимое объявления</h2>
 
-    <!-- Title -->
-    <div style="margin-bottom: 14px;">
-      <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">
-        Заголовок (макс 60 симв.):
-      </label>
-      <input type="text" name="title" value="{{ listing.title or '' }}" maxlength="60" required
-             class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;" data-testid="input-listing-title">
-    </div>
+        <!-- Title -->
+        <div class="form-group mb-3">
+          <label class="form-label" for="input-listing-title">Заголовок (макс 60 симв.):</label>
+          <input type="text" id="input-listing-title" name="title" value="{{ listing.title or '' }}" maxlength="60" required class="input" data-testid="input-listing-title">
+        </div>
 
-    <!-- Price -->
-    <div style="margin-bottom: 14px; display: flex; gap: 12px; align-items: flex-end;">
-      <div style="flex: 1;">
-        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">
-          Цена ({{ listing.currency }}):
-        </label>
-        <input type="number" step="1" name="price" value="{{ listing.price or '0' }}" required
-               class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;" data-testid="input-listing-price">
-      </div>
-      <div>
-        <button type="submit" formaction="/ui/listings/{{ listing.id }}/free" formmethod="post" class="btn btn-secondary" style="padding: 10px 14px;" data-testid="btn-give-free">
-          🎁 Отдать бесплатно
-        </button>
-      </div>
-    </div>
-
-    <!-- Category -->
-    <div style="margin-bottom: 14px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-        <label for="select-listing-category" style="font-size: 0.85rem; font-weight: 600; color: #475569;">Категория:</label>
-        <span class="badge" style="font-size: 0.75rem; background: #f1f5f9; padding: 2px 6px;">
-          {{ 'авто' if listing.category_auto else 'вручную' }}
-        </span>
-      </div>
-      {% if category_groups %}
-        <select id="select-listing-category" name="category_key" class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff;" data-testid="select-listing-category">
-          {% for grp in category_groups %}
-            <optgroup label="{{ grp.group }}">
-              {% for opt in grp.options %}
-                <option value="{{ opt.key }}" {% if listing.category_key == opt.key or listing.category_path == opt.label or (listing.category_key and opt.key.endswith('/' + listing.category_key)) %}selected{% endif %}>
-                  {{ opt.label }}
-                </option>
-              {% endfor %}
-            </optgroup>
-          {% endfor %}
-        </select>
-        {% if listing.category_path and listing.category_path != listing.category_key %}
-          <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">
-            Путь: <span style="font-weight: 600;">{{ listing.category_path }}</span>
-          </div>
-        {% endif %}
-      {% else %}
-        <input type="text" id="select-listing-category" name="category_key" value="{{ listing.category_key or listing.category_path or '' }}"
-               class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;" data-testid="input-listing-category">
-      {% endif %}
-    </div>
-
-    <!-- Description -->
-    <div style="margin-bottom: 16px;">
-      <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">
-        Описание (язык {{ listing.lang }}):
-      </label>
-      <textarea name="description" rows="6" class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit;" data-testid="textarea-listing-desc">{{ listing.description or '' }}</textarea>
-    </div>
-
-    <!-- Auto-relist Option -->
-    <div style="margin-bottom: 16px; padding: 12px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
-      <label for="input-auto-relist" style="font-size: 0.9rem; font-weight: 600; color: #1e293b; cursor: pointer; display: flex; align-items: center; gap: 8px; margin: 0;">
-        <input type="checkbox" id="input-auto-relist" name="auto_relist" value="true"
-               {% if listing.auto_relist %}checked{% endif %}
-               style="width: 18px; height: 18px; cursor: pointer;" data-testid="checkbox-auto-relist">
-        <span>Автоматически перевыставлять</span>
-      </label>
-      <div>
-        {% if caps.relist %}
-          <span class="badge" style="font-size: 0.75rem; background: #dcfce7; color: #166534; padding: 3px 8px;">✓ Поддерживается</span>
-        {% else %}
-          <span class="badge" style="font-size: 0.75rem; background: #f1f5f9; color: #64748b; padding: 3px 8px;">— Вручную</span>
-        {% endif %}
-      </div>
-    </div>
-
-    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-      <button type="submit" name="submit_action" value="save" class="btn btn-primary" style="padding: 10px 20px; font-weight: 600;" data-testid="btn-save-listing">
-        {% if listing.status in ('PUBLISHED', 'UPDATING') %}
-          Сохранить на площадке
-        {% else %}
-          Сохранить изменения
-        {% endif %}
-      </button>
-      <button type="submit" name="submit_action" value="save_and_back" class="btn btn-secondary" style="padding: 10px 20px; font-weight: 600;" data-testid="btn-save-and-back">
-        Сохранить и вернуться к предмету
-      </button>
-    </div>
-  </form>
-
-  <!-- Delivery Options for Marketplace Card (§11 item 2) -->
-  <div class="card" style="padding: 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 16px;" data-testid="listing-deliveries-card">
-    <h3 style="font-size: 1rem; font-weight: 700; margin-top: 0; margin-bottom: 8px;">
-      Способы доставки для {{ listing.marketplace_key }}
-    </h3>
-    <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 12px;">
-      В объявлении на этой площадке отображаются только совместимые способы доставки:
-    </div>
-
-    {% if compatible_deliveries %}
-      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;">
-        {% for d in compatible_deliveries %}
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;" data-testid="compatible-delivery-row">
-            <div>
-              <strong style="font-size: 0.9rem; color: #1e293b;">{{ d.service_name }}</strong>
-              <span class="badge" style="font-size: 0.72rem; background: #dcfce7; color: #166534; margin-left: 6px;">Совместимо</span>
-            </div>
-            <div style="font-weight: 700; color: #0f172a; font-size: 0.9rem;">
-              {{ d.price }} {{ d.currency or listing.currency }}
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <div style="padding: 12px; background: #fffbeb; border: 1px solid #fef3c7; color: #b45309; border-radius: 6px; font-size: 0.85rem;">
-        ⚠️ Нет настроенных совместимых способов доставки. Настройте доставку в карточке предмета.
-      </div>
-    {% endif %}
-
-    {% if incompatible_deliveries %}
-      <div style="margin-top: 10px; font-size: 0.8rem; color: #94a3b8;" data-testid="incompatible-delivery-notice">
-        Недоступны на {{ listing.marketplace_key }}:
-        {% for incomp in incompatible_deliveries %}
-          <span style="text-decoration: line-through;">{{ incomp.service_name }}</span>{% if not loop.last %}, {% endif %}
-        {% endfor %}
-      </div>
-    {% endif %}
-  </div>
-
-  <!-- Approval and Platform Actions -->
-  <div class="card" style="padding: 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 16px;">
-    <h3 style="font-size: 1rem; font-weight: 700; margin-top: 0; margin-bottom: 12px;">Управление объявлением</h3>
-
-    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-      <!-- Publish single listing -->
-      {% if listing.status in ('APPROVED', 'FAILED') %}
-        <form method="post" action="/ui/listings/{{ listing.id }}/publish" style="margin: 0;">
-          <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
-          <button type="submit" class="btn btn-primary" data-testid="btn-publish-listing" style="font-weight: 600;">
-            🚀 Опубликовать на площадке
-          </button>
-        </form>
-      {% endif %}
-
-      <!-- Approval Toggle (§2.3) -->
-      {% if listing.status == 'APPROVED' %}
-        <form method="post" action="/ui/listings/{{ listing.id }}/unapprove" style="margin: 0;">
-          <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
-          <button type="submit" class="btn btn-secondary" data-testid="btn-unapprove">
-            Отозвать утверждение (в черновики)
-          </button>
-        </form>
-      {% elif listing.status == 'DRAFT' %}
-        <form method="post" action="/ui/listings/{{ listing.id }}/approve" style="margin: 0;">
-          <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
-          <button type="submit" class="btn btn-primary" data-testid="btn-approve">
-            ✓ Утвердить для размещения
-          </button>
-        </form>
-      {% endif %}
-
-      <!-- Unpublish action (§6.2, §2.4) -->
-      {% if listing.status in ('PUBLISHED', 'UPDATING', 'UNPUBLISH_FAILED') %}
-        {% if listing.status == 'UPDATING' %}
-          <button type="button" class="btn btn-danger" disabled style="background: #fee2e2; color: #b91c1c; opacity: 0.8; cursor: wait;" data-testid="btn-unpublishing-spinner">
-            <span style="display: inline-flex; align-items: center; gap: 6px;">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" style="animation: spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
-              <span>Снятие выполняется...</span>
-            </span>
-          </button>
-        {% elif caps.unpublish or listing.status == 'UNPUBLISH_FAILED' %}
-          <form method="post" action="/ui/listings/{{ listing.id }}/unpublish" onsubmit="return confirm('Вы действительно хотите снять объявление с площадки {{ listing.marketplace_key }}?');" style="margin: 0;">
-            <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
-            <button type="submit" class="btn btn-danger" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 8px; cursor: pointer;" data-testid="btn-unpublish">
-              <span>{{ '🔄 Повторить снятие с площадки' if listing.status == 'UNPUBLISH_FAILED' else '🗑️ Снять объявление с площадки' }}</span>
+        <!-- Price -->
+        <div class="form-group mb-3">
+          <label class="form-label" for="input-listing-price">Цена ({{ listing.currency }}):</label>
+          <div class="input-action-row gap-2">
+            <input type="number" id="input-listing-price" step="1" name="price" value="{{ listing.price or '0' }}" required class="input flex-1" data-testid="input-listing-price">
+            <button type="submit" formaction="/ui/listings/{{ listing.id }}/free" formmethod="post" class="btn btn-secondary btn-sm" data-testid="btn-give-free">
+              🎁 Бесплатно
             </button>
-          </form>
+          </div>
+        </div>
+
+        <!-- Category -->
+        <div class="form-group mb-3">
+          <div class="row-between mb-1">
+            <label class="form-label" for="select-listing-category">Категория:</label>
+            <span class="badge badge-neutral text-xs">
+              {{ 'авто' if listing.category_auto else 'вручную' }}
+            </span>
+          </div>
+          {% if category_groups %}
+            <select id="select-listing-category" name="category_key" class="select" data-testid="select-listing-category">
+              {% for grp in category_groups %}
+                <optgroup label="{{ grp.group }}">
+                  {% for opt in grp.options %}
+                    <option value="{{ opt.key }}" {% if listing.category_key == opt.key or listing.category_path == opt.label or (listing.category_key and opt.key.endswith('/' + listing.category_key)) %}selected{% endif %}>
+                      {{ opt.label }}
+                    </option>
+                  {% endfor %}
+                </optgroup>
+              {% endfor %}
+            </select>
+            {% if listing.category_path and listing.category_path != listing.category_key %}
+              <div class="text-muted text-xs mt-1">Путь: <span class="font-semibold">{{ listing.category_path }}</span></div>
+            {% endif %}
+          {% else %}
+            <input type="text" id="select-listing-category" name="category_key" value="{{ listing.category_key or listing.category_path or '' }}" class="input" data-testid="input-listing-category">
+          {% endif %}
+        </div>
+
+        <!-- Description -->
+        <div class="form-group mb-3">
+          <label class="form-label" for="textarea-listing-desc">Описание (язык {{ listing.lang }}):</label>
+          <textarea id="textarea-listing-desc" name="description" rows="6" class="textarea" data-testid="textarea-listing-desc">{{ listing.description or '' }}</textarea>
+        </div>
+
+        <!-- Auto-relist Option -->
+        <div class="card card-nested p-2 mb-3 row-between flex-wrap gap-2">
+          <label for="input-auto-relist" class="cursor-pointer row-center gap-2 m-0 text-sm font-semibold">
+            <input type="checkbox" id="input-auto-relist" name="auto_relist" value="true" {% if listing.auto_relist %}checked{% endif %} class="checkbox" data-testid="checkbox-auto-relist">
+            <span>Автоматически перевыставлять</span>
+          </label>
+          <div>
+            {% if caps.relist %}
+              <span class="badge badge-success text-xs">✓ Поддерживается</span>
+            {% else %}
+              <span class="badge badge-neutral text-xs">— Вручную</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="btn-row gap-2">
+          <button type="submit" name="submit_action" value="save" class="btn btn-primary btn-sm" data-testid="btn-save-listing">
+            {% if listing.status in ('PUBLISHED', 'UPDATING') %}
+              Сохранить на площадке
+            {% else %}
+              Сохранить изменения
+            {% endif %}
+          </button>
+          <button type="submit" name="submit_action" value="save_and_back" class="btn btn-secondary btn-sm" data-testid="btn-save-and-back">
+            Сохранить и вернуться к предмету
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Right Column: Delivery Options & Info -->
+    <div class="col-side">
+      <!-- Delivery Options Card -->
+      <div class="card p-3 mb-3" data-testid="listing-deliveries-card">
+        <h3 class="card-title">Способы доставки для {{ listing.marketplace_key | platform_name }}</h3>
+        <p class="text-muted text-xs mb-2">Отображаются только совместимые способы доставки:</p>
+
+        {% if compatible_deliveries %}
+          <div class="stack-tight mb-2">
+            {% for d in compatible_deliveries %}
+              <div class="row-between p-2 rounded bg-base border-subtle" data-testid="compatible-delivery-row">
+                <div>
+                  <span class="font-semibold text-sm">{{ d.service_name }}</span>
+                  <span class="badge badge-success text-xs ml-1">Совместимо</span>
+                </div>
+                <div class="font-bold text-sm">
+                  {{ d.price }} {{ d.currency or listing.currency }}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
         {% else %}
-          <div style="font-size: 0.85rem; color: #64748b; padding: 8px; background: #f8fafc; border-radius: 6px;" data-testid="notice-unpublish-unsupported">
+          <div class="toast toast-warning text-xs p-2 mb-2">
+            ⚠️ Нет настроенных совместимых способов доставки. Настройте доставку в карточке предмета.
+          </div>
+        {% endif %}
+
+        {% if incompatible_deliveries %}
+          <div class="text-dim text-xs mt-2" data-testid="incompatible-delivery-notice">
+            Недоступны на {{ listing.marketplace_key | platform_name }}:
+            {% for incomp in incompatible_deliveries %}
+              <span class="line-through">{{ incomp.service_name }}</span>{% if not loop.last %}, {% endif %}
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Management Card / Status Alerts -->
+      <div class="card p-3">
+        <h3 class="card-title">Управление публикацией</h3>
+
+        {% if listing.status in ('PUBLISHED', 'UPDATING', 'UNPUBLISH_FAILED') %}
+          <div class="toast toast-danger text-xs p-2 mb-2" data-testid="notice-delete-blocked">
+            <strong>⚠️ Удаление заблокировано:</strong> объявление ещё экспонируется на площадке. Чтобы удалить запись, сначала подтвердите снятие с размещения.
+          </div>
+        {% endif %}
+
+        {% if listing.status == 'ARCHIVED' %}
+          <div class="text-muted text-xs p-2 rounded bg-base mb-2" data-testid="notice-listing-archived">
+            Объявление уже снято с площадки (в архиве)
+          </div>
+        {% endif %}
+
+        {% if not caps.unpublish %}
+          <div class="text-muted text-xs p-2 rounded bg-base mb-2" data-testid="notice-unpublish-unsupported">
             Снятие не поддерживается площадкой: снимите вручную
           </div>
         {% endif %}
-      {% elif listing.status == 'ARCHIVED' %}
-        <div style="font-size: 0.85rem; color: #64748b; padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;" data-testid="notice-listing-archived">
-          Объявление уже снято с площадки (в архиве)
-        </div>
-      {% endif %}
 
-      <!-- Relist action (§6.2, §2.4) -->
-      {% if caps.relist %}
-        <form method="post" action="/ui/listings/{{ listing.id }}/relist" style="margin: 0;">
+        {% if not caps.relist %}
+          <div class="text-muted text-xs p-2 rounded bg-base mb-2" data-testid="notice-relist-unsupported">
+            Перевыставление не поддерживается площадкой
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Action Bar -->
+  <div class="action-bar" data-testid="listing-action-bar">
+    <div class="action-bar-content">
+      <!-- Publish single listing -->
+      {% if listing.status in ('APPROVED', 'FAILED') %}
+        <form method="post" action="/ui/listings/{{ listing.id }}/publish" class="inline-form">
           <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
-          <button type="submit" class="btn btn-secondary" data-testid="btn-relist">
-            Перевыставить сейчас
+          <button type="submit" class="btn btn-primary btn-sm" data-testid="btn-publish-listing">
+            🚀 Опубликовать
           </button>
         </form>
-      {% else %}
-        <div style="font-size: 0.85rem; color: #64748b; padding: 8px; background: #f8fafc; border-radius: 6px;" data-testid="notice-relist-unsupported">
-          Перевыставление не поддерживается площадкой
-        </div>
       {% endif %}
 
-      <!-- Delete action: FORBIDDEN when listing is live on marketplace -->
-      {% if listing.status in ('PUBLISHED', 'UPDATING', 'UNPUBLISH_FAILED') %}
-        <div style="font-size: 0.85rem; color: #991b1b; padding: 10px 14px; background: #fee2e2; border: 1px solid #fca5a5; border-radius: 8px;" data-testid="notice-delete-blocked">
-          <strong>⚠️ Удаление из системы заблокировано:</strong> объявление ещё экспонируется на площадке. Чтобы удалить запись, сначала подтвердите снятие с размещения.
-        </div>
-      {% else %}
-        <form method="post" action="/ui/listings/{{ listing.id }}/delete" onsubmit="return confirm('Удалить эту запись объявления из системы?');" style="margin: 0;">
+      <!-- Approval Toggle -->
+      {% if listing.status == 'APPROVED' %}
+        <form method="post" action="/ui/listings/{{ listing.id }}/unapprove" class="inline-form">
           <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
-          <button type="submit" class="btn btn-secondary" style="color: #64748b;" data-testid="btn-delete-listing">
-            Удалить из системы
+          <button type="submit" class="btn btn-secondary btn-sm" data-testid="btn-unapprove">
+            Отозвать утверждение
+          </button>
+        </form>
+      {% elif listing.status == 'DRAFT' %}
+        <form method="post" action="/ui/listings/{{ listing.id }}/approve" class="inline-form">
+          <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
+          <button type="submit" class="btn btn-primary btn-sm" data-testid="btn-approve">
+            ✓ Утвердить
+          </button>
+        </form>
+      {% endif %}
+
+      <!-- Unpublish action -->
+      {% if listing.status in ('PUBLISHED', 'UPDATING', 'UNPUBLISH_FAILED') %}
+        {% if listing.status == 'UPDATING' %}
+          <button type="button" class="btn btn-danger btn-sm" disabled data-testid="btn-unpublishing-spinner">
+            Снятие выполняется...
+          </button>
+        {% elif caps.unpublish or listing.status == 'UNPUBLISH_FAILED' %}
+          <form method="post" action="/ui/listings/{{ listing.id }}/unpublish" onsubmit="return confirm('Снять объявление с площадки {{ listing.marketplace_key | platform_name }}?');" class="inline-form">
+            <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
+            <button type="submit" class="btn btn-danger btn-sm" data-testid="btn-unpublish">
+              {{ '🔄 Повторить снятие' if listing.status == 'UNPUBLISH_FAILED' else '🗑️ Снять с площадки' }}
+            </button>
+          </form>
+        {% endif %}
+      {% endif %}
+
+      <!-- Relist action -->
+      {% if caps.relist %}
+        <form method="post" action="/ui/listings/{{ listing.id }}/relist" class="inline-form">
+          <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
+          <button type="submit" class="btn btn-secondary btn-sm" data-testid="btn-relist">
+            Перевыставить
+          </button>
+        </form>
+      {% endif %}
+
+      <!-- Delete action -->
+      {% if listing.status not in ('PUBLISHED', 'UPDATING', 'UNPUBLISH_FAILED') %}
+        <form method="post" action="/ui/listings/{{ listing.id }}/delete" onsubmit="return confirm('Удалить эту запись объявления из системы?');" class="inline-form">
+          <input type="hidden" name="return_to" value="{{ return_to or ('/ui/stock/' ~ listing.item_code ~ '#listings') }}">
+          <button type="submit" class="btn btn-danger-text btn-sm" data-testid="btn-delete-listing">
+            Удалить
           </button>
         </form>
       {% endif %}
