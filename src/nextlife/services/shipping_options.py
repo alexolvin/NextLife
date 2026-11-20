@@ -201,9 +201,13 @@ def configure_lot_delivery_options(
 
     weight = item.packed_weight_g or item.weight_g
     saved_records = []
+    seen_carriers: set[str] = set()
 
     for opt in options:
         ckey = opt.get("carrier_key", "pickup").lower().strip()
+        if ckey in seen_carriers:
+            continue
+        seen_carriers.add(ckey)
         sname = opt.get("service_name") or STANDARD_TARIFFS.get(ckey, {}).get("title", ckey)
         raw_price = opt.get("price")
         price = Decimal(str(raw_price)) if raw_price is not None else calculate_carrier_tariff(session, ckey, weight)

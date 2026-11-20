@@ -207,3 +207,34 @@ def test_ui_shipping_constructor_html(client, auth_headers):
     assert 'data-testid="buyer-total"' in html
     assert 'data-testid="seller-net"' in html
     assert 'data-testid="btn-save-shipping"' in html
+
+
+def test_configure_delivery_options_deduplicates():
+    """Verify that configure_lot_delivery_options deduplicates identical carriers."""
+    with get_db_session() as session:
+        created = create_item_and_lot(
+            session=session,
+            title="Dedup Shipping Test",
+            category_key="general",
+            price=Decimal("1500.00"),
+        )
+        lot_code = created["lot_code"]
+        item_code = created["item_code"]
+        session.commit()
+
+        # Submit duplicate pickup options
+        options = [
+            {"carrier_key": "pickup", "service_name": "Личная встреча 1", "price": 0},
+            {"carrier_key": "pickup", "service_name": "Личная встреча 2", "price": 50},
+            {"carrier_key": "zasilkovna", "service_name": "Zásilkovna", "price": 79},
+        ]
+        records = configure_lot_delivery_options(session, lot_code, options)
+        session.commit()
+
+        db_options = session.scalars(
+            select(DeliveryOption).where(DeliveryOption.item_code == item_code)
+        ).all()
+        assert len(db_options) == 2
+        keys = [o.carrier_key for o in db_options]
+        assert keys == ["pickup", "zasilkovna"]
+

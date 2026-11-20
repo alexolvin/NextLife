@@ -86,7 +86,7 @@
           <span style="width: 8px; height: 8px; border-radius: 50%; background: #ca8a04;"></span>
           Светло-жёлтый: Только просмотр
         </span>
-        <span style="display: inline-flex; align-items: center; gap: 0.35rem; background: #fee2e2; color: #991b1b; padding: 3px 8px; border-radius: 6px; border: 1px solid #fecaca;">
+        <span style="display: inline-flex; align-items: center; gap: 0.35rem; background: #fef2f2; color: #991b1b; padding: 3px 8px; border-radius: 6px; border: 1px solid #fecaca;">
           <span style="width: 8px; height: 8px; border-radius: 50%; background: #dc2626;"></span>
           Светло-красный: Недоступен
         </span>
@@ -156,16 +156,24 @@
               {% endif %}
             </div>
             <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem;">{{ 'Прямой доступ' if mp.access_mode == 'DIRECT' else 'Через приложение' }}</div>
-            <div style="display: flex; gap: 1rem; margin-bottom: 0.5rem;">
+            <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 0.5rem;">
               <label style="font-size: 0.875rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer;">
                 <input type="checkbox" name="mp_{{ mp.key }}_search" {% if mp.search %}checked{% endif %}>
                 <span>Поиск</span>
               </label>
+              {% if mp.can_publish %}
               <label style="font-size: 0.875rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer;">
                 <input type="checkbox" name="mp_{{ mp.key }}_publish" {% if mp.publish %}checked{% endif %}>
                 <span>Размещение</span>
               </label>
+              {% else %}
+              <div style="font-size: 0.82rem; color: #64748b; display: flex; align-items: center; gap: 0.35rem; padding: 2px 8px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px;" title="Площадка используется только для мониторинга цен">
+                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #94a3b8;"></span>
+                <span>Только поиск</span>
+              </div>
+              {% endif %}
             </div>
+            {% if mp.can_publish %}
             <!-- Системные информационные параметры (только для чтения) -->
             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.75rem; padding: 6px 10px; background: rgba(241, 245, 249, 0.75); border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.8rem;" data-testid="sys-params-{{ mp.key }}">
               <div style="display: flex; align-items: center; gap: 4px;" title="Возможность автоматического снятия объявления коннектором">
@@ -202,6 +210,12 @@
                 {% endfor %}
               </div>
             </div>
+            {% else %}
+            <div style="padding: 10px 12px; background: rgba(241, 245, 249, 0.7); border: 1px dashed #cbd5e1; border-radius: 8px; font-size: 0.82rem; color: #64748b; margin-bottom: 0.75rem;" data-testid="search-only-notice-{{ mp.key }}">
+              ℹ️ <strong>Площадка используется исключительно для мониторинга и поиска цен.</strong><br>
+              Параметры размещения, срок жизни объявлений, способы доставки и автоматическое снятие для данной площадки не применяются.
+            </div>
+            {% endif %}
             {% for sec in mp.secrets %}
             <div style="margin-bottom: 0.5rem;">
               <label style="font-size: 0.8rem; font-weight: 500; display: block; margin-bottom: 0.2rem;">{{ sec.label }}</label>

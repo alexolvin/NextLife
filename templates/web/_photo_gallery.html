@@ -26,6 +26,29 @@
     border: 2px dashed #0284c7 !important;
     transform: scale(1.05);
   }
+  .slider-fullscreen-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.65);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 5;
+    transition: background 0.2s, transform 0.15s;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .slider-fullscreen-btn:hover {
+    background: rgba(15, 23, 42, 0.95);
+    transform: scale(1.08);
+  }
 </style>
 
 <div class="card" id="gallery-card">
@@ -38,8 +61,16 @@
   {% if photos and photos|length > 0 %}
   <div class="slider-container" id="main-slider" data-testid="photo-slider">
     <button type="button" class="slider-arrow slider-prev" id="btn-slider-prev" onclick="changeSlide(-1)" aria-label="Предыдущее фото" data-testid="slider-prev">‹</button>
-    <img id="slider-main-img" class="slider-img" src="{{ photos[0].url or missing_src }}" alt="Предпросмотр фото" data-testid="slider-current-image">
+    <img id="slider-main-img" class="slider-img" src="{{ photos[0].url or missing_src }}" alt="Предпросмотр фото" data-testid="slider-current-image" onclick="openActiveLightbox(this.src)" style="cursor: pointer;" title="Нажмите для полноэкранного просмотра">
     <button type="button" class="slider-arrow slider-next" id="btn-slider-next" onclick="changeSlide(1)" aria-label="Следующее фото" data-testid="slider-next">›</button>
+    <button type="button" class="slider-fullscreen-btn" id="btn-slider-fullscreen" onclick="openActiveLightbox()" title="Полноэкранный просмотр" aria-label="Полноэкранный просмотр" data-testid="btn-open-fullscreen">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 3 21 3 21 9"></polyline>
+        <polyline points="9 21 3 21 3 15"></polyline>
+        <line x1="21" y1="3" x2="14" y2="10"></line>
+        <line x1="3" y1="21" x2="10" y2="14"></line>
+      </svg>
+    </button>
     <span class="slider-counter" id="slider-counter" data-testid="slider-counter">1 / {{ photos|length }}</span>
     <span class="slider-role-tag badge badge-active" id="slider-role-tag" data-testid="slider-role">{{ role_labels.get(photos[0].role, 'Фото') }}</span>
   </div>
@@ -123,7 +154,7 @@
       </form>
 
       <!-- Cover (★ Обложка) -->
-      <form method="POST" data-op="cover">
+      <form method="POST" data-op="cover" onsubmit="setCoverSlide(event)">
         <button type="submit" class="btn btn-sm btn-secondary btn-inline" title="Сделать обложкой" data-testid="btn-op-cover">★ Обложка</button>
       </form>
 
@@ -196,12 +227,28 @@
   const MISSING_SRC = "{{ missing_src }}";
   let photos = [
     {% for photo in photos %}
-    { url: "{{ photo.url }}", role: "{{ photo.role }}", label: "{{ role_labels.get(photo.role, 'Фото') }}", display_id: "{{ photo.display_id or photo.id }}", broken: {{ 'true' if photo.broken else 'false' }} },
+    { url: "{{ photo.url }}", role: "{{ photo.role }}", label: "{{ role_labels.get(photo.role, 'Фото') }}", display_id: "{{ photo.display_id or photo.id }}", broken: {{ 'true' if photo.broken else 'false' }}, is_cover: {{ 'true' if photo.is_cover else 'false' }} },
     {% endfor %}
   ];
   const itemCode = "{{ item.code }}";
   let currentIndex = 0;
   let draggedIndex = null;
+
+  // Restore focus to moved/active photo if specified via URL or sessionStorage
+  const urlParams = new URLSearchParams(window.location.search);
+  const activeParam = urlParams.get('active_photo');
+  if (activeParam) {
+    const idx = photos.findIndex(p => p.display_id === activeParam || p.id === activeParam);
+    if (idx !== -1) currentIndex = idx;
+  } else {
+    try {
+      const savedActiveId = sessionStorage.getItem('gallery_active_id_' + itemCode);
+      if (savedActiveId) {
+        const idx = photos.findIndex(p => p.display_id === savedActiveId);
+        if (idx !== -1) currentIndex = idx;
+      }
+    } catch(e) {}
+  }
 
   function updateOpButtons() {
     const cur = photos[currentIndex];
@@ -224,13 +271,52 @@
   window.selectSlide = function(idx) {
     if (photos.length === 0) return;
     currentIndex = (idx + photos.length) % photos.length;
+    try {
+      if (photos[currentIndex]) {
+        sessionStorage.setItem('gallery_active_id_' + itemCode, photos[currentIndex].display_id);
+      }
+    } catch(e) {}
     updateSliderUI();
   };
 
   window.changeSlide = function(delta) {
     if (photos.length === 0) return;
     currentIndex = (currentIndex + delta + photos.length) % photos.length;
+    try {
+      if (photos[currentIndex]) {
+        sessionStorage.setItem('gallery_active_id_' + itemCode, photos[currentIndex].display_id);
+      }
+    } catch(e) {}
     updateSliderUI();
+  };
+
+  // Fullscreen Lightbox integration
+  window.openGalleryLightbox = function(src) {
+    if (photos.length === 0) return;
+    const validPhotos = photos.filter(p => !p.broken && p.url);
+    if (validPhotos.length === 0) return;
+
+    if (typeof currentGalleryImages !== 'undefined') {
+      currentGalleryImages = validPhotos.map(p => p.url);
+      const targetSrc = src || (photos[currentIndex] ? photos[currentIndex].url : validPhotos[0].url);
+      currentGalleryIndex = currentGalleryImages.findIndex(u => u === targetSrc || (targetSrc && targetSrc.endsWith(u)) || (u && u.endsWith(targetSrc)));
+      if (currentGalleryIndex === -1) currentGalleryIndex = currentIndex < currentGalleryImages.length ? currentIndex : 0;
+
+      if (typeof renderLightboxThumbnails === 'function') renderLightboxThumbnails();
+      if (typeof updateLightboxDisplay === 'function') updateLightboxDisplay();
+    }
+    const lb = document.getElementById('lightbox');
+    if (lb) lb.style.display = 'flex';
+  };
+  window.openActiveLightbox = window.openGalleryLightbox;
+
+  window.syncGalleryFromLightbox = function(curUrl) {
+    if (!curUrl || photos.length === 0) return;
+    const foundIdx = photos.findIndex(p => p.url === curUrl || (p.url && curUrl.endsWith(p.url)) || (curUrl && p.url.endsWith(curUrl)));
+    if (foundIdx !== -1 && foundIdx !== currentIndex) {
+      currentIndex = foundIdx;
+      updateSliderUI();
+    }
   };
 
   function updateSliderUI() {
@@ -264,9 +350,25 @@
     updateOpButtons();
   }
 
-  updateOpButtons();
+  updateSliderUI();
 
-  // Move slide in order (buttons)
+  function refreshThumbStripDOM() {
+    const strip = document.getElementById('thumb-strip');
+    if (!strip) return;
+    photos.forEach((p, idx) => {
+      const card = strip.querySelector(`.thumb-card[data-id="${p.display_id}"]`);
+      if (card) {
+        card.id = 'thumb-item-' + idx;
+        card.setAttribute('data-testid', 'thumb-item-' + idx);
+        card.onclick = function() { selectSlide(idx); };
+        card.ondragstart = function(e) { handleThumbDragStart(e, idx); };
+        card.ondrop = function(e) { handleThumbDrop(e, idx); };
+        strip.appendChild(card);
+      }
+    });
+  }
+
+  // Move slide in order (buttons) without full page reload, maintaining focus
   window.moveCurrentSlide = async function(dir) {
     if (photos.length <= 1) return;
     const newIdx = currentIndex + dir;
@@ -278,7 +380,14 @@
     photos[newIdx] = temp;
     currentIndex = newIdx;
 
-    await savePhotoOrder();
+    try {
+      sessionStorage.setItem('gallery_active_id_' + itemCode, temp.display_id);
+    } catch(e) {}
+
+    refreshThumbStripDOM();
+    updateSliderUI();
+
+    await savePhotoOrder(false);
   };
 
   // Drag and Drop for Thumbnails
@@ -309,7 +418,14 @@
     currentIndex = targetIdx;
     draggedIndex = null;
 
-    await savePhotoOrder();
+    try {
+      sessionStorage.setItem('gallery_active_id_' + itemCode, movedItem.display_id);
+    } catch(e) {}
+
+    refreshThumbStripDOM();
+    updateSliderUI();
+
+    await savePhotoOrder(false);
   };
 
   window.handleThumbDragEnd = function(e) {
@@ -317,7 +433,7 @@
     draggedIndex = null;
   };
 
-  async function savePhotoOrder() {
+  async function savePhotoOrder(shouldReload = false) {
     const order = photos.map(p => p.display_id).filter(Boolean);
     try {
       const res = await fetch(`/api/items/${itemCode}/photos/reorder`, {
@@ -325,16 +441,74 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ order: order })
       });
-      if (res.ok) {
-        window.location.reload();
-      } else {
+      if (!res.ok) {
         alert('Не удалось сохранить новый порядок фотографий');
+      } else if (shouldReload) {
+        window.location.reload();
       }
     } catch (err) {
       console.error(err);
       alert('Ошибка соединения при изменении порядка');
     }
   }
+
+  // Set as Cover and automatically move to first place (index 0)
+  window.setCoverSlide = async function(e) {
+    if (e) e.preventDefault();
+    if (photos.length === 0) return;
+    const cur = photos[currentIndex];
+    if (!cur) return;
+
+    try {
+      const res = await fetch(`/api/items/${itemCode}/photos/${cur.display_id}/cover`, {
+        method: 'POST'
+      });
+      if (!res.ok) {
+        if (e && e.target && e.target.closest('form')) {
+          e.target.closest('form').submit();
+        }
+        return;
+      }
+    } catch (err) {
+      console.error(err);
+      if (e && e.target && e.target.closest('form')) {
+        e.target.closest('form').submit();
+      }
+      return;
+    }
+
+    // Move cover photo to first place (index 0)
+    if (currentIndex > 0) {
+      const coverItem = photos.splice(currentIndex, 1)[0];
+      photos.unshift(coverItem);
+    }
+
+    // Update is_cover marks in photos
+    photos.forEach((p, i) => {
+      p.is_cover = (i === 0);
+    });
+
+    // Reorder thumbnails in DOM
+    refreshThumbStripDOM();
+
+    // Move cover badge to the first thumbnail card
+    document.querySelectorAll('[data-testid="photo-cover-mark"]').forEach(el => el.remove());
+    const firstCard = document.getElementById('thumb-item-0');
+    if (firstCard) {
+      const mark = document.createElement('span');
+      mark.setAttribute('data-testid', 'photo-cover-mark');
+      mark.setAttribute('title', 'Обложка предмета');
+      mark.style.cssText = 'position:absolute;bottom:0;left:0;background:var(--c-accent);color:#fff;font-size:9px;line-height:1;padding:2px 4px;border-radius:0 6px 0 0;z-index:1;';
+      mark.textContent = 'обложка';
+      firstCard.appendChild(mark);
+    }
+
+    currentIndex = 0;
+    try {
+      sessionStorage.setItem('gallery_active_id_' + itemCode, photos[0].display_id);
+    } catch(e) {}
+    updateSliderUI();
+  };
 
   // Upload handler with live animated progress bar and descriptive error handling
   window.handleDirectUpload = async function(files, role) {

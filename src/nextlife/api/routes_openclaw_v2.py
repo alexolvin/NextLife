@@ -33,7 +33,7 @@ from nextlife.services.listings import (
 )
 from nextlife.services.messages import list_threads, send_reply, suggest_reply
 from nextlife.storage.db import get_db_session
-from nextlife.storage.models import BuyCandidate, BuyRequest, Item, ItemPhoto, Job, Listing
+from nextlife.storage.models import BuyCandidate, BuyRequest, Item, ItemPhoto, Job, Listing, Lot
 
 oc_v2_router = APIRouter(prefix="/api/oc", tags=["openclaw-v2"])
 _AUTH = Depends(check_openclaw_auth)
@@ -99,7 +99,9 @@ def oc_post_stock_ready(code: str, auth: bool = _AUTH) -> dict[str, Any]:
             unmet.append("Не заполнено название")
         if not item.description or not item.description.strip():
             unmet.append("Не заполнено описание")
-        if not item.shipping_policy:
+        lot = session.scalar(select(Lot).where(Lot.code == code))
+        shipping_policy = (lot.shipping_policy if lot else None) or getattr(item, "shipping_policy", None)
+        if not shipping_policy:
             unmet.append("Не выбрана доставка")
 
         if unmet:

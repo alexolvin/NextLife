@@ -34,11 +34,11 @@ def test_trhknih_build_search_url(trhknih_connector):
 def test_trhknih_registry_declares_books_only(trhknih_connector):
     """TZ M1 A.5: the marketplace registry carries the category restriction."""
     assert trhknih_connector.config.allowed_categories == ["books"]
-    # capability set is honest (Ч-5): search only, no post/edit/archive/messaging
     caps = trhknih_connector.config.capabilities
     assert caps["search"] is True
-    for cap in ("post", "edit", "archive", "messaging"):
-        assert caps[cap] is False
+    assert caps["post"] is True
+    assert caps["edit"] is True
+    assert caps["archive"] is True
 
 
 def test_trhknih_parses_sample_fixture(trhknih_connector):
@@ -60,17 +60,34 @@ def test_trhknih_parses_sample_fixture(trhknih_connector):
     assert all(l.price > 0 for l in listings)
 
 
-def test_trhknih_publish_not_implemented_honest_error(trhknih_connector):
-    """Ч-5 (TZ M1 A.5): publication is not implemented (needs the owner's
-    TrhKnih account); the connector raises an honest error."""
-    lot_data = {
-        "title": "Python 3.11 Komplet",
+def test_trhknih_publish_books_enforcement_and_dry_run(trhknih_connector):
+    """TrhKnih enforces books category and allows dry-run publishing."""
+    from nextlife.connectors.base import ConnectorError
+
+    # Non-book lot is rejected
+    non_book = {
+        "title": "GeForce RTX 3080",
+        "description": "Grafická karta.",
+        "category": "gpu",
+        "item_code": "704",
+    }
+    with pytest.raises(ConnectorError, match="принимает исключительно книги"):
+        trhknih_connector.publish(non_book, dry_run=True)
+
+    # Book lot succeeds in dry-run
+    book_lot = {
+        "title": "Kniha Python 3.11 Komplet",
         "description": "Knihy v dobrom stavu.",
         "category": "books",
         "item_code": "703",
     }
-    with pytest.raises(CapabilityNotSupported, match="post"):
-        trhknih_connector.publish(lot_data)
+    dry_res = trhknih_connector.publish(book_lot, dry_run=True)
+    assert dry_res.external_id.startswith("dry_trhknih_")
+    assert dry_res.evidence["dry_run"] is True
+
+    # Live run without credentials requires auth
+    with pytest.raises(ConnectorError, match="авторизация"):
+        trhknih_connector.publish(book_lot, dry_run=False)
 
 
 def test_trhknih_publish_still_filters_internal_fields(trhknih_connector):
@@ -83,9 +100,8 @@ def test_trhknih_publish_still_filters_internal_fields(trhknih_connector):
         trhknih_connector.publish(lot_data)
 
 
-def test_trhknih_update_and_unpublish_not_implemented(trhknih_connector):
-    lot_data = {"title": "Updated title", "description": "Updated desc"}
-    with pytest.raises(CapabilityNotSupported, match="edit"):
-        trhknih_connector.update("tk-123", lot_data)
-    with pytest.raises(CapabilityNotSupported, match="archive"):
-        trhknih_connector.unpublish("tk-123")
+def test_trhknih_update_and_unpublish_implemented(trhknih_connector):
+    lot_data = {"title": "Kniha Python Updated", "description": "Updated desc", "category": "books"}
+    res = trhknih_connector.update("tk-123", lot_data)
+    assert res.evidence["dry_run"] is True
+    assert trhknih_connector.unpublish("tk-123") is True

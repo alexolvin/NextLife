@@ -140,12 +140,13 @@ def test_settings_save_marketplace_shipping_and_ttl(tmp_path: Path, monkeypatch:
     assert ov["kleinanzeigen_de"]["listing_ttl_days"] == 75
     assert set(ov["kleinanzeigen_de"]["allowed_carriers"]) == {"pickup", "gls"}
 
-    # Verify UI page renders with the controls
+    # Verify UI page renders with the controls for publishing marketplaces, and clean notice for search-only
     get_resp = client.get("/ui/settings?tab=marketplaces")
     assert get_resp.status_code == 200
     assert 'data-testid="input-mp-ttl-bazos_cz"' in get_resp.text
     assert 'data-testid="cb-mp-carrier-bazos_cz-zasilkovna"' in get_resp.text
-    assert 'data-testid="cb-mp-carrier-kleinanzeigen_de-gls"' in get_resp.text
+    assert 'data-testid="cb-mp-carrier-kleinanzeigen_de-gls"' not in get_resp.text
+    assert 'data-testid="search-only-notice-kleinanzeigen_de"' in get_resp.text
 
 
 def test_settings_marketplace_color_coding(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):

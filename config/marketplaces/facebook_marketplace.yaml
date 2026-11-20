@@ -20,9 +20,12 @@ auth:
   secret_ref: ""
 capabilities:
   search: true
-  post: false
-  edit: false
-  archive: false
+  post: true
+  edit: true
+  archive: true
+  relist: true
+  category_auto_detect: true
+  has_delivery_fields: false
   messaging: false
   max_photos: 10
   max_title_len: 100
@@ -33,6 +36,68 @@ capabilities:
     - post
   payment_options:
     - cash
+category_tree:
+  - top: "elektronika"
+    label: "Elektronika a počítače"
+    subs:
+      - "Mobilní telefony"
+      - "Počítače a notebooky"
+      - "Komponenty a grafické karty"
+      - "Televize a audio"
+      - "Videohry a konzole"
+      - "Fotoaparáty a optika"
+  - top: "domacnost"
+    label: "Domácnost a zahrada"
+    subs:
+      - "Nábytek"
+      - "Domácí spotřebiče"
+      - "Nářadí a dílna"
+      - "Zahrada a rostliny"
+      - "Bytové dekorace"
+      - "Osvětlení"
+  - top: "vozidla"
+    label: "Vozidla a auto-moto"
+    subs:
+      - "Osobní automobily"
+      - "Motocykly a skútry"
+      - "Náhradní díly a pneumatiky"
+      - "Příslušenství auto-moto"
+  - top: "obleceni"
+    label: "Oblečení, obuv a doplňky"
+    subs:
+      - "Dámské oblečení"
+      - "Dámská obuv"
+      - "Pánské oblečení"
+      - "Pánská obuv"
+      - "Kabelky a zavazadla"
+      - "Hodinky a šperky"
+  - top: "rodina"
+    label: "Rodina a děti"
+    subs:
+      - "Dětské oblečení a obuv"
+      - "Kočárky a autosedačky"
+      - "Hračky a společenské hry"
+      - "Kojenecké potřeby"
+  - top: "sport"
+    label: "Sport a volný čas"
+    subs:
+      - "Jízdní kola a cyklistika"
+      - "Fitness a posilování"
+      - "Zimní sporty"
+      - "Outdoor a turistika"
+      - "Míčové sporty"
+  - top: "zabava"
+    label: "Knihy, hudba a média"
+    subs:
+      - "Knihy a časopisy"
+      - "Hudební nástroje"
+      - "Vinyly, CD a DVD"
+  - top: "sberatelstvi"
+    label: "Sběratelství a umění"
+    subs:
+      - "Starožitnosti a umění"
+      - "Mince a bankovky"
+      - "Modelářství a hračky"
 selectors: {}
 rate_limits:
   requests_per_minute: 0

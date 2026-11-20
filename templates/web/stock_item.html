@@ -69,59 +69,230 @@
     }
   }
 </style>
-<div class="stock-item-container" style="padding: 8px 8px 80px 8px; max-width: 900px; margin: 0 auto;"
-     x-data="{
-       activeTab: (window.location.hash ? window.location.hash.split('?')[0] : '#price'),
-       stages: ['#price', '#photos', '#describe', '#listings', '#sale', '#warranty'],
-       stageNames: {
-         '#price': 'Оценка',
-         '#photos': 'Фото',
-         '#describe': 'Описание',
-         '#listings': 'Объявления',
-         '#sale': 'Продажа',
-         '#warranty': 'Гарантия'
-       },
-       get currentIndex() {
-         const idx = this.stages.indexOf(this.activeTab);
-         return idx >= 0 ? idx : 0;
-       },
-       get currentStageNum() {
-         return this.currentIndex + 1;
-       },
-       get currentStageName() {
-         return this.stageNames[this.activeTab] || 'Оценка';
-       },
-       get prevTab() {
-         return this.currentIndex > 0 ? this.stages[this.currentIndex - 1] : null;
-       },
-       get nextTab() {
-         return this.currentIndex < this.stages.length - 1 ? this.stages[this.currentIndex + 1] : null;
-       },
-       get prevName() {
-         return this.prevTab ? this.stageNames[this.prevTab] : '';
-       },
-       get nextName() {
-         return this.nextTab ? this.stageNames[this.nextTab] : '';
-       },
-       goToTab(tab) {
-         if (!tab) return;
-         this.activeTab = tab;
-         window.location.hash = tab;
-         this.$nextTick(() => {
-           const activeEl = document.querySelector(`.stepper-pill[data-tab='${tab}']`);
-           if (activeEl) {
-             activeEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-           }
-         });
-       },
-       goToPrev() {
-         if (this.prevTab) this.goToTab(this.prevTab);
-       },
-       goToNext() {
-         if (this.nextTab) this.goToTab(this.nextTab);
-       }
-     }"
-     x-init="window.addEventListener('hashchange', () => { activeTab = (window.location.hash ? window.location.hash.split('?')[0] : '#price'); $nextTick(() => { const el = document.querySelector(`.stepper-pill[data-tab='${activeTab}']`); if(el) el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }); })">
+
+<script>
+function stockItemMaster(itemCode) {
+  return {
+    itemCode: itemCode,
+    activeTab: (() => {
+      const h = (window.location.hash ? window.location.hash.split('?')[0] : '');
+      if (h === '#delivery') return '#shipping';
+      if (h === '#dimensions' || h === '#weight') return '#mgh';
+      if (['#price', '#photos', '#mgh', '#shipping', '#describe', '#listings', '#sale', '#warranty'].includes(h)) return h;
+      return '#price';
+    })(),
+    stages: ['#price', '#photos', '#mgh', '#shipping', '#describe', '#listings', '#sale', '#warranty'],
+    stageNames: {
+      '#price': 'Оценка',
+      '#photos': 'Фото',
+      '#mgh': 'МГХ',
+      '#shipping': 'Доставка',
+      '#describe': 'Описание',
+      '#listings': 'Объявления',
+      '#sale': 'Продажа',
+      '#warranty': 'Гарантия'
+    },
+    showConfirmModal: false,
+    pendingTab: null,
+
+    get currentIndex() {
+      const idx = this.stages.indexOf(this.activeTab);
+      return idx >= 0 ? idx : 0;
+    },
+    get currentStageNum() {
+      return this.currentIndex + 1;
+    },
+    get currentStageName() {
+      return this.stageNames[this.activeTab] || 'Оценка';
+    },
+    get prevTab() {
+      return this.currentIndex > 0 ? this.stages[this.currentIndex - 1] : null;
+    },
+    get nextTab() {
+      return this.currentIndex < this.stages.length - 1 ? this.stages[this.currentIndex + 1] : null;
+    },
+    get prevName() {
+      return this.prevTab ? this.stageNames[this.prevTab] : '';
+    },
+    get nextName() {
+      return this.nextTab ? this.stageNames[this.nextTab] : '';
+    },
+
+    init() {
+      this.initFormTracking();
+      window.addEventListener('hashchange', (e) => {
+        let h = (window.location.hash ? window.location.hash.split('?')[0] : '#price');
+        if (h === '#delivery') h = '#shipping';
+        if (h === '#dimensions' || h === '#weight') h = '#mgh';
+        if (this.stages.includes(h) && h !== this.activeTab) {
+          if (this.isTabDirty()) {
+            this.pendingTab = h;
+            this.showConfirmModal = true;
+            window.location.hash = this.activeTab;
+            return;
+          }
+          this.activeTab = h;
+        }
+        this.$nextTick(() => {
+          const el = document.querySelector(`.stepper-pill[data-tab='${this.activeTab}']`);
+          if (el) el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        });
+      });
+    },
+
+    initFormTracking() {
+      const forms = document.querySelectorAll('form[data-testid="mgh-form"], form[data-testid="shipping-form"], form[data-testid="stock-form"], [data-testid="stage-price-panel"] form');
+      forms.forEach(form => {
+        Array.from(form.elements).forEach(el => {
+          if (el.type === 'hidden' || el.type === 'submit' || el.type === 'button') return;
+          if (el.type === 'checkbox' || el.type === 'radio') {
+            el.dataset.initVal = el.checked ? 'true' : 'false';
+          } else {
+            el.dataset.initVal = el.value || '';
+          }
+        });
+      });
+    },
+
+    getActiveForm() {
+      if (this.activeTab === '#mgh') return document.querySelector('form[data-testid="mgh-form"]');
+      if (this.activeTab === '#shipping') return document.querySelector('form[data-testid="shipping-form"]');
+      if (this.activeTab === '#describe') return document.querySelector('form[data-testid="stock-form"]');
+      if (this.activeTab === '#price') return document.querySelector('[data-testid="stage-price-panel"] form');
+      const panel = document.querySelector(`[data-testid='stage-${this.activeTab.replace('#', '')}-panel']`);
+      return panel ? panel.querySelector('form') : null;
+    },
+
+    isTabDirty() {
+      const form = this.getActiveForm();
+      if (!form) return false;
+      const elements = Array.from(form.elements);
+      for (const el of elements) {
+        if (el.type === 'hidden' || el.type === 'submit' || el.type === 'button') continue;
+        const init = el.dataset.initVal !== undefined ? el.dataset.initVal : (el.defaultValue || '');
+        if (el.type === 'checkbox' || el.type === 'radio') {
+          const cur = el.checked ? 'true' : 'false';
+          if (cur !== init) return true;
+        } else {
+          const cur = el.value || '';
+          if (cur !== init) return true;
+        }
+      }
+      return false;
+    },
+
+    resetFormToInit(form) {
+      if (!form) return;
+      const elements = Array.from(form.elements);
+      for (const el of elements) {
+        if (el.type === 'hidden' || el.type === 'submit' || el.type === 'button') continue;
+        if (el.dataset.initVal !== undefined) {
+          if (el.type === 'checkbox' || el.type === 'radio') {
+            el.checked = (el.dataset.initVal === 'true');
+          } else {
+            el.value = el.dataset.initVal;
+          }
+        } else if (el.defaultValue !== undefined) {
+          el.value = el.defaultValue;
+        }
+      }
+    },
+
+    goToTab(tab) {
+      if (!tab || tab === this.activeTab) return;
+      if (this.isTabDirty()) {
+        this.pendingTab = tab;
+        this.showConfirmModal = true;
+        return;
+      }
+      this.confirmAndGo(tab);
+    },
+
+    confirmAndGo(tab) {
+      this.activeTab = tab;
+      window.location.hash = tab;
+      this.$nextTick(() => {
+        const activeEl = document.querySelector(`.stepper-pill[data-tab='${tab}']`);
+        if (activeEl) {
+          activeEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      });
+    },
+
+    goToPrev() {
+      if (this.prevTab) this.goToTab(this.prevTab);
+    },
+
+    goToNext() {
+      if (this.nextTab) this.goToTab(this.nextTab);
+    },
+
+    cancelNav() {
+      this.showConfirmModal = false;
+      this.pendingTab = null;
+    },
+
+    discardAndGo() {
+      const form = this.getActiveForm();
+      if (form) {
+        this.resetFormToInit(form);
+      }
+      const target = this.pendingTab;
+      this.showConfirmModal = false;
+      this.pendingTab = null;
+      this.confirmAndGo(target);
+    },
+
+    saveAndGo() {
+      const form = this.getActiveForm();
+      const target = this.pendingTab;
+      this.showConfirmModal = false;
+      this.pendingTab = null;
+      if (form) {
+        let nextInput = form.querySelector('input[name=next]');
+        if (!nextInput) {
+          nextInput = document.createElement('input');
+          nextInput.type = 'hidden';
+          nextInput.name = 'next';
+          form.appendChild(nextInput);
+        }
+        nextInput.value = `/ui/stock/${this.itemCode}#${target.replace('#', '')}`;
+        form.submit();
+      } else {
+        this.confirmAndGo(target);
+      }
+    }
+  };
+}
+</script>
+
+<div class="stock-item-container" style="padding: 8px 8px 80px 8px; max-width: 900px; margin: 0 auto;" x-data="stockItemMaster('{{ item.code }}')">
+
+  <!-- Modal: Сохранить изменения? (Да, Нет, Отмена) -->
+  <div x-show="showConfirmModal" x-cloak
+       style="position: fixed; inset: 0; z-index: 9999; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(2px);"
+       data-testid="unsaved-changes-modal">
+    <div class="card" style="max-width: 440px; width: 100%; background: #ffffff; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25); padding: 22px; border: 1px solid #cbd5e1;"
+         @click.away="cancelNav()">
+      <div style="font-size: 1.2rem; font-weight: 700; color: #0f172a; margin-bottom: 8px;" data-testid="modal-title">
+        Сохранить изменения?
+      </div>
+      <div style="font-size: 0.95rem; color: #475569; margin-bottom: 22px; line-height: 1.5;" data-testid="modal-desc">
+        На вкладке «<span x-text="currentStageName" style="font-weight: 600;"></span>» есть несохранённые данные. Сохранить их перед переходом к вкладке «<span x-text="stageNames[pendingTab] || pendingTab" style="font-weight: 600;"></span>»?
+      </div>
+      <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+        <button type="button" class="btn btn-secondary" style="padding: 9px 16px; font-weight: 600; font-size: 0.92rem; border-radius: 8px;" @click="cancelNav()" data-testid="btn-confirm-cancel">
+          Отмена
+        </button>
+        <button type="button" class="btn btn-light" style="padding: 9px 16px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1;" @click="discardAndGo()" data-testid="btn-confirm-discard">
+          Нет
+        </button>
+        <button type="button" class="btn btn-primary" style="padding: 9px 20px; font-weight: 700; font-size: 0.92rem; border-radius: 8px;" @click="saveAndGo()" data-testid="btn-confirm-save">
+          Да
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Toast Banners -->
   {% if notice == 'saved' %}
@@ -201,7 +372,7 @@
     </button>
 
     <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" data-testid="stepper-stage-indicator">
-      <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/6:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+      <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
     </div>
 
     <button type="button" @click="goToNext()" :disabled="!nextTab"
@@ -213,7 +384,7 @@
     </button>
   </div>
 
-  <!-- 6-Stage Stepper Buttons (§5.1) -->
+  <!-- 8-Stage Stepper Buttons (§5.1) -->
   <div class="stepper-bar filter-chips" data-testid="item-stepper" style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px;">
     <a href="#price" @click.prevent="goToTab('#price')"
        class="stepper-pill chip" :class="{ 'active': activeTab === '#price' }"
@@ -225,6 +396,16 @@
        data-tab="#photos"
        style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
        data-testid="tab-photos"><span>Фото</span></a>
+    <a href="#mgh" @click.prevent="goToTab('#mgh')"
+       class="stepper-pill chip" :class="{ 'active': activeTab === '#mgh' }"
+       data-tab="#mgh"
+       style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
+       data-testid="tab-mgh"><span>МГХ</span></a>
+    <a href="#shipping" @click.prevent="goToTab('#shipping')"
+       class="stepper-pill chip" :class="{ 'active': activeTab === '#shipping' }"
+       data-tab="#shipping"
+       style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
+       data-testid="tab-shipping"><span>Доставка</span></a>
     <a href="#describe" @click.prevent="goToTab('#describe')"
        class="stepper-pill chip" :class="{ 'active': activeTab === '#describe' }"
        data-tab="#describe"
@@ -472,7 +653,7 @@
         </button>
 
         <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/6:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
         </div>
 
         <button type="button" @click="goToNext()" :disabled="!nextTab"
@@ -508,7 +689,7 @@
         </button>
 
         <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/6:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
         </div>
 
         <button type="button" @click="goToNext()" :disabled="!nextTab"
@@ -522,27 +703,49 @@
     </div>
   </div>
 
-  <!-- ================= STAGE 3: DESCRIBE & SHIPPING (#describe) ================= -->
-  <div x-show="activeTab === '#describe'" data-testid="stage-describe-panel" class="stack-3">
-    <!-- Ready for sale Checklist (§5.5.5) -->
-    <div class="card" style="padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 12px;" data-testid="checklist-card">
-      <h3 style="font-size: 1.05rem; font-weight: 700; margin-top: 0; margin-bottom: 8px;">Чек-лист «Готов к продаже»</h3>
-      <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; margin-bottom: 10px;">
-        <div>{{ '✓' if item.photos|length > 0 else '○' }} ≥ 1 фото предмета</div>
-        <div>{{ '✓' if item.description else '○' }} Заполнено описание</div>
-        <div>{{ '✓' if item.weight_g and item.dim_l_mm else '○' }} Указаны вес и габариты</div>
-        <div>{{ '✓' if item.shipping_policy else '○' }} Выбрана политика доставки</div>
-        <div>{{ '✓' if item.target_price else '○' }} Задана цена продажи</div>
-      </div>
-      <form method="post" action="/api/stock/{{ item.code }}/ready">
-        <button type="submit" class="btn btn-primary" style="padding: 8px 16px; font-weight: 700; border-radius: 8px;" data-testid="btn-ready-for-sale">
-          Готов к продаже
+  <!-- ================= STAGE 3: МГХ (#mgh) ================= -->
+  <div x-show="activeTab === '#mgh'" data-testid="stage-mgh-panel" class="stack-3">
+    <div class="card" style="padding: 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-top: 0; margin-bottom: 14px;">Этап 3. МГХ (массо-габаритные характеристики)</h2>
+      <form method="POST" action="/api/stock/{{ item.code }}" class="stack-3" data-testid="mgh-form">
+        <input type="hidden" name="next" value="/ui/stock/{{ item.code }}#mgh">
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="stock-weight">Вес товара (г)</label>
+            <input type="number" step="1" id="stock-weight" name="weight_g" class="wz-input"
+                   value="{{ item.get('weight_g', '') if item and item.get('weight_g') else '' }}" placeholder="Например: 450" data-testid="stock-weight">
+          </div>
+          <div class="field">
+            <label for="stock-packed-weight">Вес в упаковке (г)</label>
+            <input type="number" step="1" id="stock-packed-weight" name="packed_weight_g" class="wz-input"
+                   value="{{ item.get('packed_weight_g', '') if item and item.get('packed_weight_g') else '' }}" placeholder="Например: 600" data-testid="stock-packed-weight">
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="field">
+            <label for="stock-dim-l">Длина (мм)</label>
+            <input type="number" step="1" id="stock-dim-l" name="dim_l_mm" class="wz-input"
+                   value="{{ item.get('dim_l_mm', '') if item and item.get('dim_l_mm') else '' }}" placeholder="Длина" data-testid="stock-dim-l">
+          </div>
+          <div class="field">
+            <label for="stock-dim-w">Ширина (мм)</label>
+            <input type="number" step="1" id="stock-dim-w" name="dim_w_mm" class="wz-input"
+                   value="{{ item.get('dim_w_mm', '') if item and item.get('dim_w_mm') else '' }}" placeholder="Ширина" data-testid="stock-dim-w">
+          </div>
+          <div class="field">
+            <label for="stock-dim-h">Высота (мм)</label>
+            <input type="number" step="1" id="stock-dim-h" name="dim_h_mm" class="wz-input"
+                   value="{{ item.get('dim_h_mm', '') if item and item.get('dim_h_mm') else '' }}" placeholder="Высота" data-testid="stock-dim-h">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" style="padding: 10px 16px; font-weight: 600; margin-top: 8px;" data-testid="btn-save-mgh">
+          Сохранить МГХ
         </button>
       </form>
     </div>
-
-    <!-- Main Stock Item Form -->
-    {% include "_stock_form.html" %}
 
     <!-- Stage 3 Footer Navigation -->
     <div class="stepper-nav-bar stage-footer-nav" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 24px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
@@ -555,7 +758,7 @@
       </button>
 
       <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-        <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/6:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+        <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
       </div>
 
       <button type="button" @click="goToNext()" :disabled="!nextTab"
@@ -568,11 +771,110 @@
     </div>
   </div>
 
-  <!-- ================= STAGE 4: LISTINGS (#listings) ================= -->
+  <!-- ================= STAGE 4: ДОСТАВКА (#shipping) ================= -->
+  <div x-show="activeTab === '#shipping'" data-testid="stage-shipping-panel" class="stack-3">
+    <div class="card" style="padding: 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-top: 0; margin-bottom: 14px;">Этап 4. Доставка</h2>
+      <form method="POST" action="/api/stock/{{ item.code }}" class="stack-3" data-testid="shipping-form">
+        <input type="hidden" name="next" value="/ui/stock/{{ item.code }}#shipping">
+
+        <div class="field">
+          <label for="stock-shipping-policy">Кто платит за доставку</label>
+          <select id="stock-shipping-policy" name="shipping_policy" class="wz-select" data-testid="stock-shipping-policy">
+            {% for p in shipping_policy_options %}
+            <option value="{{ p.value }}" {% if item.get('shipping_policy') == p.value %}selected{% endif %}>{{ p.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" style="padding: 10px 16px; font-weight: 600;" data-testid="btn-save-shipping-policy">
+          Сохранить политику доставки
+        </button>
+      </form>
+
+      <div style="margin-top: 16px;">
+        {# Блок перевозчиков (§3.3): частичный шаблон, сервис shipping_options. #}
+        {% if item and item.get('shipping_summary_json') %}
+        {% include "_shipping_constructor.html" %}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Stage 4 Footer Navigation -->
+    <div class="stepper-nav-bar stage-footer-nav" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 24px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+      <button type="button" @click="goToPrev()" :disabled="!prevTab"
+              class="btn btn-secondary"
+              :style="!prevTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
+              style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+              data-testid="btn-stage-footer-prev">
+        <span style="font-size: 1.15rem; line-height: 1;">‹</span> Вернуться
+      </button>
+
+      <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+        <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+      </div>
+
+      <button type="button" @click="goToNext()" :disabled="!nextTab"
+              class="btn btn-primary"
+              :style="!nextTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
+              style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+              data-testid="btn-stage-footer-next">
+        Вперёд <span style="font-size: 1.15rem; line-height: 1;">›</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= STAGE 5: DESCRIBE (#describe) ================= -->
+  <div x-show="activeTab === '#describe'" data-testid="stage-describe-panel" class="stack-3">
+    <!-- Ready for sale Checklist (§5.5.5) -->
+    <div class="card" style="padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 12px;" data-testid="checklist-card">
+      <h3 style="font-size: 1.05rem; font-weight: 700; margin-top: 0; margin-bottom: 8px;">Чек-лист «Готов к продаже»</h3>
+      <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; margin-bottom: 10px;">
+        <div>{{ '✓' if item.photos|length > 0 else '○' }} ≥ 1 фото предмета</div>
+        <div>{{ '✓' if item.weight_g and item.dim_l_mm else '○' }} Указаны МГХ (вес и габариты)</div>
+        <div>{{ '✓' if item.shipping_policy else '○' }} Выбрана политика доставки</div>
+        <div>{{ '✓' if item.description else '○' }} Заполнено описание</div>
+        <div>{{ '✓' if item.target_price else '○' }} Задана цена продажи</div>
+      </div>
+      <form method="post" action="/api/stock/{{ item.code }}/ready">
+        <button type="submit" class="btn btn-primary" style="padding: 8px 16px; font-weight: 700; border-radius: 8px;" data-testid="btn-ready-for-sale">
+          Готов к продаже
+        </button>
+      </form>
+    </div>
+
+    <!-- Main Stock Item Form -->
+    {% include "_stock_form.html" %}
+
+    <!-- Stage 5 Footer Navigation -->
+    <div class="stepper-nav-bar stage-footer-nav" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 24px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+      <button type="button" @click="goToPrev()" :disabled="!prevTab"
+              class="btn btn-secondary"
+              :style="!prevTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
+              style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+              data-testid="btn-stage-footer-prev">
+        <span style="font-size: 1.15rem; line-height: 1;">‹</span> Вернуться
+      </button>
+
+      <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+        <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+      </div>
+
+      <button type="button" @click="goToNext()" :disabled="!nextTab"
+              class="btn btn-primary"
+              :style="!nextTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
+              style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+              data-testid="btn-stage-footer-next">
+        Вперёд <span style="font-size: 1.15rem; line-height: 1;">›</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= STAGE 6: LISTINGS (#listings) ================= -->
   <div x-show="activeTab === '#listings'" data-testid="stage-listings-panel" class="stack-3">
     <div class="card" style="padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;" data-testid="stock-listings">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
-        <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0;">Объявления на площадках ({{ item.listings_count }})</h2>
+        <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0;">Этап 6. Объявления на площадках ({{ item.listings_count }})</h2>
         <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
           <form method="post" action="/ui/listings/recheck-live" style="margin: 0;">
             <input type="hidden" name="item_code" value="{{ item.code }}">
@@ -851,7 +1153,7 @@
         </button>
 
         <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/6:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
         </div>
 
         <button type="button" @click="goToNext()" :disabled="!nextTab"
@@ -865,10 +1167,10 @@
     </div>
   </div>
 
-  <!-- ================= STAGE 5: SALE (#sale) ================= -->
+  <!-- ================= STAGE 7: SALE (#sale) ================= -->
   <div x-show="activeTab === '#sale'" data-testid="stage-sale-panel" class="stack-3">
     <div class="card" style="padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
-      <h2 style="font-size: 1.15rem; font-weight: 700; margin-top: 0; margin-bottom: 14px;">Этап 5. Продажа</h2>
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-top: 0; margin-bottom: 14px;">Этап 7. Продажа</h2>
 
       {% if item.deal %}
         <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
@@ -914,7 +1216,7 @@
         </button>
 
         <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/6:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
         </div>
 
         <button type="button" @click="goToNext()" :disabled="!nextTab"
@@ -928,10 +1230,10 @@
     </div>
   </div>
 
-  <!-- ================= STAGE 6: WARRANTY (#warranty) ================= -->
+  <!-- ================= STAGE 8: WARRANTY (#warranty) ================= -->
   <div x-show="activeTab === '#warranty'" data-testid="stage-warranty-panel" class="stack-3">
     <div class="card" style="padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
-      <h2 style="font-size: 1.15rem; font-weight: 700; margin-top: 0; margin-bottom: 14px;">Этап 6. Гарантия</h2>
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-top: 0; margin-bottom: 14px;">Этап 8. Гарантия</h2>
 
       {% if item.warranty_until %}
         <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
@@ -966,7 +1268,7 @@
         </button>
 
         <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап 6/6:</span> <span style="font-weight: 600;">Гарантия</span>
+          <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
         </div>
 
         <a href="/ui/stock" class="btn btn-primary"

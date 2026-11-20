@@ -33,7 +33,6 @@ def eligible_publish_keys(config: Any, category_key: str | None, keys: list[str]
         "aukro_cz",
         "bazar_cz",
         "mimibazar_cz",
-        "allegro_cz",
         "vinted",
         "ebay",
         "facebook_marketplace",

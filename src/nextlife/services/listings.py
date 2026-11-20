@@ -90,8 +90,9 @@ def prepare_item_listings(session: Session, item_code: str) -> list[Listing]:
     photo_ids = get_item_ordered_photo_ids(session, item_code)
 
     for mp_key in recommended_keys:
+        full_text = f"{item.title or ''} {item.description or ''} {item.usage or ''} {item.specs or ''}"
         cat_key, cat_path = get_marketplace_category_choice(
-            item.category_key, mp_key, text=f"{item.title or ''} {item.description or ''}", config=config
+            item.category_key, mp_key, text=full_text, config=config
         )
         existing = session.scalar(
             select(Listing).where(
@@ -109,21 +110,60 @@ def prepare_item_listings(session: Session, item_code: str) -> list[Listing]:
         item_currency = (item.target_currency or "CZK").strip().upper()
         target_currency = currency.strip().upper()
 
+        from nextlife.services.listing_text_builder import (
+            build_composite_listing_text,
+            build_item_delivery_text,
+        )
+        from nextlife.services.localize import translate_ad_text
+
+        # 1. Translate or keep title, description, usage, specs
+        if target_lang != source_lang:
+            l_title = translate_ad_text(item.title or item_code, target_lang=target_lang, source_lang=source_lang)
+            base_desc = translate_ad_text(item.description or "", target_lang=target_lang, source_lang=source_lang)
+            usage_text = translate_ad_text(item.usage or "", target_lang=target_lang, source_lang=source_lang) if item.usage else ""
+            specs_text = translate_ad_text(item.specs or "", target_lang=target_lang, source_lang=source_lang) if item.specs else ""
+        else:
+            l_title = item.title[:60] if item.title else item_code
+            base_desc = item.description or ""
+            usage_text = item.usage or ""
+            specs_text = item.specs or ""
+
+        # 2. Add delivery options text block if marketplace lacks dedicated delivery fields
+        delivery_text = build_item_delivery_text(
+            session=session,
+            item=item,
+            marketplace_key=mp_key,
+            mp_cfg=mp_cfg,
+            lang=target_lang,
+            config=config,
+        )
+
+        # 3. Assemble composite body (description + usage + specs + delivery)
+        l_desc = build_composite_listing_text(
+            description=base_desc,
+            usage=usage_text,
+            specs=specs_text,
+            delivery_block=delivery_text,
+            lang=target_lang,
+        )
+
         if existing:
-            if existing.status == ListingStatus.DRAFT.value and existing.lang != target_lang:
-                e_title, e_desc = translate_listing_content(
-                    item.title or item_code, item.description or "", target_lang=target_lang, source_lang=source_lang
-                )
-                existing.title = e_title[:60]
-                existing.description = e_desc
+            if existing.status == ListingStatus.DRAFT.value:
+                existing.title = l_title[:60]
+                existing.description = l_desc
                 existing.lang = target_lang
+                existing.category_key = cat_key
+                existing.category_path = cat_path
             else:
                 if not existing.title:
-                    existing.title = item.title[:60] if item.title else item_code
+                    existing.title = l_title[:60]
                 if not existing.description:
-                    existing.description = item.description or ""
+                    existing.description = l_desc
                 if not existing.lang:
                     existing.lang = target_lang
+                if existing.category_key in ("electronics", "general", None, ""):
+                    existing.category_key = cat_key
+                    existing.category_path = cat_path
 
             # Fix currency conversion for DRAFT/APPROVED listings if mismatched or uncalculated
             if existing.status in (ListingStatus.DRAFT.value, "APPROVED"):
@@ -185,14 +225,6 @@ def prepare_item_listings(session: Session, item_code: str) -> list[Listing]:
             )
             session.add(mp_db)
             session.flush()
-
-        if target_lang != source_lang:
-            l_title, l_desc = translate_listing_content(
-                item.title or item_code, item.description or "", target_lang=target_lang, source_lang=source_lang
-            )
-        else:
-            l_title = item.title[:60] if item.title else item_code
-            l_desc = item.description or ""
 
         listing = Listing(
             id=str(uuid.uuid4()),

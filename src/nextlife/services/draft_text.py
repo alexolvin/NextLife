@@ -57,9 +57,19 @@ def get_item_text_blocks(item: Item) -> dict[str, str]:
             f"Popis: Plně funkční, pečlivě otestováno a připraveno k odeslání."
         )
 
-    # 3. Финальный текст = каноническое описание.
+    # 3. Финальный текст: каноническое описание + использование и характеристики (если заполнены).
+    from nextlife.services.listing_text_builder import build_composite_listing_text
+
+    lang = (item.description_lang or "cs").strip().lower()
+    final_text = build_composite_listing_text(
+        description=description,
+        usage=item.usage,
+        specs=item.specs,
+        lang=lang,
+    )
+
     return {
         "notes": str(notes),
         "generated_desc": str(description),
-        "final_text": str(description),
+        "final_text": str(final_text),
     }

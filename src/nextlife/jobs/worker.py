@@ -5,13 +5,11 @@ Rule K-1: Module must strictly be <= 400 lines.
 
 from __future__ import annotations
 
-import logging
 import signal
-import sys
 import time
-from datetime import UTC, datetime
+import uuid
+from datetime import UTC, datetime, timedelta
 from types import FrameType
-from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session

@@ -37,7 +37,6 @@ DEFAULT_MARKETPLACE_CARRIERS: dict[str, list[str]] = {
     "vinted_cz": ["pickup", "zasilkovna", "balikovna", "ppl", "gls"],
     "bazar_cz": ["pickup", "zasilkovna", "balikovna", "cpost", "ppl", "gls", "courier"],
     "mimibazar_cz": ["pickup", "zasilkovna", "balikovna", "cpost", "ppl", "gls", "courier"],
-    "allegro_cz": ["pickup", "zasilkovna", "balikovna", "cpost", "ppl", "gls", "courier"],
     "bazos_sk": ["pickup", "zasilkovna", "cpost", "gls", "courier"],
     # Foreign marketplaces: Zásilkovna and Balíkovna are incompatible
     "kleinanzeigen_de": ["pickup", "gls", "courier", "cpost"],
@@ -60,7 +59,6 @@ DEFAULT_MARKETPLACE_TTL: dict[str, int] = {
     "vinted_cz": 30,
     "bazar_cz": 60,
     "mimibazar_cz": 90,
-    "allegro_cz": 30,
     "bazos_sk": 60,
 }
 
@@ -145,11 +143,19 @@ def filter_compatible_delivery_options(
             ckey = str(getattr(opt, "carrier_key", "") or "").lower().strip()
 
         # Normalize names like 'Zásilkovna' -> 'zasilkovna' if key missing
-        if ckey not in CARRIER_MAP:
+        import unicodedata
+        ckey_norm = "".join(
+            c for c in unicodedata.normalize("NFKD", ckey) if not unicodedata.combining(c)
+        )
+        if any(w in ckey_norm for w in ("osobn", "pickup", "prevzet", "odber", "predan")):
+            ckey = "pickup"
+        elif ckey not in CARRIER_MAP and ckey_norm not in CARRIER_MAP:
             for k in CARRIER_MAP:
-                if k in ckey:
+                if k in ckey or k in ckey_norm:
                     ckey = k
                     break
+        elif ckey_norm in CARRIER_MAP:
+            ckey = ckey_norm
 
         if ckey in allowed:
             compatible.append(opt)

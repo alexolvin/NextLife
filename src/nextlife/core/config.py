@@ -259,6 +259,19 @@ class MarketplaceConfig(BaseModel):
             or 3000
         )
 
+    @property
+    def has_dedicated_delivery_fields(self) -> bool:
+        """True if the marketplace provides dedicated separate form fields for delivery.
+
+        When False (e.g. classifieds like Bazoš, Sbazar), delivery options
+        must be included as a text block inside the listing description.
+        """
+        if "has_delivery_fields" in self.capabilities:
+            return bool(self.capabilities["has_delivery_fields"])
+        if "dedicated_delivery_fields" in self.capabilities:
+            return bool(self.capabilities["dedicated_delivery_fields"])
+        return self.key in {"aukro_cz", "vinted", "ebay"}
+
 
 class ShippingMethod(BaseModel):
     key: str

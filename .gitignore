@@ -16,6 +16,9 @@ secrets.yml
 kubeconfig
 *.kubeconfig
 .git/credentials
+*cookies*.json
+*storage_state*.json
+*.session.json
 
 # Agent / local AI tooling (never publish per §1.4 & §7)
 .agent/

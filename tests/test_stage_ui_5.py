@@ -65,22 +65,40 @@ def test_item_card_stepper_and_panels() -> None:
         assert r.status_code == 200
         html = r.text
 
-        # Stepper tabs (6 tabs)
+        # Stepper tabs (8 tabs: Оценка, Фото, МГХ, Доставка, Описание, Объявления, Продажа, Гарантия)
         assert 'data-testid="item-stepper"' in html
         assert 'data-testid="tab-price"' in html
         assert 'data-testid="tab-photos"' in html
+        assert 'data-testid="tab-mgh"' in html
+        assert 'data-testid="tab-shipping"' in html
         assert 'data-testid="tab-describe"' in html
         assert 'data-testid="tab-listings"' in html
         assert 'data-testid="tab-sale"' in html
         assert 'data-testid="tab-warranty"' in html
 
+        # Verify order in stepper: Фото -> МГХ -> Доставка -> Описание
+        idx_photos = html.index('data-testid="tab-photos"')
+        idx_mgh = html.index('data-testid="tab-mgh"')
+        idx_shipping = html.index('data-testid="tab-shipping"')
+        idx_describe = html.index('data-testid="tab-describe"')
+        assert idx_photos < idx_mgh < idx_shipping < idx_describe, "Stepper tabs order must be Photos -> МГХ -> Доставка -> Describe"
+
         # Stage panels
         assert 'data-testid="stage-price-panel"' in html
         assert 'data-testid="stage-photos-panel"' in html
+        assert 'data-testid="stage-mgh-panel"' in html
+        assert 'data-testid="stage-shipping-panel"' in html
         assert 'data-testid="stage-describe-panel"' in html
         assert 'data-testid="stage-listings-panel"' in html
         assert 'data-testid="stage-sale-panel"' in html
         assert 'data-testid="stage-warranty-panel"' in html
+
+        # Verify order of panels: Photos -> МГХ -> Доставка -> Describe
+        p_photos = html.index('data-testid="stage-photos-panel"')
+        p_mgh = html.index('data-testid="stage-mgh-panel"')
+        p_shipping = html.index('data-testid="stage-shipping-panel"')
+        p_describe = html.index('data-testid="stage-describe-panel"')
+        assert p_photos < p_mgh < p_shipping < p_describe, "Stage panels order must be Photos -> МГХ -> Доставка -> Describe"
 
         # Buttons
         assert 'data-testid="btn-back-stock"' in html

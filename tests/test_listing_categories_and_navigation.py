@@ -68,10 +68,38 @@ def test_get_marketplace_category_choice_bazos_and_canonical():
     assert k == "mobil/Apple"
     assert "Apple" in p
 
-    # Other marketplace without tree
+    # Sbazar with category tree
     k, p = get_marketplace_category_choice("gpu", "sbazar_cz")
+    assert k == "pocitace/Grafické karty"
+    assert "Grafické karty" in p
+
+    # Sbazar category tree matching for sound cards
+    k, p = get_marketplace_category_choice(
+        "electronics",
+        "sbazar_cz",
+        text="Mobile Pre M-AUDIO (preamp / audio interface / zvuková karta)",
+    )
+    assert k == "hudebni-nastroje/Zvukové karty a audio rozhraní"
+    assert "Zvukové karty a audio rozhraní" in p
+
+    # Marketplace with category tree
+    k, p = get_marketplace_category_choice("gpu", "bazar_cz")
+    assert k == "pocitace/Grafické karty"
+    assert "Grafické karty" in p
+
+    # Non-tree marketplace
+    k, p = get_marketplace_category_choice("gpu", "kleinanzeigen_de")
     assert k == "gpu"
     assert p == "Видеокарты"
+
+    # Bazos category tree matching for sound cards
+    k, p = get_marketplace_category_choice(
+        "electronics",
+        "bazos_cz",
+        text="Mobile Pre M-AUDIO (preamp / audio interface / zvuková karta)",
+    )
+    assert k == "pc/Zvukové karty"
+    assert "Zvukové karty" in p
 
 
 def test_get_listing_category_options():
@@ -82,10 +110,22 @@ def test_get_listing_category_options():
     assert pc_group is not None
     assert any(opt["key"] == "pc/Grafické karty" for opt in pc_group["options"])
 
-    # Non-tree marketplace
+    # Sbazar tree marketplace
     sbazar_opts = get_listing_category_options("sbazar_cz")
-    assert len(sbazar_opts) == 1
-    assert any(opt["key"] == "gpu" for opt in sbazar_opts[0]["options"])
+    assert len(sbazar_opts) == 13
+    sbazar_pc = next((g for g in sbazar_opts if "Počítače a IT" in g["group"]), None)
+    assert sbazar_pc is not None
+    assert any(opt["key"] == "pocitace/Grafické karty" for opt in sbazar_pc["options"])
+
+    # Bazar.cz tree marketplace
+    bazar_opts = get_listing_category_options("bazar_cz")
+    assert len(bazar_opts) == 16
+    assert any("Počítače" in g["group"] for g in bazar_opts)
+
+    # Non-tree marketplace
+    klein_opts = get_listing_category_options("kleinanzeigen_de")
+    assert len(klein_opts) == 1
+    assert any(opt["key"] == "gpu" for opt in klein_opts[0]["options"])
 
 
 def test_listing_detail_screen_renders_back_to_item_and_category_select():
@@ -316,6 +356,10 @@ def test_real_batch_creation_and_view_report_not_404():
     from nextlife.storage.models import Item, Listing
 
     with get_db_session() as session:
+        session.query(Listing).filter(Listing.item_code == "777").delete()
+        session.query(Item).filter(Item.code == "777").delete()
+        session.flush()
+
         # Create item and listing in DB
         it = Item(code="777", title="Batch Test Item", kind="SELL", category_key="gpu", condition_key="used", status="READY_FOR_SALE")
         session.add(it)

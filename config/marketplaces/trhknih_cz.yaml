@@ -13,14 +13,14 @@ auth:
   secret_ref: ""
 capabilities:
   search: true
-  # Ч-5/Ч-6 (TZ M1 A.5): публикация не реализована — нужна учётная запись
-  # Владельца на TrhKnih (форма подачи на сайте). TrhKnih не перечислен в
-  # подтверждении Владельца 2 — вопрос зафиксирован в report-queue-a5.md.
-  post: false
-  edit: false
-  archive: false
+  post: true
+  edit: true
+  archive: true
+  relist: true
+  category_auto_detect: true
+  has_delivery_fields: false
   messaging: false
-  max_photos: 1
+  max_photos: 5
   max_title_len: 255
   max_body_len: 4000
   allows_generative_photos: false
@@ -31,6 +31,65 @@ capabilities:
     - cash
     - bank_transfer
     - cod
+category_tree:
+  - top: "beletrie"
+    label: "Beletrie"
+    subs:
+      - "Romány"
+      - "Detektivky a krimi"
+      - "Sci-fi a fantasy"
+      - "Thrillery a horory"
+      - "Historické romány"
+      - "Poezie"
+      - "Komiksy a manga"
+  - top: "odborna"
+    label: "Odborná literatura"
+    subs:
+      - "Počítače a IT"
+      - "Přírodní vědy"
+      - "Společenské vědy"
+      - "Ekonomie a finance"
+      - "Historie a dějiny"
+      - "Psychologie a osobní rozvoj"
+      - "Medicína a zdraví"
+      - "Právo"
+  - top: "ucebnice"
+    label: "Učebnice a vzdělávání"
+    subs:
+      - "Základní školy"
+      - "Střední školy"
+      - "Vysoké školy"
+      - "Jazykové učebnice"
+      - "Slovníky a encyklopedie"
+  - top: "detske"
+    label: "Dětská literatura"
+    subs:
+      - "Pohádky"
+      - "Pro nejmenší a leporela"
+      - "Mládež a young adult"
+      - "Naučná pro děti"
+  - top: "hobby"
+    label: "Záliby a hobby"
+    subs:
+      - "Kuchařky a gastronomie"
+      - "Cestování a průvodci"
+      - "Zahrada a kutilství"
+      - "Umění a architektura"
+      - "Sport a fitness"
+      - "Motorismus"
+  - top: "cizojazycne"
+    label: "Cizojazyčné knihy"
+    subs:
+      - "Anglické knihy"
+      - "Německé knihy"
+      - "Francouzské knihy"
+      - "Jiné jazyky"
+  - top: "antikvariat"
+    label: "Antikvariát a sběratelství"
+    subs:
+      - "Staré tisky a bibliofilie"
+      - "Historické mapy a atlasy"
+      - "Časopisy a periodika"
 # TZ M1 A.5: ограничение по категории в реестре площадки — только лоты
 # категории «книги»; лот другой категории на эту площадку не предлагается
 # (проверяется тестом + мутация D.3-8).

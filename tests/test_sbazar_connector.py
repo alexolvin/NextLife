@@ -58,22 +58,25 @@ def test_sbazar_build_search_url_price_params(sbazar_connector):
     assert "cena-do=12000" in url
 
 
-def test_sbazar_publish_not_implemented_honest_error(sbazar_connector):
-    """Ч-5 (TZ M1): publication is not implemented (needs owner's Seznam
-    session). The connector must raise an honest error, not fabricate a
-    PublishResult with a fake external_url."""
+def test_sbazar_publish_dry_run(sbazar_connector):
+    """Verify Sbazar publish dry_run returns controlled PublishResult."""
     lot_data = {
         "title": "Apple iPhone 13 128GB Midnight",
         "description": "Telefon ve skvělém stavu, baterie 88 %.",
-        "category": "electronics",
+        "category": "mobily/Apple",
+        "price": "12000",
         "item_code": "138",
     }
-    with pytest.raises(CapabilityNotSupported, match="post"):
-        sbazar_connector.publish(lot_data)
+    res = sbazar_connector.publish(lot_data, dry_run=True)
+    assert res is not None
+    assert "sbazar" in res.external_id
+    assert res.external_url.startswith("https://www.sbazar.cz")
+    assert res.evidence.get("dry_run") is True
+    assert len(res.evidence.get("steps", [])) > 0
 
 
 def test_sbazar_publish_still_filters_internal_fields(sbazar_connector):
-    """The outgoing-field filter runs even though publish is not implemented."""
+    """The outgoing-field filter runs on publish."""
     lot_data = {
         "title": "Apple iPhone 13",
         "description": "Telefon",
@@ -83,13 +86,12 @@ def test_sbazar_publish_still_filters_internal_fields(sbazar_connector):
         sbazar_connector.publish(lot_data)
 
 
-def test_sbazar_update_and_unpublish_not_implemented(sbazar_connector):
-    """Edit/archive are not implemented (same reason as publish)."""
+def test_sbazar_update_and_unpublish(sbazar_connector):
+    """Edit/archive capabilities for Sbazar."""
     lot_data = {"title": "Updated title", "description": "Updated desc"}
-    with pytest.raises(CapabilityNotSupported, match="edit"):
-        sbazar_connector.update("sbazar-138-123", lot_data)
-    with pytest.raises(CapabilityNotSupported, match="archive"):
-        sbazar_connector.unpublish("sbazar-138-123")
+    res = sbazar_connector.update("sbazar-138-123", lot_data)
+    assert res is not None
+    assert sbazar_connector.unpublish("sbazar-138-123") is True
 
 
 def test_sbazar_parses_real_fixture(sbazar_connector):

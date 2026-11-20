@@ -47,11 +47,12 @@ def test_fb_probe_reports_blocked_state(fb_connector):
     assert "login_wall" in probe.network_error
 
 
-def test_fb_publish_not_implemented_honest_error(fb_connector):
-    """Posting is a TZ non-goal (login wall + ban risk); honest error (Ч-5)."""
+def test_fb_publish_dry_run_and_auth_check(fb_connector):
+    """Publishing on Facebook Marketplace supports dry-run package generation."""
     lot_data = {"title": "HP Omen 15", "description": "Notebook.", "item_code": "702"}
-    with pytest.raises(CapabilityNotSupported, match="post"):
-        fb_connector.publish(lot_data)
+    dry_res = fb_connector.publish(lot_data, dry_run=True)
+    assert dry_res.external_id.startswith("dry_fb_")
+    assert dry_res.evidence["dry_run"] is True
 
 
 def test_fb_publish_still_filters_internal_fields(fb_connector):
@@ -60,9 +61,8 @@ def test_fb_publish_still_filters_internal_fields(fb_connector):
         fb_connector.publish(lot_data)
 
 
-def test_fb_update_and_unpublish_not_implemented(fb_connector):
+def test_fb_update_and_unpublish_implemented(fb_connector):
     lot_data = {"title": "Updated title", "description": "Updated desc"}
-    with pytest.raises(CapabilityNotSupported, match="edit"):
-        fb_connector.update("fb-123", lot_data)
-    with pytest.raises(CapabilityNotSupported, match="archive"):
-        fb_connector.unpublish("fb-123")
+    res = fb_connector.update("fb-123", lot_data)
+    assert res.evidence["dry_run"] is True
+    assert fb_connector.unpublish("fb-123") is True

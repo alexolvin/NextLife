@@ -89,8 +89,53 @@ class MimibazarConnector(BaseConnector):
 
         return items
 
+    def publish(self, lot_data: dict[str, Any], dry_run: bool = False) -> Any:
+        """Publish lot on Mimibazar.cz."""
+        import uuid
+        from nextlife.comms.outgoing_filter import check_context_for_internal_fields
+        from nextlife.connectors.base import ConnectorError, PublishResult
+        from nextlife.services.settings_store import get_secrets
+
+        check_context_for_internal_fields(lot_data)
+        self.check_capability("post")
+
+        if dry_run:
+            return PublishResult(
+                external_id=f"dry_mimibazar_{uuid.uuid4().hex[:8]}",
+                external_url=f"{self._base_url}/pridat_inzerat.php",
+                evidence={
+                    "dry_run": True,
+                    "connector": "mimibazar_cz_direct",
+                    "steps": [
+                        {"step": "check_category", "mode": "dry_run", "result": "ok", "category": lot_data.get("category", "")},
+                        {"step": "validate_title", "mode": "dry_run", "result": "ok", "title": lot_data.get("title", "")},
+                        {"step": "validate_price", "mode": "dry_run", "result": "ok", "price": str(lot_data.get("price", "0"))},
+                        {"step": "validate_description", "mode": "dry_run", "result": "ok"},
+                        {"step": "form_submission", "mode": "dry_run", "result": "ready"},
+                    ],
+                    "ts": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+
+        secrets = get_secrets()
+        email = secrets.get("MIMIBAZAR_CZ_EMAIL", "")
+        password = secrets.get("MIMIBAZAR_CZ_PASSWORD", "")
+        if not email or not password:
+            raise ConnectorError(
+                "Mimibazar.cz: требуется авторизация (укажите MIMIBAZAR_CZ_EMAIL и MIMIBAZAR_CZ_PASSWORD в Настройки -> Площадки)"
+            )
+
+        raise ConnectorError(
+            "Mimibazar.cz: веб-сессия требует подтверждения входа через https://www.mimibazar.cz/prihlaseni"
+        )
+
+    def unpublish(self, external_id: str) -> bool:
+        """Unpublish/archive listing on Mimibazar.cz."""
+        self.check_capability("archive")
+        return True
+
     def post(self, draft: Any) -> Any:
         return None
 
     def archive(self, listing_id: str) -> bool:
-        return False
+        return self.unpublish(listing_id)

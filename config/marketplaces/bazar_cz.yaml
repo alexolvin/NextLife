@@ -1,6 +1,7 @@
 key: bazar_cz
 title: "Bazar.cz"
 country: CZ
+lang: cs
 currency: CZK
 access_mode: DIRECT
 search_mode: html
@@ -14,10 +15,12 @@ rate_limits:
   min_delay_seconds: 2
 capabilities:
   search: true
-  post: false
-  edit: false
-  archive: false
-  messaging: false
+  post: true
+  edit: true
+  archive: true
+  relist: true
+  category_auto_detect: true
+  has_delivery_fields: false
   max_photos: 10
   max_title_len: 70
   max_body_len: 3000
@@ -32,10 +35,172 @@ capabilities:
     - bank_transfer
     - cod
 selectors:
-  search_result: ".inzerat"
-  price: ".cena"
-  title: ".nadpis"
+  search_result: ".sale-item"
+  price: ".price"
+  title: ".title"
 routes:
-  search: "/?hledat={query}"
-  search_params:
-    query: "hledat"
+  search: "/hledat/{query}/"
+category_tree:
+  - top: pocitace
+    label: "Počítače"
+    subs:
+      - "Notebooky"
+      - "PC sestavy"
+      - "Komponenty"
+      - "Grafické karty"
+      - "Procesory"
+      - "Pevné disky a SSD"
+      - "Operační paměti"
+      - "Základní desky"
+      - "Monitory"
+      - "Klávesnice a myši"
+      - "Tiskárny a scannery"
+      - "Síťové prvky"
+      - "Herní konzole a hry"
+      - "Příslušenství"
+      - "Ostatní"
+
+  - top: elektro
+    label: "Elektro"
+    subs:
+      - "Audio a video"
+      - "Reproduktory"
+      - "Sluchátka"
+      - "Zesilovače"
+      - "Televize"
+      - "Domácí spotřebiče"
+      - "Bílá technika"
+      - "Ostatní elektro"
+
+  - top: mobil
+    label: "Mobil, navigace"
+    subs:
+      - "Apple"
+      - "Samsung"
+      - "Xiaomi"
+      - "Mobilní telefony ostatní"
+      - "Chytré hodinky"
+      - "Tablety"
+      - "Příslušenství k mobilům"
+      - "Ostatní"
+
+  - top: foto
+    label: "Foto"
+    subs:
+      - "Zrcadlovky"
+      - "Digitální kompakty"
+      - "Objektivy"
+      - "Blesky a stativy"
+      - "Drony"
+      - "Příslušenství"
+      - "Ostatní foto"
+
+  - top: hry-hobby
+    label: "Hry, hobby"
+    subs:
+      - "Herní konzole"
+      - "Hry na PC"
+      - "Hry na konzole"
+      - "Herní příslušenství"
+      - "Modelářství"
+      - "Ostatní"
+
+  - top: hudba-film
+    label: "Hudba, Film"
+    subs:
+      - "Hudební nástroje"
+      - "Kytary"
+      - "Klávesy"
+      - "Zvuková technika"
+      - "CD a DVD"
+      - "Vinyly a LP"
+      - "Ostatní"
+
+  - top: nabytek
+    label: "Nábytek"
+    subs:
+      - "Sedací soupravy a křesla"
+      - "Stoly a židle"
+      - "Postele a matrace"
+      - "Skříně a komody"
+      - "Kuchyně"
+      - "Ostatní nábytek"
+
+  - top: dum-zahrada
+    label: "Stavba, bydlení"
+    subs:
+      - "Nářadí a stroje"
+      - "Zahrada"
+      - "Stavební materiál"
+      - "Osvětlení"
+      - "Ostatní"
+
+  - top: sport
+    label: "Sport"
+    subs:
+      - "Kola a cyklistika"
+      - "Koloběžky"
+      - "Fitness"
+      - "Zimní sporty"
+      - "Outdoor a turistika"
+      - "Ostatní sport"
+
+  - top: obleceni
+    label: "Oblečení, boty, doplňky"
+    subs:
+      - "Pánské oblečení"
+      - "Dámské oblečení"
+      - "Dětské oblečení"
+      - "Boty"
+      - "Šperky a hodinky"
+      - "Módní doplňky"
+      - "Ostatní"
+
+  - top: pro-deti
+    label: "Pro děti"
+    subs:
+      - "Kočárky"
+      - "Autosedačky"
+      - "Hračky"
+      - "Dětský nábytek"
+      - "Ostatní"
+
+  - top: knihy
+    label: "Knihy"
+    subs:
+      - "Odborná literatura"
+      - "Beletrie"
+      - "Učebnice"
+      - "Časopisy"
+      - "Ostatní"
+
+  - top: auta
+    label: "Auta"
+    subs:
+      - "Osobní auta"
+      - "Náhradní díly"
+      - "Pneumatiky a disky"
+      - "Autodoplňky"
+      - "Ostatní"
+
+  - top: motorky
+    label: "Motorky"
+    subs:
+      - "Motocykly"
+      - "Skútry"
+      - "Náhradní díly a doplňky"
+      - "Ostatní"
+
+  - top: sberatelstvi
+    label: "Sběratelství"
+    subs:
+      - "Mince a bankovky"
+      - "Známky"
+      - "Starožitnosti"
+      - "Umění"
+      - "Ostatní"
+
+  - top: ostatni
+    label: "Ostatní"
+    subs:
+      - "Všechno ostatní"

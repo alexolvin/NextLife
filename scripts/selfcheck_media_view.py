@@ -137,6 +137,13 @@ def validate_c26(art_dir: Path, meta: dict[str, Any]) -> tuple[bool, str]:
     return False, "поведение неверно: обнаружены метаданные EXIF или GPS"
 
 
+def _switch_to_photos_tab(page) -> None:
+    tab = page.locator("[data-testid='tab-photos'], a[href='#photos']").first
+    if tab.count() > 0 and tab.is_visible():
+        tab.click()
+        page.wait_for_timeout(300)
+
+
 def run_c27(ctx: CheckContext, art_dir: Path) -> dict[str, Any]:
     """C-27: Lightbox next photo button (own lot + own photos)."""
     code = create_lot(ctx, "C-27 lightbox next")
@@ -152,6 +159,7 @@ def run_c27(ctx: CheckContext, art_dir: Path) -> dict[str, Any]:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto(f"{ctx.base_url}/ui/items/{code}?token={ctx.auth_token}")
+        _switch_to_photos_tab(page)
         img = page.locator(".slider-img, img[onclick*='openLightbox'], img[onclick*='openActiveLightbox']").first
         if img.count() > 0:
             img.click()
@@ -218,6 +226,7 @@ def run_c28(ctx: CheckContext, art_dir: Path) -> dict[str, Any]:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto(f"{ctx.base_url}/ui/items/{code}?token={ctx.auth_token}")
+        _switch_to_photos_tab(page)
         img = page.locator(".slider-img, img[onclick*='openLightbox'], img[onclick*='openActiveLightbox']").first
         if img.count() > 0:
             img.click()
@@ -283,6 +292,7 @@ def run_c29(ctx: CheckContext, art_dir: Path) -> dict[str, Any]:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto(f"{ctx.base_url}/ui/items/{code}?token={ctx.auth_token}")
+        _switch_to_photos_tab(page)
         img = page.locator(".slider-img, img[onclick*='openLightbox'], img[onclick*='openActiveLightbox']").first
         if img.count() > 0:
             img.click()

@@ -1,15 +1,15 @@
 key: bazos_sk
-title: "Bazoš.sk"
+title: Bazoš.sk
 country: SK
 lang: sk
 currency: EUR
 access_mode: ANDROID
 search_mode: html
-base_url: "https://www.bazos.sk"
-canary_query: "notebook"
+base_url: https://www.bazos.sk
+canary_query: notebook
 auth:
   type: none
-  secret_ref: "BAZOS_CZ_ACCOUNT_EMAIL"
+  secret_ref: BAZOS_CZ_ACCOUNT_EMAIL
 rate_limits:
   requests_per_minute: 30
   min_delay_seconds: 1
@@ -24,23 +24,508 @@ capabilities:
   max_title_len: 60
   max_body_len: 4000
   allows_generative_photos: false
+  has_delivery_fields: false
   delivery_options:
-    - pickup
-    - post
-    - zasilkovna
-    - packeta
+  - pickup
+  - post
+  - zasilkovna
+  - packeta
   payment_options:
-    - cash
-    - bank_transfer
-    - cod
+  - cash
+  - bank_transfer
+  - cod
+  category_auto_detect: true
 selectors:
-  search_result: ".inzeraty"
-  price: ".inzeratycena"
-  date: "span.velikost10"
+  search_result: .inzeraty
+  price: .inzeratycena
+  date: span.velikost10
 routes:
-  search: "/search.php"
+  search: /search.php
   search_params:
-    query: "hledat"
-    min_price: "cenaod"
-    max_price: "cenado"
-    zip_code: "hlokalita"
+    query: hledat
+    min_price: cenaod
+    max_price: cenado
+    zip_code: hlokalita
+category_tree:
+- top: pc
+  label: PC a IT
+  subs:
+  - DVD, Blu-ray mechaniky
+  - GPS navigácia
+  - Grafické karty
+  - Hard disky, SSD
+  - Herné konzoly
+  - Herné zariadenia
+  - Hry
+  - Chladiče
+  - Klávesnice
+  - Kopírovacie stroje
+  - Modemy
+  - LCD monitory
+  - Myši
+  - Notebooky
+  - Pamäte
+  - PC, Počítače
+  - Procesory
+  - Sieťové komponenty
+  - Scanery
+  - Skrine, zdroje
+  - Software
+  - Spotrebný materiál
+  - Tablety, E-čítačky
+  - Tlačiarne
+  - Wireless, WiFi
+  - Základné dosky
+  - Záložné zdroje
+  - Zvukové karty
+  - Ostatné
+  - '2'
+  - '3'
+  - '4'
+  - '5'
+  - '6'
+  - '7'
+  - '8'
+  - Ďalšia
+- top: mobil
+  label: Mobilné telefony
+  subs:
+  - Apple
+  - Google
+  - Huawei, Honor
+  - Motorola, Lenovo
+  - Nokia, Microsoft
+  - Realme
+  - Samsung
+  - Sony
+  - Xiaomi
+  - Ostatné značky
+  - Batérie
+  - Bezdrôtové telefóny
+  - Dátové kabely
+  - Faxy
+  - Headsety
+  - HF Sady do auta
+  - Inteligentné hodinky
+  - Klasické telefóny
+  - Kryty
+  - Nabíjačky
+  - Pamäťové karty
+  - Ostatné
+  - '2'
+  - '3'
+  - '4'
+  - '5'
+  - '6'
+  - '7'
+  - '8'
+  - Ďalšia
+- top: elektro
+  label: Elektro
+  subs:
+  - Digestory
+  - Chladničky
+  - Mikrovlnné rúry
+  - Mrazničky
+  - Práčky
+  - Sporáky
+  - Sušičky
+  - Umývačky riadu
+  - Ostatné - biela
+  - Autorádiá
+  - Domáce kiná
+  - Hifi systémy, Rádiá
+  - Projektory
+  - Repro sústavy
+  - Slúchadlá
+  - Televízory
+  - Video, DVD prehrávače
+  - Zosilňovače
+  - Ostatné audio video
+  - Epilátory, Depilátory
+  - Fény, Kulmy
+  - Holiace strojčeky
+  - Kávovary
+  - Nabíjačky batérií
+  - Ručné šľahače, Mixéry
+  - Svietidlá, Lampy
+  - Šijacie stroje
+  - Vysávače
+  - Vysielačky
+  - Zvlhčovače vzduchu
+  - Žehličky
+  - Ostatné drobné
+  - '2'
+  - '3'
+  - '4'
+  - '5'
+  - '6'
+  - '7'
+  - '8'
+  - Ďalšia
+- top: foto
+  label: Foto a video
+  subs:
+  - Analógové fotoaparáty
+  - Digitálne fotoaparáty
+  - Drony
+  - Videokamery
+  - Zrkadlovky
+  - Batérie
+  - Blesky a osvetlenie
+  - Brašne a púzdra
+  - Dátové káble
+  - Filtre
+  - Nabíjačky
+  - Objektívy
+  - Pamäťové karty
+  - Statívy
+  - Ostatné
+  - '2'
+  - '3'
+  - '4'
+  - '5'
+  - '6'
+  - '7'
+  - '8'
+  - Ďalšia
+- top: hudba
+  label: Hudba a nástroje
+  subs:
+  - Bicie nástroje
+  - Dychové nástroje
+  - Klávesové nástroje
+  - Sláčikové nástroje
+  - Strunové nástroje
+  - Ostatné nástroje
+  - DVD, CD, MC, LP
+  - Hudobníci a skupiny
+  - Koncerty
+  - Noty, texty
+  - Skúšobne
+  - Svetelná technika
+  - Zvuková technika
+  - Ostatné
+  - '2'
+  - '3'
+  - '4'
+  - '5'
+  - '6'
+  - '7'
+  - '8'
+  - Ďalšia
+- top: sport
+  label: Šport
+  subs:
+  - Fitness, jogging
+  - Golf
+  - Futbal
+  - In-lines, Skateboarding
+  - Kemping
+  - Letectvo
+  - Loptové hry
+  - Poľovníctvo, lov
+  - Paintball
+  - Rybolov
+  - Spoločenské hry
+  - Tenis, squash, badminton
+  - Turistika, horolezectvo
+  - Vodné športy, potápanie
+  - Všetko ostatné
+  - Kolobežky
+  - Horské bicykle
+  - Cestné bicykle
+  - Elektrobicykle
+  - Súčiastky a diely
+  - Ostatná cyklistika
+  - Bežkovanie
+  - Lyžovanie
+  - Skialpy
+  - Snowboarding
+  - Hokej, korčuľovanie
+  - Ostatné zimné
+  - '2'
+  - '3'
+  - '4'
+  - '5'
+  - '6'
+  - '7'
+  - '8'
+  - Ďalšia
+- top: dom
+  label: Dom a záhrada
+  subs:
+  - Bazény
+  - Čerpadlá
+  - Dvere, brány
+  - Klimatizácie
+  - Kosačky
+  - Kotle, Kachle, Bojlery
+  - Malotraktory, Kultivátory
+  - Miešačky
+  - Náradie
+  - Okná
+  - Píly
+  - Snežná technika
+  - Stavebný materiál
+  - Radiátory
+  - Rastliny
+  - Vybavenie dielne
+  - Vysávače/Fúkače
+  - Záhradné grily
+  - Záhradná technika
+  - Ostatné
+  - '2'
+  - '3'
+  - '4'
+  - '5'
+  - '6'
+  - '7'
+  - '8'
+  - Ďalšia
+- top: nabytok
+  label: Nábytok
+  subs:
+  - Jedálenské kúty
+  - Knižnice
+  - Koberce a podlahová krytina
+  - Kreslá a gauče
+  - Kuchyne
+  - Kúpeľne
+  - Lampy, osvetlenie
+  - Matrace
+  - Obývacie steny
+  - Postele
+  - Sedacie súpravy
+  - Skrine
+  - Spálne
+  - Stoličky
+  - Stoly
+  - Záhradný nábytok
+  - Doplnky
+  - Ostatný nábytok
+  - '2'
+  - '3'
+  - '4'
+  - '5'
+  - '6'
+  - '7'
+  - '8'
+  - Ďalšia
+- top: oblecenie
+  label: Oblečenie a obuv
+  subs:
+  - Blúzky
+  - Bundy a Kabáty
+  - Čiapky, Šatky
+  - Džínsy
+  - Funkčné prádlo
+  - Košele
+  - Kožené oblečenie
+  - Mikiny
+  - Nohavice
+  - Obleky, Saká
+  - Plavky
+  - Rukavice a Šály
+  - Spodná bielizeň
+  - Sukne
+  - Svadobné šaty
+  - Svetre
+  - Šaty, Kostýmy
+  - Šortky
+  - Športové oblečenie
+  - Tehotenské oblečenie
+  - Tričká, roláky, tielka
+  - Doplnky
+  - Hodinky
+  - Kabelky
+  - Plecniaky a kufre
+  - Topánky, obuv
+  - Šperky
+  - Ostatné
+  - '2'
+  - '3'
+  - '4'
+  - '5'
+  - '6'
+  - '7'
+  - '8'
+  - Ďalšia
+- top: knihy
+  label: Knihy a časopisy
+  subs:
+  - Beletria
+  - Detektívky, trilery
+  - Historické romány
+  - Humor
+  - Knihy pre ženy
+  - Komiksy
+  - Poézia
+  - Sci-fi, Fantasy
+  - Životopisy
+  - Pre najmenších
+  - Pre deti
+  - Pre mládež
+  - Cestovanie, mapy
+  - Dieťa, rodina a vzťahy
+  - Encyklopédie
+  - Ezoterika
+  - Hobby, odborné knihy
+  - Kuchárky
+  - Počítačová literatúra
+  - Rozvoj osobnosti
+  - Učebnice, skriptá - ZŠ
+  - Učebnice, skriptá - SŠ
+  - Učebnice, skriptá - VŠ
+  - Učebnice, skriptá - Jazykové
+  - Zdravý životný štýl
+  - Cudzojazyčná literatúra
+  - Časopisy
+  - Ostatné
+  - '2'
+  - '3'
+  - '4'
+  - '5'
+  - '6'
+  - '7'
+  - '8'
+  - Ďalšia
+- top: auto
+  label: Auto
+  subs:
+  - Alfa Romeo
+  - Audi
+  - BMW
+  - Citroën
+  - Dacia
+  - Fiat
+  - Ford
+  - Honda
+  - Hyundai
+  - Chevrolet
+  - Kia
+  - Mazda
+  - Mercedes-Benz
+  - Mitsubishi
+  - Nissan
+  - Opel
+  - Peugeot
+  - Renault
+  - Seat
+  - Suzuki
+  - Škoda
+  - Toyota
+  - Volkswagen
+  - Volvo
+  - Ostatné značky
+  - Havarované
+  - Náhradné diely
+  - Pneumatiky, kolesá
+  - Príslušenstvo
+  - Tuning
+  - Veterány
+  - Autobusy
+  - Dodávky
+  - Mikrobusy
+  - Karavany, obytné autá
+  - Nákladné autá
+  - Pick-up
+  - Vozíky, prívesy
+  - Ostatné
+  - '2'
+  - '3'
+  - '4'
+  - '5'
+  - '6'
+  - '7'
+  - '8'
+  - Ďalšia
+- top: motocykle
+  label: Motocykle
+  subs:
+  - Cestné motocykle
+  - Cestovné motocykle
+  - Enduro
+  - Chopper
+  - Minibike
+  - Mopedy
+  - Skútre
+  - Skútre vodné
+  - Skútre snežné
+  - Štvorkolky
+  - Trojkolky
+  - Veterány
+  - Náhradné diely
+  - Oblečenie, obuv, helmy
+  - Ostatné
+  - '2'
+  - '3'
+  - '4'
+  - '5'
+  - '6'
+  - '7'
+  - '8'
+  - Ďalšia
+- top: deti
+  label: Deti a kočíky
+  subs:
+  - Autosedačky
+  - Baby monitory
+  - Bicykle
+  - Hračky
+  - Chodítka a hopsadlá
+  - Kočíky
+  - Kojenecké potreby
+  - Lego
+  - Nábytok pre deti
+  - Nosiče
+  - Odrážadlá
+  - Sedačky na bicykel
+  - Športové potreby
+  - Školské potreby
+  - Ostatné
+  - Body, dupačky a overaly
+  - Bundy a kabátiky
+  - Čiapky a klobúčiky
+  - Nohavice, kraťasy a tepláky
+  - Kombinézy
+  - Komplety
+  - Mikiny a svetre
+  - Obuv
+  - Plavky
+  - Ponožky a pančušky
+  - Pyžamká a župančeky
+  - Rukavice a šály
+  - Spodná bielizeň
+  - Sukničky a šatočky
+  - Tričká a košieľky
+  - Ostatné oblečenie
+  - '2'
+  - '3'
+  - '4'
+  - '5'
+  - '6'
+  - '7'
+  - '8'
+  - Ďalšia
+- top: ostatne
+  label: Ostatné
+  subs:
+  - Mince, bankovky
+  - Modelárstvo
+  - Potraviny
+  - Sklo, keramika
+  - Starožitnosti
+  - Umelecké predmety
+  - Zberateľstvo
+  - Zdravie a krása
+  - Známky, pohľadnice
+  - Ostatné
+  - '2'
+  - '3'
+  - '4'
+  - '5'
+  - '6'
+  - '7'
+  - '8'
+  - Ďalšia

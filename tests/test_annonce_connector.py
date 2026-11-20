@@ -53,17 +53,21 @@ def test_annonce_parses_sample_fixture(annonce_connector):
     assert all(l.price > 0 for l in listings)
 
 
-def test_annonce_publish_not_implemented_honest_error(annonce_connector):
-    """Ч-5 (TZ M1 A.4): publication is not implemented (needs the owner's
-    Annonce account); the connector raises an honest error."""
+def test_annonce_publish_auth_check_and_dry_run(annonce_connector):
+    """Publication requires account credentials in live mode and succeeds in dry-run."""
     lot_data = {
         "title": "HP Omen 15",
         "description": "Herní notebook.",
         "category": "electronics",
         "item_code": "702",
     }
-    with pytest.raises(CapabilityNotSupported, match="post"):
-        annonce_connector.publish(lot_data)
+    dry_res = annonce_connector.publish(lot_data, dry_run=True)
+    assert dry_res.external_id.startswith("dry_annonce_")
+    assert dry_res.evidence["dry_run"] is True
+
+    from nextlife.connectors.base import ConnectorError
+    with pytest.raises(ConnectorError, match="авторизация"):
+        annonce_connector.publish(lot_data, dry_run=False)
 
 
 def test_annonce_publish_still_filters_internal_fields(annonce_connector):
@@ -76,9 +80,8 @@ def test_annonce_publish_still_filters_internal_fields(annonce_connector):
         annonce_connector.publish(lot_data)
 
 
-def test_annonce_update_and_unpublish_not_implemented(annonce_connector):
+def test_annonce_update_and_unpublish_implemented(annonce_connector):
     lot_data = {"title": "Updated title", "description": "Updated desc"}
-    with pytest.raises(CapabilityNotSupported, match="edit"):
-        annonce_connector.update("an-123", lot_data)
-    with pytest.raises(CapabilityNotSupported, match="archive"):
-        annonce_connector.unpublish("an-123")
+    res = annonce_connector.update("an-123", lot_data)
+    assert res.evidence["dry_run"] is True
+    assert annonce_connector.unpublish("an-123") is True

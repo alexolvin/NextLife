@@ -51,17 +51,23 @@ def test_hyperinzerce_parses_sample_fixture(hyperinzerce_connector):
     assert all(l.price > 0 for l in listings)
 
 
-def test_hyperinzerce_publish_not_implemented_honest_error(hyperinzerce_connector):
-    """Ч-5 (TZ M1 A.4): publication is not implemented (needs the owner's
-    Hyperinzerce account); the connector raises an honest error."""
+def test_hyperinzerce_publish_auth_check_and_dry_run(hyperinzerce_connector):
+    """Publication requires account credentials in live mode and succeeds in dry-run."""
     lot_data = {
         "title": "Lenovo ThinkPad T14s",
         "description": "Notebook v perfektním stavu.",
         "category": "electronics",
         "item_code": "701",
     }
-    with pytest.raises(CapabilityNotSupported, match="post"):
-        hyperinzerce_connector.publish(lot_data)
+    # dry-run returns PublishResult
+    dry_res = hyperinzerce_connector.publish(lot_data, dry_run=True)
+    assert dry_res.external_id.startswith("dry_hyperinzerce_")
+    assert dry_res.evidence["dry_run"] is True
+
+    # live run without credentials raises ConnectorError requiring credentials
+    from nextlife.connectors.base import ConnectorError
+    with pytest.raises(ConnectorError, match="авторизация"):
+        hyperinzerce_connector.publish(lot_data, dry_run=False)
 
 
 def test_hyperinzerce_publish_still_filters_internal_fields(hyperinzerce_connector):
@@ -74,9 +80,8 @@ def test_hyperinzerce_publish_still_filters_internal_fields(hyperinzerce_connect
         hyperinzerce_connector.publish(lot_data)
 
 
-def test_hyperinzerce_update_and_unpublish_not_implemented(hyperinzerce_connector):
+def test_hyperinzerce_update_and_unpublish_implemented(hyperinzerce_connector):
     lot_data = {"title": "Updated title", "description": "Updated desc"}
-    with pytest.raises(CapabilityNotSupported, match="edit"):
-        hyperinzerce_connector.update("hi-123", lot_data)
-    with pytest.raises(CapabilityNotSupported, match="archive"):
-        hyperinzerce_connector.unpublish("hi-123")
+    res = hyperinzerce_connector.update("hi-123", lot_data)
+    assert res.evidence["dry_run"] is True
+    assert hyperinzerce_connector.unpublish("hi-123") is True

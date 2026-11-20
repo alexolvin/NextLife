@@ -108,7 +108,7 @@ run_sudo chmod -R u+rwX,g+rX,o-rwx "$TARGET_DIR"
 # 4. Database migrations
 log "Step 4: Running alembic migrations"
 if [ -x "$VENV_DIR/bin/alembic" ] && [ -f "$TARGET_DIR/alembic.ini" ]; then
-    run_sudo -u nextlife bash -c "set -a; [ -f '$TARGET_DIR/.env' ] && . '$TARGET_DIR/.env'; '$VENV_DIR/bin/alembic' -c '$TARGET_DIR/alembic.ini' upgrade head"
+    run_sudo -u nextlife bash -c "cd '$TARGET_DIR'; set -a; [ -f '$TARGET_DIR/.env' ] && . '$TARGET_DIR/.env'; '$VENV_DIR/bin/alembic' -c '$TARGET_DIR/alembic.ini' upgrade head"
     log "  Migrations applied successfully"
 fi
 

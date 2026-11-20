@@ -426,10 +426,11 @@ def api_prepare_listings(code: str, request: Request, auth: bool = Depends(check
     """Prepare draft listings for item (§5.6)."""
     with get_db_session() as session:
         created = prepare_item_listings(session, code)
+        listing_ids = [row.id for row in created]
         session.commit()
     if request.url.path.startswith("/ui/"):
         return RedirectResponse(url=f"/ui/stock/{code}#listings", status_code=status.HTTP_303_SEE_OTHER)
-    return {"status": "ok", "item_code": code, "prepared_count": len(created), "listings": [row.id for row in created]}
+    return {"status": "ok", "item_code": code, "prepared_count": len(listing_ids), "listings": listing_ids}
 
 
 @router.post("/api/listings/publish-approved")

@@ -1,25 +1,30 @@
 key: sbazar_cz
 title: Sbazar.cz
 country: CZ
+lang: cs
 currency: CZK
-access_mode: DIRECT
+access_mode: ANDROID
+search_mode: html
 base_url: "https://www.sbazar.cz"
-# D.1 daily canary: harmless query; search cards expose no date (honest None).
 canary_query: "notebook"
 auth:
   type: none
   secret_ref: ""
+rate_limits:
+  requests_per_minute: 20
+  min_delay_seconds: 2
 capabilities:
   search: true
-  # Ч-5/Ч-6 (TZ M1): публикация не реализована — нужна сессия Seznam
-  # Владельца (Playwright, А.4). До этого capabilities обязаны отражать
-  # реальность: публикация/правка/снятие/переписка на Sbazar не выполняются.
-  post: false
-  edit: false
-  archive: false
-  messaging: false
+  post: true
+  edit: true
+  archive: true
+  relist: true
+  auto_unpublish: true
+  auto_relist: true
+  category_auto_detect: true
+  has_delivery_fields: false
   max_photos: 10
-  max_title_len: 60
+  max_title_len: 50
   max_body_len: 3000
   allows_generative_photos: false
   delivery_options:
@@ -32,13 +37,10 @@ capabilities:
     - bank_transfer
     - cod
 selectors:
-  # Live markup captured 2026-10-03 (raw HTML: .a/reports/m1/probes/2026-10-03/sbazar_cz.html):
-  # ul[data-test=offer-list] > li[data-offer-id] > a[href*=/inzerat/], price = <b>.
   search_result: "li[data-offer-id]"
   price: "b"
   title: "div.line-clamp-2"
 routes:
-  # Live route verified 2026-10-03: /hledat/ is 404, /hledej/ returns 200 SSR.
   search: "/hledej/{query}"
   search_params:
     min_price: "cena-od"
@@ -57,24 +59,166 @@ mapping:
     cash: "Hotově"
     bank_transfer: "Bankovní převod"
     cod: "Dobírka"
-rate_limits:
-  requests_per_minute: 20
-  min_delay_seconds: 2
-# TZ Marketplaces: phone-broker channel. The broker is the SINGLE source of
-# truth for the app package (cz.seznam.sbazar) and the rate limits.
-# Fingerprints are captured during Phase 2 (sale via phone, dry_run) and are
-# version-tied.
 android:
   platform_id: sbazar_cz
+  package: "cz.seznam.sbazar"
   fingerprints: []
-media:
-  max_photos: null
-  min_width: null
-  min_height: null
-  max_width: null
-  max_height: null
-  aspect_preferred: null
-  max_file_bytes: null
-  formats: []
-  source_url: null
-  verified_at: null
+category_tree:
+  - top: pocitace
+    label: "Počítače a IT"
+    subs:
+      - "Notebooky"
+      - "PC Sestavy"
+      - "Komponenty"
+      - "Grafické karty"
+      - "Procesory"
+      - "Základní desky"
+      - "Pevné disky a SSD"
+      - "RAM paměti"
+      - "PC skříně a zdroje"
+      - "Chladiče"
+      - "Monitory"
+      - "Klávesnice a myši"
+      - "Tiskárny a scannery"
+      - "Síťové prvky"
+      - "Software"
+      - "Herní zařízení"
+      - "Příslušenství"
+      - "Ostatní"
+
+  - top: mobily
+    label: "Mobily a chytrá zařízení"
+    subs:
+      - "Apple"
+      - "Samsung"
+      - "Xiaomi"
+      - "Chytré telefony"
+      - "Chytré hodinky"
+      - "Tablety a čtečky knih"
+      - "Příslušenství"
+      - "Ostatní"
+
+  - top: audio-video
+    label: "Audio a video"
+    subs:
+      - "Reproduktory"
+      - "Sluchátka a mikrofony"
+      - "Zvuková technika"
+      - "Televize"
+      - "Zesilovače"
+      - "HiFi komponenty"
+      - "Projektory"
+      - "Přehrávače"
+      - "Ostatní"
+
+  - top: foto
+    label: "Fotoaparáty a optika"
+    subs:
+      - "Zrcadlovky"
+      - "Digitální fotoaparáty"
+      - "Kompaktní fotoaparáty"
+      - "Objektivy"
+      - "Blesky a stativy"
+      - "Příslušenství k fotoaparátům"
+      - "Drony"
+      - "Ostatní"
+
+  - top: konzole-hry
+    label: "Herní konzole a hry"
+    subs:
+      - "PlayStation"
+      - "Xbox"
+      - "Nintendo"
+      - "Herní konzole"
+      - "Počítačové hry"
+      - "Konzolové hry"
+      - "Herní příslušenství"
+      - "Ostatní"
+
+  - top: hudebni-nastroje
+    label: "Hudební nástroje"
+    subs:
+      - "Kytary"
+      - "Klávesové nástroje"
+      - "Zvukové karty a audio rozhraní"
+      - "Mikrofony"
+      - "Bicí nástroje"
+      - "Dechové nástroje"
+      - "Ostatní"
+
+  - top: dum-byt-zahrada
+    label: "Dům, byt a zahrada"
+    subs:
+      - "Nábytek"
+      - "Sedačky a křesla"
+      - "Stoly a židle"
+      - "Postele a matrace"
+      - "Skříně a komody"
+      - "Kuchyně"
+      - "Osvětlení"
+      - "Domácí spotřebiče"
+      - "Zahrada a nářadí"
+      - "Stavebnictví"
+      - "Ostatní"
+
+  - top: sport
+    label: "Sport a outdoor"
+    subs:
+      - "Horská kola"
+      - "Jízdní kola"
+      - "Koloběžky"
+      - "Zimní sporty"
+      - "Fitness a posilování"
+      - "Outdoor a turistika"
+      - "Míčové sporty"
+      - "Vodní sporty"
+      - "Ostatní"
+
+  - top: obleceni
+    label: "Oblečení, obuv a doplňky"
+    subs:
+      - "Pánské oblečení"
+      - "Dámské oblečení"
+      - "Dětské oblečení"
+      - "Boty"
+      - "Bundy a kabáty"
+      - "Šperky a hodinky"
+      - "Módní doplňky"
+      - "Ostatní"
+
+  - top: detske-zbozi
+    label: "Dětský bazar"
+    subs:
+      - "Kočárky"
+      - "Autosedačky"
+      - "Hračky"
+      - "Dětský nábytek"
+      - "Pro děti"
+      - "Ostatní"
+
+  - top: knihy
+    label: "Knihy a literatura"
+    subs:
+      - "Odborná literatura"
+      - "Beletrie"
+      - "Učebnice"
+      - "Časopisy"
+      - "Ostatní"
+
+  - top: auto-moto
+    label: "Auto-moto"
+    subs:
+      - "Osobní automobily"
+      - "Motocykly"
+      - "Náhradní díly"
+      - "Pneumatiky a disky"
+      - "Autodoplňky"
+      - "Ostatní"
+
+  - top: ostatni
+    label: "Ostatní"
+    subs:
+      - "Starožitnosti a umění"
+      - "Sběratelství"
+      - "Hobby a volný čas"
+      - "Všechno ostatní"

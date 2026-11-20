@@ -139,17 +139,27 @@
     }
 
     function openLightbox(src, gallerySelector) {
+      if (typeof window.openGalleryLightbox === 'function' && !gallerySelector) {
+        return window.openGalleryLightbox(src);
+      }
       if (gallerySelector) {
         currentGalleryImages = Array.from(document.querySelectorAll(gallerySelector)).map(function(img) { return img.src; });
+      } else if (document.querySelectorAll('#thumb-strip img, .thumb-strip img').length > 0) {
+        currentGalleryImages = Array.from(document.querySelectorAll('#thumb-strip img, .thumb-strip img')).map(function(img) { return img.src; });
       } else {
-        currentGalleryImages = Array.from(document.querySelectorAll('img[onclick*="openLightbox"]')).map(function(img) { return img.src; });
+        currentGalleryImages = Array.from(document.querySelectorAll('img[onclick*="openLightbox"], img[onclick*="openActiveLightbox"], .slider-img')).map(function(img) { return img.src; });
       }
+      currentGalleryImages = Array.from(new Set(currentGalleryImages.filter(Boolean)));
       currentGalleryIndex = currentGalleryImages.indexOf(src);
       if (currentGalleryIndex === -1) currentGalleryIndex = 0;
       renderLightboxThumbnails();
       updateLightboxDisplay();
       document.getElementById('lightbox').style.display = 'flex';
     }
+
+    window.openActiveLightbox = function(src) {
+      return openLightbox(src);
+    };
 
     function updateLightboxDisplay() {
       if (currentGalleryImages.length > 0) {
@@ -168,6 +178,9 @@
               thumb.classList.remove('active');
             }
           });
+        }
+        if (typeof window.syncGalleryFromLightbox === 'function') {
+          window.syncGalleryFromLightbox(currentGalleryImages[currentGalleryIndex]);
         }
       }
     }

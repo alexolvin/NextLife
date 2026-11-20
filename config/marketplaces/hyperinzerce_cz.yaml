@@ -1,24 +1,26 @@
 key: hyperinzerce_cz
 title: Hyperinzerce.cz
 country: CZ
+lang: cs
 currency: CZK
 access_mode: DIRECT
+search_mode: html
 base_url: "https://hyperinzerce.cz"
-# D.1 daily canary: harmless query.
 canary_query: "notebook"
 auth:
   type: none
   secret_ref: ""
+rate_limits:
+  requests_per_minute: 20
+  min_delay_seconds: 2
 capabilities:
   search: true
-  # Ч-5/Ч-6 (TZ M1 A.4): публикация не реализована — нужна учётная запись
-  # Владельца на Hyperinzerce (форма подачи на сайте). До этого capabilities
-  # обязаны отражать реальность. Лимиты max_* — консервативные, верифицировать
-  # при подключении формы подачи.
-  post: false
-  edit: false
-  archive: false
-  messaging: false
+  post: true
+  edit: true
+  archive: true
+  relist: true
+  category_auto_detect: true
+  has_delivery_fields: false
   max_photos: 10
   max_title_len: 60
   max_body_len: 4000
@@ -33,47 +35,144 @@ capabilities:
     - bank_transfer
     - cod
 selectors:
-  # Live markup 2026-10-04 (.a/reports/m1/probes/2026-10-04/
-  # hyperinzerce_cz_search_notebook.html): 20 cards, price «4 444 Kč» или
-  # «Dohodou» (без цены — карточка пропускается парсером). Даты на карточках
-  # выдачи НЕТ (Ч-1: posted_at остаётся None).
   search_result: ".c-ad-list__item"
   price: ".c-ad-list__item-price"
   title: "a.c-ad-list__item-name"
 routes:
-  # Live-verified 2026-10-04: GET /inzeraty/Index?query=...; GET-параметры
-  # цены PriceFrom/PriceTo проверены живой пробой (диапазон 1000-5000).
   search: "/inzeraty/Index"
   search_params:
     query: "query"
     min_price: "PriceFrom"
     max_price: "PriceTo"
-mapping:
-  category_map:
-    electronics: "pocitace-a-hry"
-  condition_map:
-    used: "použité"
-  delivery_map:
-    pickup: "Osobní předání"
-    post: "Pošta / balík"
-    zasilkovna: "Zásilkovna"
-    courier: "Kuryr"
-  payment_map:
-    cash: "Hotově"
-    bank_transfer: "Bankovní převod"
-    cod: "Dobírka"
-rate_limits:
-  requests_per_minute: 20
-  min_delay_seconds: 2
+category_tree:
+  - top: pc
+    label: "PC a elektro"
+    subs:
+      - "Notebooky"
+      - "PC sestavy"
+      - "PC komponenty"
+      - "Grafické karty"
+      - "Procesory"
+      - "Pevné disky a SSD"
+      - "Operační paměti"
+      - "Základní desky"
+      - "Monitory"
+      - "Tiskárny"
+      - "Příslušenství a periferie"
+      - "Síťové prvky"
+      - "Herní konzole"
+      - "Software"
+      - "Ostatní"
 
-media:
-  max_photos: null
-  min_width: null
-  min_height: null
-  max_width: null
-  max_height: null
-  aspect_preferred: null
-  max_file_bytes: null
-  formats: []
-  source_url: null
-  verified_at: null
+  - top: mobily
+    label: "Mobily a komunikace"
+    subs:
+      - "Mobilní telefony"
+      - "Apple iPhone"
+      - "Samsung"
+      - "Xiaomi"
+      - "Chytré hodinky"
+      - "Tablety a PDA"
+      - "Příslušenství k mobilům"
+      - "GPS navigace"
+      - "Ostatní"
+
+  - top: audio-video
+    label: "Audio, video, TV"
+    subs:
+      - "Sluchátka"
+      - "Reproduktory"
+      - "Televize"
+      - "Zesilovače a receivery"
+      - "HiFi technika"
+      - "Zvukové karty a audio"
+      - "Ostatní audio-video"
+
+  - top: foto
+    label: "Fotoaparáty a optika"
+    subs:
+      - "Digitální zrcadlovky"
+      - "Kompaktní fotoaparáty"
+      - "Objektivy"
+      - "Blesky a stativy"
+      - "Příslušenství"
+      - "Ostatní foto"
+
+  - top: dum-byt-zahrada
+    label: "Dům, byt a zahrada"
+    subs:
+      - "Nábytek"
+      - "Stoly a židle"
+      - "Sedací soupravy a křesla"
+      - "Postele a matrace"
+      - "Skříně a komody"
+      - "Kuchyně"
+      - "Domácí spotřebiče"
+      - "Nářadí a dílna"
+      - "Zahrada"
+      - "Ostatní"
+
+  - top: sport-hobby
+    label: "Sport a hobby"
+    subs:
+      - "Kola a cyklistika"
+      - "Koloběžky"
+      - "Fitness a posilování"
+      - "Zimní sporty"
+      - "Outdoor a turistika"
+      - "Hudební nástroje"
+      - "Ostatní sport"
+
+  - top: detske-zbozi
+    label: "Dětské zboží"
+    subs:
+      - "Kočárky"
+      - "Autosedačky"
+      - "Hračky"
+      - "Dětský nábytek"
+      - "Dětské oblečení a obuv"
+      - "Ostatní"
+
+  - top: moda-doplnky
+    label: "Móda a doplňky"
+    subs:
+      - "Pánské oblečení"
+      - "Dámské oblečení"
+      - "Obuv"
+      - "Hodinky a šperky"
+      - "Módní doplňky"
+      - "Ostatní"
+
+  - top: sberatelstvi
+    label: "Sběratelství"
+    subs:
+      - "Starožitnosti"
+      - "Numismatika a mince"
+      - "Filatelie"
+      - "Umění a obrazy"
+      - "Modelářství"
+      - "Ostatní"
+
+  - top: knihy
+    label: "Knihy a kultura"
+    subs:
+      - "Odborná literatura"
+      - "Beletrie"
+      - "Učebnice"
+      - "Časopisy"
+      - "Ostatní"
+
+  - top: auto-moto
+    label: "Auto-moto"
+    subs:
+      - "Osobní automobily"
+      - "Motocykly"
+      - "Náhradní díly"
+      - "Pneumatiky a disky"
+      - "Autodoplňky"
+      - "Ostatní"
+
+  - top: ostatni
+    label: "Ostatní"
+    subs:
+      - "Všechno ostatní"

@@ -157,6 +157,8 @@ def assemble_listing_text(
         "condition_grade_definition": grade_info.get("definition_cs", ""),
         "usage_profile": usage_profile,
         "description": item_data.get("description", ""),
+        "usage": item_data.get("usage", ""),
+        "specs": item_data.get("specs", ""),
         "box_present": box_present,
         "receipt_present": receipt_present,
         "warranty_text": warranty_text,

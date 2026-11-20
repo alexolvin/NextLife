@@ -49,7 +49,7 @@ def test_sort_listings_by_status_ordering():
         {"id": 3, "marketplace_key": "sbazar_cz", "status": "APPROVED"},
         {"id": 4, "marketplace_key": "bazos_sk", "status": "PUBLISHED"},
         {"id": 5, "marketplace_key": "ebay", "status": "ARCHIVED"},
-        {"id": 6, "marketplace_key": "allegro_cz", "status": "DRAFT"},
+        {"id": 6, "marketplace_key": "vinted", "status": "DRAFT"},
     ]
 
     sorted_list = sort_listings_by_status(raw_listings)
@@ -60,7 +60,7 @@ def test_sort_listings_by_status_ordering():
     # 1. PUBLISHED (bazos_sk)
     # 2. APPROVED (sbazar_cz)
     # 3. FAILED (aukro_cz)
-    # 4. DRAFT (allegro_cz, bazos_cz)
+    # 4. DRAFT (bazos_cz, vinted)
     # 5. ARCHIVED (ebay)
     assert statuses[0] == "PUBLISHED"
     assert mps[0] == "bazos_sk"
@@ -73,8 +73,8 @@ def test_sort_listings_by_status_ordering():
 
     assert statuses[3] == "DRAFT"
     assert statuses[4] == "DRAFT"
-    assert mps[3] == "allegro_cz"
-    assert mps[4] == "bazos_cz"
+    assert mps[3] == "bazos_cz"
+    assert mps[4] == "vinted"
 
     assert statuses[5] == "ARCHIVED"
     assert mps[5] == "ebay"

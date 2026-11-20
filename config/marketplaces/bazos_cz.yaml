@@ -25,6 +25,7 @@ capabilities:
   max_title_len: 60
   max_body_len: 4000
   allows_generative_photos: false
+  has_delivery_fields: false
   delivery_options:
     - pickup
     - post

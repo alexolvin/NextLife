@@ -7,7 +7,6 @@ from typing import Any
 import httpx
 from sqlalchemy.orm import Session
 
-from nextlife.connectors.allegro import AllegroConnector
 from nextlife.connectors.annonce import AnnonceConnector
 from nextlife.connectors.aukro import AukroConnector
 from nextlife.connectors.base import BaseConnector, ConnectorConfigError
@@ -47,7 +46,6 @@ CONNECTOR_MAP: dict[str, type[BaseConnector]] = {
     # New Czech platforms
     "bazar_cz": BazarConnector,
     "mimibazar_cz": MimibazarConnector,
-    "allegro_cz": AllegroConnector,
     # Global platforms
     "ebay": EbayConnector,
 }

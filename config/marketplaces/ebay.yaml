@@ -1,15 +1,15 @@
 key: ebay
-title: "eBay"
+title: eBay
 country: US
 lang: en
 currency: EUR
 access_mode: WEB
 search_mode: html
-base_url: "https://www.ebay.com"
-canary_query: "thinkpad"
+base_url: https://www.ebay.com
+canary_query: thinkpad
 auth:
   type: none
-  secret_ref: ""
+  secret_ref: ''
 rate_limits:
   requests_per_minute: 10
   min_delay_seconds: 3
@@ -23,18 +23,117 @@ capabilities:
   max_title_len: 80
   max_body_len: 4000
   allows_generative_photos: false
+  has_delivery_fields: true
   delivery_options:
-    - post
-    - courier
-    - pickup
+  - post
+  - courier
+  - pickup
   payment_options:
-    - card
-    - paypal
-    - bank_transfer
+  - card
+  - paypal
+  - bank_transfer
+  category_auto_detect: true
 routes:
-  search: "/sch/i.html?_nkw={query}"
+  search: /sch/i.html?_nkw={query}
 selectors:
-  listing_card: ".s-item"
-  title: ".s-item__title"
-  price: ".s-item__price"
-  link: ".s-item__link"
+  listing_card: .s-item
+  title: .s-item__title
+  price: .s-item__price
+  link: .s-item__link
+category_tree:
+- top: computers
+  label: Computers, Tablets & Network Hardware
+  subs:
+  - Laptops & Netbooks
+  - Graphics/Video Cards
+  - CPUs/Processors
+  - Motherboards
+  - Computer Memory (RAM)
+  - Hard Drives (HDD, SSD & NAS)
+  - Computer Cases & Power Supplies
+  - Fans, Heat Sinks & Cooling
+  - Monitors, Projectors & Accs
+  - Keyboards, Mice & Pointers
+  - Printers, Scanners & Supplies
+  - Home Networking & Connectivity
+  - Computer Components & Parts
+  - Software
+  - Other Computers & Networking
+- top: cell_phones
+  label: Cell Phones & Accessories
+  subs:
+  - Cell Phones & Smartphones
+  - Smart Watches
+  - Cases, Covers & Skins
+  - Headsets
+  - Cables & Adapters
+  - Cell Phone Accessories
+  - Other Cell Phones
+- top: consumer_electronics
+  label: Consumer Electronics
+  subs:
+  - Headphones
+  - Home Audio
+  - Portable Audio & Headphones
+  - TV, Video & Home Audio
+  - Vintage Electronics
+  - Other Consumer Electronics
+- top: cameras_photo
+  label: Cameras & Photo
+  subs:
+  - Digital Cameras
+  - Camera Lenses & Filters
+  - Film Photography
+  - Camcorders
+  - Camera Drones
+  - Flashes & Flash Accessories
+  - Tripods & Supports
+  - Other Cameras & Photo
+- top: video_games
+  label: Video Games & Consoles
+  subs:
+  - Video Games
+  - Video Game Consoles
+  - Video Game Accessories
+  - Replacement Parts & Tools
+  - Other Video Games
+- top: musical_instruments
+  label: Musical Instruments & Gear
+  subs:
+  - Guitars & Basses
+  - Pro Audio Equipment
+  - Keyboards & Pianos
+  - Microphones & Wireless Systems
+  - Other Musical Instruments
+- top: sporting_goods
+  label: Sporting Goods
+  subs:
+  - Cycling
+  - Fitness, Running & Yoga
+  - Outdoor Sports
+  - Team Sports
+  - Other Sporting Goods
+- top: clothing_shoes
+  label: Clothing, Shoes & Accessories
+  subs:
+  - Men's Clothing
+  - Men's Shoes
+  - Women's Clothing
+  - Women's Shoes
+  - Watches, Parts & Accessories
+  - Other Clothing & Shoes
+- top: books
+  label: Books & Magazines
+  subs:
+  - Textbooks, Education & Reference
+  - Fiction & Literature
+  - Nonfiction
+  - Magazines
+  - Other Books
+- top: collectibles
+  label: Collectibles & Art
+  subs:
+  - Collectibles
+  - Art
+  - Coins & Paper Money
+  - Other Collectibles

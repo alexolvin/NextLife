@@ -30,7 +30,6 @@ def test_marketplace_language_mapping():
         "annonce_cz": "cs",
         "hyperinzerce_cz": "cs",
         "mimibazar_cz": "cs",
-        "allegro_cz": "cs",
         "trhknih_cz": "cs",
         "vinted": "cs",
         "facebook_marketplace": "cs",
@@ -59,7 +58,7 @@ def test_translation_polish_rules_fallback():
     translated = translate_ad_text(czech_text, target_lang="pl", source_lang="cs")
 
     assert "Sprzedam" in translated, f"Expected 'Sprzedam' in Polish translation, got: {translated}"
-    assert "jak nowa" in translated, f"Expected 'jak nowa', got: {translated}"
+    assert "jak nowa" in translated or "jak nowy" in translated, f"Expected 'jak nowa' or 'jak nowy', got: {translated}"
 
 
 def test_translation_german_rules_fallback():

@@ -199,6 +199,7 @@ def localize_listing_text(
     reference_titles: list[str] | None = None,
     usage: str = "",
     specs: str = "",
+    delivery_block: str = "",
 ) -> dict[str, str]:
     """Translate title + description to the platform language and determine the
     platform's category via the LLM.
@@ -206,20 +207,28 @@ def localize_listing_text(
     The source text is the item's ``description`` plus the ``usage`` paragraph
     and the ``specs`` block (ТЗ «Склад» §4.3.1); all of it is translated fully
     (not shortened to 2-3 sentences) and the specs are kept as a list
-    (ТЗ §4.3.2). ``reference_titles`` are the product names from the selected
-    reference listings; they give the LLM the actual product name so the title
-    is built from it (not from a shipping/availability phrase).
+    (ТЗ §4.3.2). If the marketplace lacks dedicated delivery form fields,
+    ``delivery_block`` is appended.
 
     Returns ``{"title", "description", "category"}``. When the LLM is not
-    configured or the call fails, returns the original text + the global
-    category (no fabricated translation).
+    configured or the call fails, returns the structured composite text + the
+    global category (no fabricated translation).
     """
-    fallback = {"title": title, "description": description, "category": category}
+    from nextlife.services.listing_text_builder import build_composite_listing_text
+
+    lang = _target_language(mp_cfg)
+    fallback_desc = build_composite_listing_text(
+        description=description,
+        usage=usage,
+        specs=specs,
+        delivery_block=delivery_block,
+        lang=lang,
+    )
+    fallback = {"title": title, "description": fallback_desc, "category": category}
     from nextlife.services.llm_filter import is_llm_configured
     if not is_llm_configured(llm):
         return fallback
     endpoint = (llm.get("endpoint") or "").strip()
-    lang = _target_language(mp_cfg)
     ref_lines = "\n".join(f"- {t}" for t in (reference_titles or []) if t) or "(нет)"
 
     # Build the category tree hint from the marketplace config.
@@ -252,6 +261,25 @@ def localize_listing_text(
             "(на языке площадки, lowercase, латиницей).\n"
         )
 
+    desc_reqs = [
+        f"ОПИСАНИЕ: сформируй подробное объявление на {lang} языке.",
+        f"- Переведи исходное описание товара полностью на {lang} язык.",
+    ]
+    if usage:
+        desc_reqs.append(
+            f"- Если поле «Использование» заполнено, включи блок о возможных способах использования (с заголовком на {lang} языке, например «Možnosti využití»)."
+        )
+    if specs:
+        desc_reqs.append(
+            f"- Если поле «Характеристики» заполнено, включи блок характеристик списком (с заголовком на {lang} языке, например «Parametry a specifikace»)."
+        )
+    if delivery_block:
+        desc_reqs.append(
+            f"- Площадка не предусматривает отдельных полей для доставки, поэтому обязательно включи в конец описания текстовый блок о возможных вариантах доставки:\n{delivery_block}"
+        )
+
+    desc_instruction = "\n".join(desc_reqs)
+
     prompt = (
         f"Сформируй объявление на {lang} языке для площадки «{mp_cfg.title}» "
         f"по исходному тексту и названиям товаров из эталонных объявлений.\n"
@@ -259,9 +287,7 @@ def localize_listing_text(
         f"цвет) на {lang} языке, до 60 символов. Строго не включай фразы о "
         f"доставке, наличии, оплате или отправке (типа «в наличии», «быстрая "
         f"отправка», «Zásilkovna», «doprava»).\n"
-        f"ОПИСАНИЕ: переведи полностью исходное описание, использование и "
-        f"технические характеристики на {lang} язык (без сокращений). "
-        f"Технические характеристики сохрани списком.\n"
+        f"{desc_instruction}\n"
         f"{cat_instruction}\n"
         f"Исходный заголовок: {title}\n"
         f"Исходное описание: {description}\n"
@@ -287,9 +313,12 @@ def localize_listing_text(
         if start != -1 and end > start + 1:
             obj = json.loads(content[start:end])
             if isinstance(obj, dict):
+                res_desc = str(obj.get("description") or description).strip()
+                if delivery_block and delivery_block not in res_desc:
+                    res_desc = f"{res_desc}\n\n{delivery_block}"
                 return {
                     "title": str(obj.get("title") or title).strip(),
-                    "description": str(obj.get("description") or description).strip(),
+                    "description": res_desc,
                     "category": str(obj.get("category") or category).strip(),
                 }
     except Exception as exc:  # noqa: BLE001 - honest fallback, never a raw dump
@@ -439,9 +468,21 @@ def localize_frame(
         "Localize source: title=%r cat=%r refs=%r desc_len=%d usage_len=%d specs_len=%d",
         ru_title, item.category_key, ref_titles, len(ru_text), len(usage), len(specs),
     )
+    from nextlife.services.listing_text_builder import build_item_delivery_text
+
+    delivery_block = build_item_delivery_text(
+        session=session,
+        item=item,
+        marketplace_key=mp_key,
+        mp_cfg=mp_cfg,
+        lang=_target_language(mp_cfg),
+        config=cfg,
+    )
+
     localized = localize_listing_text(
         ru_title, ru_text, mp_cfg, item.category_key or "", get_llm_config(),
         reference_titles=ref_titles, usage=usage, specs=specs,
+        delivery_block=delivery_block,
     )
 
     main_photo = ""

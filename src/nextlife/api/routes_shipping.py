@@ -203,6 +203,6 @@ def ui_save_shipping_options(
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     return RedirectResponse(
-        url=f"/ui/items/{item_code}?notice=shipping_options_saved",
+        url=f"/ui/stock/{item_code}?notice=shipping_options_saved#shipping",
         status_code=status.HTTP_303_SEE_OTHER,
     )

@@ -1,6 +1,7 @@
 key: mimibazar_cz
 title: "Mimibazar.cz"
 country: CZ
+lang: cs
 currency: CZK
 access_mode: DIRECT
 search_mode: html
@@ -14,10 +15,12 @@ rate_limits:
   min_delay_seconds: 2
 capabilities:
   search: true
-  post: false
-  edit: false
-  archive: false
-  messaging: false
+  post: true
+  edit: true
+  archive: true
+  relist: true
+  category_auto_detect: true
+  has_delivery_fields: false
   max_photos: 10
   max_title_len: 80
   max_body_len: 3000
@@ -44,3 +47,85 @@ routes:
   search: "/bazar.php?hledat={query}"
   search_params:
     query: "hledat"
+category_tree:
+  - top: kocarky
+    label: "Kočárky a autosedačky"
+    subs:
+      - "Kombinované kočárky"
+      - "Sportovní kočárky"
+      - "Golfové kočárky"
+      - "Autosedačky 0-13 kg"
+      - "Autosedačky 9-18 kg"
+      - "Autosedačky 15-36 kg"
+      - "Příslušenství ke kočárkům"
+      - "Nosiče a šátky"
+      - "Ostatní"
+
+  - top: detske-obleceni
+    label: "Dětské oblečení"
+    subs:
+      - "Kojenecké oblečení (do vel. 86)"
+      - "Dívčí oblečení (vel. 92-128)"
+      - "Chlapecké oblečení (vel. 92-128)"
+      - "Oblečení pro náctileté (vel. 134-176)"
+      - "Bundy, kabáty a kombinézy"
+      - "Svetry a mikiny"
+      - "Kalhoty a tepláky"
+      - "Spací pytle a pyžama"
+      - "Ostatní"
+
+  - top: detska-obuv
+    label: "Dětská obuv"
+    subs:
+      - "Celoroční obuv"
+      - "Zimní boty a sněhule"
+      - "Sandály a letní boty"
+      - "Tenisky a sportovní boty"
+      - "Holínky"
+      - "Papuče a bačkory"
+      - "Ostatní"
+
+  - top: hracky
+    label: "Hračky a hry"
+    subs:
+      - "Lego a stavebnice"
+      - "Panenky a kočárky pro panenky"
+      - "Auta, vláčky a garáže"
+      - "Deskové a společenské hry"
+      - "Interaktivní a naučné hračky"
+      - "Plyšové hračky"
+      - "Kreativní a tvořivé hračky"
+      - "Hračky na zahradu"
+      - "Ostatní"
+
+  - top: detsky-pokoj
+    label: "Dětský nábytek a potřeby"
+    subs:
+      - "Postýlky a matrace"
+      - "Přebalovací pulty a podložky"
+      - "Jídelní židličky"
+      - "Dětské ohrádky"
+      - "Lehátka a houpátka"
+      - "Chůvičky a monitory dechu"
+      - "Nočníky a redukce"
+      - "Ostatní"
+
+  - top: damy-a-pani
+    label: "Móda pro maminky a rodinu"
+    subs:
+      - "Těhotenské oblečení"
+      - "Dámské oblečení"
+      - "Dámská obuv"
+      - "Kabelky a doplňky"
+      - "Pánská móda"
+      - "Kosmetika a parfémy"
+      - "Ostatní"
+
+  - top: domov-a-zahrada
+    label: "Domov a potřeby"
+    subs:
+      - "Bytový textil a povlečení"
+      - "Kuchyňské potřeby"
+      - "Knihy pro děti i dospělé"
+      - "Dekorace"
+      - "Ostatní"

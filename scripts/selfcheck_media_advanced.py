@@ -18,6 +18,13 @@ from sqlalchemy import text
 from nextlife.storage.db import get_engine
 
 
+def _switch_to_photos_tab(page) -> None:
+    tab = page.locator("[data-testid='tab-photos'], a[href='#photos']").first
+    if tab.count() > 0 and tab.is_visible():
+        tab.click()
+        page.wait_for_timeout(300)
+
+
 def run_c30(ctx: CheckContext, art_dir: Path) -> dict[str, Any]:
     """C-30: Lightbox touch swipe on 360px width (own lot + own photos)."""
     code = create_lot(ctx, "C-30 swipe")
@@ -31,6 +38,7 @@ def run_c30(ctx: CheckContext, art_dir: Path) -> dict[str, Any]:
         context = browser.new_context(viewport={"width": 360, "height": 740}, has_touch=True)
         page = context.new_page()
         page.goto(f"{ctx.base_url}/ui/items/{code}?token={ctx.auth_token}")
+        _switch_to_photos_tab(page)
         img = page.locator(".slider-img, img[onclick*='openLightbox'], img[onclick*='openActiveLightbox']").first
         if img.count() > 0:
             img.click()
@@ -86,6 +94,7 @@ def run_c31(ctx: CheckContext, art_dir: Path) -> dict[str, Any]:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto(f"{ctx.base_url}/ui/items/{code}?token={ctx.auth_token}")
+        _switch_to_photos_tab(page)
         img = page.locator(".slider-img, img[onclick*='openLightbox'], img[onclick*='openActiveLightbox']").first
         if img.count() > 0:
             img.click()

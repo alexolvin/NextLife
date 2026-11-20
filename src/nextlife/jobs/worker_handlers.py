@@ -90,11 +90,49 @@ def handle_publish_listing(payload: dict[str, Any], session: Session) -> None:
             listing.external_url = res["external_url"]
         if res.get("external_id"):
             listing.external_id = res["external_id"]
+    elif listing.marketplace_key == "sbazar_cz":
+        from nextlife.services.sbazar_android_publish import sbazar_android_publish_listing
+        res = sbazar_android_publish_listing(
+            title=listing.title or "",
+            description=listing.description or "",
+            price=str(listing.price or 0),
+            category=listing.category_path or listing.category_key or "Grafické karty",
+            dry_run=False,
+            item_code=listing.item_code or "",
+        )
+        if not res.get("ok"):
+            err_msg = "; ".join(res.get("errors") or ["Sbazar publication failed"])
+            listing.status = ListingStatus.FAILED.value
+            listing.last_error_text = err_msg
+            session.flush()
+            raise RuntimeError(err_msg)
+        if res.get("final_url"):
+            listing.external_url = res["final_url"]
+        if res.get("external_id"):
+            listing.external_id = res["external_id"]
     else:
         if hasattr(conn, "post_listing"):
             res = conn.post_listing(listing)
             if isinstance(res, dict) and res.get("external_url"):
                 listing.external_url = res["external_url"]
+        elif hasattr(conn, "publish"):
+            try:
+                pub_res = conn.publish({
+                    "title": listing.title or "",
+                    "description": listing.description or "",
+                    "price": str(listing.price or 0),
+                    "category": listing.category_path or listing.category_key or "",
+                    "item_code": listing.item_code or "",
+                }, dry_run=False)
+                if hasattr(pub_res, "external_url") and pub_res.external_url:
+                    listing.external_url = pub_res.external_url
+                if hasattr(pub_res, "external_id") and pub_res.external_id:
+                    listing.external_id = pub_res.external_id
+            except Exception as exc:
+                listing.status = ListingStatus.FAILED.value
+                listing.last_error_text = str(exc)
+                session.flush()
+                raise
         else:
             listing.status = ListingStatus.FAILED.value
             listing.last_error_text = f"Коннектор {listing.marketplace_key} не имеет метода публикации"

@@ -125,8 +125,8 @@
                 📍 {{ it.storage_location or 'место не задано' }}
               </div>
 
-              <!-- 6-Stage Dots Indicator (§5.1) -->
-              <div class="stage-dots" style="display: flex; gap: 4px; align-items: center; margin-top: 8px;" title="Этапы 1–6: Оценка, Фото, Описание, Объявления, Продажа, Гарантия">
+              <!-- 8-Stage Dots Indicator (§5.1) -->
+              <div class="stage-dots" style="display: flex; gap: 4px; align-items: center; margin-top: 8px;" title="Этапы 1–8: Оценка, Фото, МГХ, Доставка, Описание, Объявления, Продажа, Гарантия">
                 {% for s in it.stages %}
                   <span style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; {{ 'background: #22c55e;' if s else 'background: #cbd5e1;' }}"></span>
                 {% endfor %}

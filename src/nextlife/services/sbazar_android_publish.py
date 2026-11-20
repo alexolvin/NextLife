@@ -264,14 +264,16 @@ def sbazar_android_publish_listing(
                 steps.append("filled phone")
                 time.sleep(0.5)
 
-        # 8. Category Selection (Grafické karty)
+        # 8. Category Selection
         cat_btn = next((n for n in _nodes(xml) if "Vyberte kategorii" in (n.get("desc") or "") and n.get("bounds")), None)
         if cat_btn:
             _tap_box(transport, cat_btn["bounds"])
             time.sleep(1.5)
-            # Pick Elektro a počítače -> Komponenty -> Grafické karty
-            _tap_category_path(transport, ["Elektro a počítače", "Počítače", "Komponenty", "Grafické karty"])
-            steps.append("selected category: Grafické karty")
+            # Pick category dynamically by path
+            raw_parts = [p.strip() for p in (category or "").replace("/", " > ").split(">") if p.strip()]
+            parts = raw_parts if raw_parts else ["Elektro a počítače", "Počítače", "Komponenty", "Grafické karty"]
+            _tap_category_path(transport, parts)
+            steps.append(f"selected category: {' > '.join(parts)}")
             time.sleep(1.0)
 
         # Screenshot of form before submission

@@ -41,9 +41,11 @@ def live_server():
     # NEXTLIFE_DSN is already in os.environ (set by the session fixture).
     env = dict(os.environ)
     env["NEXTLIFE_PORT"] = str(port)
+    env["PYTHONPATH"] = f"{ROOT_DIR / 'src'}:{ROOT_DIR}"
+    py_bin = str(ROOT_DIR / ".venv" / "bin" / "python") if (ROOT_DIR / ".venv" / "bin" / "python").exists() else sys.executable
     proc = subprocess.Popen(
         [
-            sys.executable,
+            py_bin,
             "-m",
             "uvicorn",
             "nextlife.api.main:create_app",
@@ -58,7 +60,7 @@ def live_server():
         stderr=subprocess.DEVNULL,
     )
     url = f"http://127.0.0.1:{port}"
-    for _ in range(50):
+    for _ in range(100):
         try:
             with httpx.Client(timeout=1.0) as client:
                 if client.get(f"{url}/health").status_code == 200:

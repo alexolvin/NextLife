@@ -14,14 +14,18 @@
     <div class="field">
       <label for="select-carrier-to-add">Добавить службу доставки:</label>
       <div class="row tight">
-        <select id="select-carrier-to-add" x-model="selectedCarrier" class="wz-select grow" data-testid="select-carrier-to-add">
+        <select id="select-carrier-to-add" x-model="selectedCarrier" @change="errorMessage = ''" class="wz-select grow" data-testid="select-carrier-to-add">
           <template x-for="c in availableCarriers" :key="c.key">
-            <option :value="c.key" x-text="c.title + ' (от ' + fmtCzk(c.default_cost) + ')'"></option>
+            <option :value="c.key" x-text="c.title + (isCarrierAdded(c.key) ? ' (уже выбран)' : ' (от ' + fmtCzk(c.default_cost) + ')')"></option>
           </template>
         </select>
         <button type="button" @click="addOption()" class="btn btn-primary btn-inline" data-testid="btn-add-option">
           + Добавить
         </button>
+      </div>
+      <div x-show="errorMessage" x-text="errorMessage" class="box fs-sm"
+           style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 8px 12px; border-radius: 6px; margin-top: 8px; font-weight: 600;"
+           data-testid="carrier-duplicate-warning">
       </div>
     </div>
 
@@ -109,10 +113,20 @@ function shippingConstructor(initialData, lotCode) {
       claims_handler: opt.claims_handler || 'CARRIER',
       insurance_limit: Number(opt.insurance_limit || 0)
     })),
+    errorMessage: '',
+
+    isCarrierAdded(key) {
+      return (this.options || []).some(o => o.carrier_key === key);
+    },
 
     addOption() {
       const found = this.availableCarriers.find(c => c.key === this.selectedCarrier);
       if (!found) return;
+      if (this.isCarrierAdded(this.selectedCarrier)) {
+        this.errorMessage = `Такой способ доставки уже выбран (${found.title})`;
+        return;
+      }
+      this.errorMessage = '';
       this.options.push({
         carrier_key: found.key,
         service_name: found.title,
@@ -124,6 +138,7 @@ function shippingConstructor(initialData, lotCode) {
 
     removeOption(idx) {
       this.options.splice(idx, 1);
+      this.errorMessage = '';
     },
 
     onPriceChange(idx) {

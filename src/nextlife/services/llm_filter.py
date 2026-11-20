@@ -18,6 +18,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from nextlife.core.config import get_data_dir
 from nextlife.services.settings_store import (
     MP_SECRETS,
     SECRET_KEYS,

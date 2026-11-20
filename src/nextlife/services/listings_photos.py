@@ -60,8 +60,12 @@ def set_item_cover_photo(
     attrs = dict(item.attrs or {})
     attrs["cover_photo_id"] = photo_id
 
-    existing_order = [p for p in (attrs.get("photo_order") or []) if p != photo_id]
-    attrs["photo_order"] = [photo_id] + existing_order
+    # Automatically move cover photo to position 0 in photo_order
+    current_chains = logical_photo_chains(session, item_code)
+    cover_chain_idx = next((i for i, ch in enumerate(current_chains) if any(p.id == photo_id for p in ch)), None)
+    if cover_chain_idx is not None and cover_chain_idx > 0:
+        current_chains.insert(0, current_chains.pop(cover_chain_idx))
+    attrs["photo_order"] = [display_photo_for_chain(c).id for c in current_chains]
     item.attrs = attrs
 
     if isinstance(photo.transform_log, list):

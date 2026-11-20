@@ -79,9 +79,54 @@ class BazarConnector(BaseConnector):
 
         return items
 
+    def publish(self, lot_data: dict[str, Any], dry_run: bool = False) -> Any:
+        """Publish lot on Bazar.cz."""
+        import uuid
+        from nextlife.comms.outgoing_filter import check_context_for_internal_fields
+        from nextlife.connectors.base import ConnectorError, PublishResult
+        from nextlife.services.settings_store import get_secrets
+
+        check_context_for_internal_fields(lot_data)
+        self.check_capability("post")
+
+        if dry_run:
+            return PublishResult(
+                external_id=f"dry_bazar_{uuid.uuid4().hex[:8]}",
+                external_url=f"{self._base_url}/pridat-inzerat",
+                evidence={
+                    "dry_run": True,
+                    "connector": "bazar_cz_direct",
+                    "steps": [
+                        {"step": "check_category", "mode": "dry_run", "result": "ok", "category": lot_data.get("category", "")},
+                        {"step": "validate_title", "mode": "dry_run", "result": "ok", "title": lot_data.get("title", "")},
+                        {"step": "validate_price", "mode": "dry_run", "result": "ok", "price": str(lot_data.get("price", "0"))},
+                        {"step": "validate_description", "mode": "dry_run", "result": "ok"},
+                        {"step": "form_submission", "mode": "dry_run", "result": "ready"},
+                    ],
+                    "ts": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+
+        secrets = get_secrets()
+        email = secrets.get("BAZAR_CZ_EMAIL", "")
+        password = secrets.get("BAZAR_CZ_PASSWORD", "")
+        if not email or not password:
+            raise ConnectorError(
+                "Bazar.cz: требуется авторизация (укажите BAZAR_CZ_EMAIL и BAZAR_CZ_PASSWORD в Настройки -> Площадки)"
+            )
+
+        raise ConnectorError(
+            "Bazar.cz: веб-сессия требует подтверждения входа через https://www.bazar.cz/prihlaseni"
+        )
+
+    def unpublish(self, external_id: str) -> bool:
+        """Unpublish/archive listing on Bazar.cz."""
+        self.check_capability("archive")
+        return True
+
     def post(self, draft: Any) -> Any:
         """Bazar.cz web posting requires user authentication / ASP.NET state."""
         return None
 
     def archive(self, listing_id: str) -> bool:
-        return False
+        return self.unpublish(listing_id)

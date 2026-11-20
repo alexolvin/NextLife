@@ -32,18 +32,21 @@ _DEFAULT_CAPS = {
     "messages_read": False, "messages_send": False, "delivery_parse": False,
 }
 
+SEARCH_ONLY_PLATFORMS = {"kleinanzeigen_de", "willhaben_at", "olx_pl"}
+
 CAPABILITIES_MATRIX = {
     "bazos_cz": {**_DEFAULT_CAPS, "search": True, "publish": True, "unpublish": True, "relist": True, "auto_unpublish": True, "auto_relist": True, "delivery_parse": True},
     "bazos_sk": {**_DEFAULT_CAPS, "search": True, "publish": True, "unpublish": True, "relist": True, "auto_unpublish": True, "auto_relist": True},
     "aukro_cz": {**_DEFAULT_CAPS, "search": True, "publish": True, "delivery_parse": True},
-    "sbazar_cz": {**_DEFAULT_CAPS, "search": True, "publish": True},
-    "trhknih_cz": {**_DEFAULT_CAPS, "search": True}, "hyperinzerce_cz": {**_DEFAULT_CAPS, "search": True},
-    "annonce_cz": {**_DEFAULT_CAPS, "search": True}, "bazar_cz": {**_DEFAULT_CAPS, "search": True},
-    "mimibazar_cz": {**_DEFAULT_CAPS, "search": True}, "allegro_cz": {**_DEFAULT_CAPS},
-    "vinted": {**_DEFAULT_CAPS, "search": True}, "willhaben_at": {**_DEFAULT_CAPS, "search": True},
-    "kleinanzeigen_de": {**_DEFAULT_CAPS, "search": True}, "olx_pl": {**_DEFAULT_CAPS, "search": True},
-    "facebook_marketplace": {**_DEFAULT_CAPS, "search": True},
-    "ebay": {**_DEFAULT_CAPS, "search": True, "publish": True},
+    "sbazar_cz": {**_DEFAULT_CAPS, "search": True, "publish": True, "unpublish": True, "relist": True, "auto_unpublish": True, "auto_relist": True},
+    "bazar_cz": {**_DEFAULT_CAPS, "search": True, "publish": True, "unpublish": True, "relist": True},
+    "mimibazar_cz": {**_DEFAULT_CAPS, "search": True, "publish": True, "unpublish": True, "relist": True},
+    "hyperinzerce_cz": {**_DEFAULT_CAPS, "search": True, "publish": True, "unpublish": True, "relist": True},
+    "annonce_cz": {**_DEFAULT_CAPS, "search": True, "publish": True, "unpublish": True, "relist": True},
+    "trhknih_cz": {**_DEFAULT_CAPS, "search": True, "publish": True, "unpublish": True, "relist": True},
+    "facebook_marketplace": {**_DEFAULT_CAPS, "search": True, "publish": True, "unpublish": True, "relist": True},
+    "vinted": {**_DEFAULT_CAPS, "search": True, "publish": True}, "ebay": {**_DEFAULT_CAPS, "search": True, "publish": True},
+    "willhaben_at": {**_DEFAULT_CAPS, "search": True}, "kleinanzeigen_de": {**_DEFAULT_CAPS, "search": True}, "olx_pl": {**_DEFAULT_CAPS, "search": True},
 }
 
 MP_META: dict[str, dict[str, Any]] = {
@@ -56,7 +59,6 @@ MP_META: dict[str, dict[str, Any]] = {
     "annonce_cz": {"login_url": "https://www.annonce.cz/prihlasit", "phone_platform": None},
     "mimibazar_cz": {"login_url": "https://www.mimibazar.cz/prihlaseni", "phone_platform": None},
     "trhknih_cz": {"login_url": "https://www.trhknih.cz/prihlasit", "phone_platform": None},
-    "allegro_cz": {"login_url": "https://allegro.cz/login", "phone_platform": None},
     "willhaben_at": {"login_url": "https://www.willhaben.at/iad/login", "phone_platform": None},
     "kleinanzeigen_de": {"login_url": "https://www.kleinanzeigen.de/m-einloggen.html", "phone_platform": None},
     "olx_pl": {"login_url": "https://www.olx.pl/konto/", "phone_platform": None},
@@ -105,8 +107,9 @@ def screen_settings(
         reg_caps = _registry_capabilities(mp)
         base_caps = CAPABILITIES_MATRIX.get(key, _DEFAULT_CAPS)
         caps = {**_DEFAULT_CAPS, **base_caps, **{k: bool(v) for k, v in reg_caps.items() if k in _DEFAULT_CAPS}}
+        can_publish = (key not in SEARCH_ONLY_PLATFORMS) and bool(caps.get("publish", False) or reg_caps.get("post", False))
         active_search = ov.get("search", caps.get("search", False))
-        active_publish = ov.get("publish", caps.get("publish", False))
+        active_publish = (ov.get("publish", caps.get("publish", False)) if can_publish else False)
         caps["search"], caps["publish"] = active_search, active_publish
 
         if active_search and active_publish:
@@ -131,10 +134,11 @@ def screen_settings(
         ]
         mp_ttl = get_marketplace_listing_ttl(key, settings)
         allowed_c = set(get_marketplace_allowed_carriers(key, settings))
-        carriers = [{**c, "checked": c["key"] in allowed_c} for c in ALL_CARRIERS]
+        carriers = [{**c, "checked": c["key"] in allowed_c} for c in ALL_CARRIERS] if can_publish else []
         meta = MP_META.get(key, {})
         marketplaces.append({
             "key": key, "title": mp.title, "search": active_search, "publish": active_publish,
+            "can_publish": can_publish,
             "auto_unpublish": bool(caps.get("auto_unpublish", caps.get("unpublish", False))),
             "auto_relist": bool(caps.get("auto_relist", caps.get("relist", False))),
             "access_mode": mp.access_mode, "secrets": mp_secrets, "caps": caps,
@@ -212,12 +216,13 @@ async def save_settings_marketplaces(
         secrets = {}
 
     cfg = load_config()
-    from nextlife.services.marketplace_shipping import ALL_CARRIERS
+    from nextlife.services.marketplace_shipping import ALL_CARRIERS, DEFAULT_MARKETPLACE_CARRIERS
     for key in cfg.marketplaces:
         search_val = form.get(f"mp_{key}_search", "off")
-        publish_val = form.get(f"mp_{key}_publish", "off")
+        publish_val = "off" if key in SEARCH_ONLY_PLATFORMS else form.get(f"mp_{key}_publish", "off")
         ttl_val = form.get(f"mp_{key}_ttl")
-        allowed_c = [c["key"] for c in ALL_CARRIERS if form.get(f"mp_{key}_carrier_{c['key']}") == "on"]
+        has_carrier_fields = any(f"mp_{key}_carrier_{c['key']}" in form for c in ALL_CARRIERS)
+        allowed_c = [c["key"] for c in ALL_CARRIERS if form.get(f"mp_{key}_carrier_{c['key']}") == "on"] if has_carrier_fields else overrides.get(key, {}).get("allowed_carriers", DEFAULT_MARKETPLACE_CARRIERS.get(key, []))
         try:
             mp_ttl = max(1, min(365, int(ttl_val))) if ttl_val else 30
         except (ValueError, TypeError):

@@ -37,23 +37,13 @@
           </select>
         </div>
       </div>
-      <div class="grid-2">
-        <div class="field">
-          <label for="stock-category">Категория товара</label>
-          <select id="stock-category" name="category_key" class="wz-select" data-testid="stock-category">
-            {% for cat_k, cat_lbl in category_options %}
-            <option value="{{ cat_k }}" {% if (it.get('category_key') or 'general') == cat_k %}selected{% endif %}>{{ cat_lbl }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="field">
-          <label for="stock-desc-lang">Язык описания</label>
-          <select id="stock-desc-lang" name="description_lang" class="wz-select" data-testid="stock-desc-lang">
-            {% for code, label in [('ru', 'Русский'), ('cs', 'Чешский'), ('en', 'Английский'), ('de', 'Немецкий'), ('pl', 'Польский')] %}
-            <option value="{{ code }}" {% if it.get('description_lang') == code %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-          </select>
-        </div>
+      <div class="field">
+        <label for="stock-desc-lang">Язык описания</label>
+        <select id="stock-desc-lang" name="description_lang" class="wz-select" data-testid="stock-desc-lang">
+          {% for code, label in [('ru', 'Русский'), ('cs', 'Чешский'), ('en', 'Английский'), ('de', 'Немецкий'), ('pl', 'Польский')] %}
+          <option value="{{ code }}" {% if it.get('description_lang') == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
       </div>
     </div>
   </div>
@@ -89,54 +79,6 @@
     <div class="field">
       <textarea name="notes" rows="3" class="wz-input"
                 placeholder="Внутренние заметки..." data-testid="stock-notes">{{ it.get('notes', '') if it else '' }}</textarea>
-    </div>
-  </div>
-
-  {# Группа 4: Доставка #}
-  <div class="card">
-    <div class="card-title">Доставка</div>
-    <div class="stack-3">
-      <div class="field">
-        <label for="stock-shipping-policy">Кто платит за доставку</label>
-        <select id="stock-shipping-policy" name="shipping_policy" class="wz-select" data-testid="stock-shipping-policy">
-          {% for p in shipping_policy_options %}
-          <option value="{{ p.value }}" {% if it.get('shipping_policy') == p.value %}selected{% endif %}>{{ p.label }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="grid-2">
-        <div class="field">
-          <label for="stock-weight">Вес (г)</label>
-          <input type="number" step="1" id="stock-weight" name="weight_g" class="wz-input"
-                 value="{{ it.get('weight_g', '') if it and it.get('weight_g') else '' }}" data-testid="stock-weight">
-        </div>
-        <div class="field">
-          <label for="stock-packed-weight">Вес в упаковке (г)</label>
-          <input type="number" step="1" id="stock-packed-weight" name="packed_weight_g" class="wz-input"
-                 value="{{ it.get('packed_weight_g', '') if it and it.get('packed_weight_g') else '' }}" data-testid="stock-packed-weight">
-        </div>
-      </div>
-      <div class="grid-3">
-        <div class="field">
-          <label for="stock-dim-l">Длина (мм)</label>
-          <input type="number" step="1" id="stock-dim-l" name="dim_l_mm" class="wz-input"
-                 value="{{ it.get('dim_l_mm', '') if it and it.get('dim_l_mm') else '' }}" data-testid="stock-dim-l">
-        </div>
-        <div class="field">
-          <label for="stock-dim-w">Ширина (мм)</label>
-          <input type="number" step="1" id="stock-dim-w" name="dim_w_mm" class="wz-input"
-                 value="{{ it.get('dim_w_mm', '') if it and it.get('dim_w_mm') else '' }}" data-testid="stock-dim-w">
-        </div>
-        <div class="field">
-          <label for="stock-dim-h">Высота (мм)</label>
-          <input type="number" step="1" id="stock-dim-h" name="dim_h_mm" class="wz-input"
-                 value="{{ it.get('dim_h_mm', '') if it and it.get('dim_h_mm') else '' }}" data-testid="stock-dim-h">
-        </div>
-      </div>
-      {# Блок перевозчиков (§3.3): частичный шаблон, сервис shipping_options. #}
-      {% if it and it.get('shipping_summary_json') %}
-      {% include "_shipping_constructor.html" %}
-      {% endif %}
     </div>
   </div>
 

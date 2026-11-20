@@ -1,11 +1,10 @@
-"""Unit tests for newly added connectors: bazos_sk, bazar_cz, mimibazar_cz, allegro_cz."""
+"""Unit tests for newly added connectors: bazos_sk, bazar_cz, mimibazar_cz, ebay."""
 
 from decimal import Decimal
 from unittest.mock import MagicMock
 
 import pytest
 
-from nextlife.connectors.allegro import AllegroConnector
 from nextlife.connectors.bazar import BazarConnector
 from nextlife.connectors.bazos import BazosConnector
 from nextlife.connectors.ebay import EbayConnector
@@ -18,12 +17,10 @@ def test_registry_contains_new_connectors():
     assert "bazos_sk" in CONNECTOR_MAP
     assert "bazar_cz" in CONNECTOR_MAP
     assert "mimibazar_cz" in CONNECTOR_MAP
-    assert "allegro_cz" in CONNECTOR_MAP
     assert "ebay" in CONNECTOR_MAP
     assert CONNECTOR_MAP["bazos_sk"] is BazosConnector
     assert CONNECTOR_MAP["bazar_cz"] is BazarConnector
     assert CONNECTOR_MAP["mimibazar_cz"] is MimibazarConnector
-    assert CONNECTOR_MAP["allegro_cz"] is AllegroConnector
     assert CONNECTOR_MAP["ebay"] is EbayConnector
 
 
@@ -75,18 +72,6 @@ def test_mimibazar_connector_parsing():
     assert results[0].price == Decimal("3500")
     assert results[0].currency == "CZK"
     assert results[0].raw["image_url"] == "https://img-new.mimibazar.cz/test.jpg"
-
-
-def test_allegro_connector_bot_detection():
-    cfg = load_config().marketplaces["allegro_cz"]
-    mock_client = MagicMock()
-    mock_resp = MagicMock()
-    mock_resp.status_code = 403
-    mock_resp.text = "Cloudflare Challenge"
-    mock_client.get.return_value = mock_resp
-    connector = AllegroConnector(cfg, mock_client)
-    results = connector.search("7900 XTX")
-    assert results == []
 
 
 def test_ebay_connector_parsing():

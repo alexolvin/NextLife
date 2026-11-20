@@ -13,6 +13,9 @@ from nextlife.core.config import get_data_dir
 
 
 def _settings_path() -> Path:
+    from nextlife.services import llm_filter
+    if hasattr(llm_filter, "get_data_dir"):
+        return llm_filter.get_data_dir() / "settings.json"
     return get_data_dir() / "settings.json"
 
 
@@ -42,7 +45,12 @@ def get_llm_config() -> dict[str, str]:
 
 SECRET_KEYS = (
     "BAZOS_PHONE", "SELLER_NAME", "SELLER_PSC", "BAZOS_PASSWORD",
-    "SBAZAR_EMAIL", "SBAZAR_PASSWORD", "ALLEGRO_CLIENT_ID", "ALLEGRO_CLIENT_SECRET",
+    "SBAZAR_EMAIL", "SBAZAR_PASSWORD",
+    "BAZAR_CZ_EMAIL", "BAZAR_CZ_PASSWORD",
+    "MIMIBAZAR_CZ_EMAIL", "MIMIBAZAR_CZ_PASSWORD",
+    "HYPERINZERCE_CZ_EMAIL", "HYPERINZERCE_CZ_PASSWORD",
+    "ANNONCE_CZ_EMAIL", "ANNONCE_CZ_PASSWORD",
+    "TRHKNIH_CZ_EMAIL", "TRHKNIH_CZ_PASSWORD",
 )
 
 MP_SECRETS: dict[str, list[tuple[str, str, str, str]]] = {
@@ -58,9 +66,25 @@ MP_SECRETS: dict[str, list[tuple[str, str, str, str]]] = {
         ("SBAZAR_EMAIL", "Email аккаунта Seznam", "text", "user@seznam.cz"),
         ("SBAZAR_PASSWORD", "Пароль аккаунта Seznam", "password", "••••••"),
     ],
-    "allegro_cz": [
-        ("ALLEGRO_CLIENT_ID", "Client ID", "text", "allegro_client_id"),
-        ("ALLEGRO_CLIENT_SECRET", "Client Secret", "password", "••••••"),
+    "bazar_cz": [
+        ("BAZAR_CZ_EMAIL", "Email аккаунта Bazar.cz", "text", "user@email.cz"),
+        ("BAZAR_CZ_PASSWORD", "Пароль аккаунта Bazar.cz", "password", "••••••"),
+    ],
+    "mimibazar_cz": [
+        ("MIMIBAZAR_CZ_EMAIL", "Email аккаунта Mimibazar.cz", "text", "user@email.cz"),
+        ("MIMIBAZAR_CZ_PASSWORD", "Пароль аккаунта Mimibazar.cz", "password", "••••••"),
+    ],
+    "hyperinzerce_cz": [
+        ("HYPERINZERCE_CZ_EMAIL", "Email аккаунта Hyperinzerce.cz", "text", "user@email.cz"),
+        ("HYPERINZERCE_CZ_PASSWORD", "Пароль аккаунта Hyperinzerce.cz", "password", "••••••"),
+    ],
+    "annonce_cz": [
+        ("ANNONCE_CZ_EMAIL", "Email аккаунта Annonce.cz", "text", "user@email.cz"),
+        ("ANNONCE_CZ_PASSWORD", "Пароль аккаунта Annonce.cz", "password", "••••••"),
+    ],
+    "trhknih_cz": [
+        ("TRHKNIH_CZ_EMAIL", "Email аккаунта TrhKnih.cz", "text", "user@email.cz"),
+        ("TRHKNIH_CZ_PASSWORD", "Пароль аккаунта TrhKnih.cz", "password", "••••••"),
     ],
 }
 

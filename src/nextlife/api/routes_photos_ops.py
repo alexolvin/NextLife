@@ -118,7 +118,7 @@ def ui_set_item_photo_cover(
         api_set_item_photo_cover(code=code, photo_id=photo_id, auth=auth)
     except HTTPException as exc:
         return _redirect_card(code, notice="photo_op_failed", reason=exc.detail)
-    return _redirect_card(code, notice="photo_cover_set")
+    return _redirect_card(code, notice="photo_cover_set", photo_id=photo_id)
 
 
 @photos_ops_router.post("/api/items/{code}/photos/rotate")
@@ -220,21 +220,13 @@ def api_crop_item_photo(
 
 # Per-photo UI operations (TZ-NextLife-UI-N2 §4 V6, R5).
 def _redirect_card(
-    code: str, notice: str | None = None, reason: str | None = None, fragment: str = "photos"
+    code: str, notice: str | None = None, reason: str | None = None, fragment: str = "photos", photo_id: str | None = None
 ) -> RedirectResponse:
     """Redirect to the item card, optionally with a toast notice (?notice=…&reason=…#photos)."""
-    url = f"/ui/stock/{code}"
-    params: dict[str, str] = {}
-    if notice:
-        params["notice"] = notice
-    if reason:
-        params["reason"] = reason
-    if params:
-        from urllib.parse import urlencode
-        url += "?" + urlencode(params)
-    if fragment:
-        url += f"#{fragment}"
-    return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
+    from urllib.parse import urlencode
+    params = {k: v for k, v in [("notice", notice), ("reason", reason), ("active_photo", photo_id)] if v}
+    qs = f"?{urlencode(params)}" if params else ""
+    return RedirectResponse(url=f"/ui/stock/{code}{qs}#{fragment}", status_code=status.HTTP_303_SEE_OTHER)
 
 
 def _require_item(session: Session, code: str) -> None:
@@ -377,7 +369,7 @@ def ui_move_item_photo(
                 item.attrs = attrs
                 propagate_cover_photo_to_listings(session, code)
                 session.commit()
-    return _redirect_card(code, notice="photo_reordered")
+    return _redirect_card(code, notice="photo_reordered", photo_id=photo_id)
 
 
 @photos_ops_router.post("/ui/items/{code}/photos/regen-variants")

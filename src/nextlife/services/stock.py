@@ -257,13 +257,16 @@ def list_stock(
             select(func.count(ItemPhoto.id)).where(ItemPhoto.item_code == it.code)
         ) or 0
 
-        # Stages 1..6 booleans for dot indicators
+        # Stages 1..8 booleans for dot indicators (Оценка, Фото, МГХ, Доставка, Описание, Объявления, Продажа, Гарантия)
         s1 = bool(it.price_estimate_median or it.target_price or it.status in ("ESTIMATED", "READY_FOR_SALE", "PUBLISHED", "RESERVED", "SOLD"))
         s2 = photos_count > 0 or it.status in ("PHOTOGRAPHED", "DESCRIBED", "READY_FOR_SALE", "PUBLISHED", "RESERVED", "SOLD")
-        s3 = bool(it.description or it.status in ("DESCRIBED", "READY_FOR_SALE", "PUBLISHED", "RESERVED", "SOLD"))
-        s4 = list_count > 0 or it.status in ("READY_FOR_SALE", "PUBLISHED", "RESERVED", "SOLD")
-        s5 = it.status in ("SOLD", "IN_WARRANTY", "RETURNED")
-        s6 = it.status == "IN_WARRANTY" or bool(it.warranty_until and it.warranty_until >= now.date())
+        s3 = bool(it.weight_g and it.dim_l_mm) or it.status in ("READY_FOR_SALE", "PUBLISHED", "RESERVED", "SOLD")
+        has_shipping = bool(it.lots and it.lots[0].shipping_policy) if getattr(it, "lots", None) else False
+        s4 = has_shipping or it.status in ("READY_FOR_SALE", "PUBLISHED", "RESERVED", "SOLD")
+        s5 = bool(it.description or it.status in ("DESCRIBED", "READY_FOR_SALE", "PUBLISHED", "RESERVED", "SOLD"))
+        s6 = list_count > 0 or it.status in ("READY_FOR_SALE", "PUBLISHED", "RESERVED", "SOLD")
+        s7 = it.status in ("SOLD", "IN_WARRANTY", "RETURNED")
+        s8 = it.status == "IN_WARRANTY" or bool(it.warranty_until and it.warranty_until >= now.date())
 
         price_display = None
         if it.target_price is not None:
@@ -283,7 +286,7 @@ def list_stock(
                 "storage_location": it.storage_location,
                 "listings_count": list_count,
                 "photos_count": photos_count,
-                "stages": [s1, s2, s3, s4, s5, s6],
+                "stages": [s1, s2, s3, s4, s5, s6, s7, s8],
                 "created_at": it.created_at,
                 "updated_at": it.updated_at,
             }

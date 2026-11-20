@@ -8,6 +8,16 @@ POPIS A STAV:
 {% if description %}
 {{ description }}
 {% endif %}
+{% if usage %}
+
+MOŽNOSTI VYUŽITÍ:
+{{ usage }}
+{% endif %}
+{% if specs %}
+
+PARAMETRY A SPECIFIKACE:
+{{ specs }}
+{% endif %}
 - Krabice / originální balení: {{ "Ano" if box_present else "Ne" }}
 - Doklad o koupi / účtenka: {{ "Ano" if receipt_present else "Ne" }}
 {% if warranty_text %}

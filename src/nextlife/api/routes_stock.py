@@ -439,6 +439,13 @@ def api_stock_update(
     notice = "saved_not_updated" if not_updated else "saved"
     # Optional return URL (wizard step 2 passes next=/ui/lot-wizard/text?item_code=…).
     if next:
+        if "#" in next:
+            base, fragment = next.split("#", 1)
+            sep = "&" if "?" in base else "?"
+            return RedirectResponse(
+                url=f"{base}{sep}notice={notice}#{fragment}",
+                status_code=status.HTTP_303_SEE_OTHER,
+            )
         sep = "&" if "?" in next else "?"
         return RedirectResponse(url=f"{next}{sep}notice={notice}", status_code=status.HTTP_303_SEE_OTHER)
     return RedirectResponse(
@@ -506,6 +513,7 @@ def api_stock_price_estimate(
     median: str | None = Form(None),
     low: str | None = Form(None),
     high: str | None = Form(None),
+    next: str | None = Form(None),
     auth: bool = Depends(check_auth),
 ) -> RedirectResponse:
     """Save price estimate decision and move item to ESTIMATED (§5.2)."""
@@ -521,6 +529,16 @@ def api_stock_price_estimate(
             high=high,
         )
         session.commit()
+    if next:
+        if "#" in next:
+            base, fragment = next.split("#", 1)
+            sep = "&" if "?" in base else "?"
+            return RedirectResponse(
+                url=f"{base}{sep}notice=price_estimated#{fragment}",
+                status_code=status.HTTP_303_SEE_OTHER,
+            )
+        sep = "&" if "?" in next else "?"
+        return RedirectResponse(url=f"{next}{sep}notice=price_estimated", status_code=status.HTTP_303_SEE_OTHER)
     return RedirectResponse(url=f"/ui/stock/{code}?notice=price_estimated#price", status_code=status.HTTP_303_SEE_OTHER)
 
 
