@@ -14,6 +14,7 @@
       "badge-buy",
       "badge-listings",
       "badge-messages",
+      "btn-select-mode",
       "btn-tasks",
       "btn-toggle-view",
       "bulk-location-input",
@@ -55,13 +56,24 @@
       },
       {
         "tag": "button",
-        "type": "",
+        "type": "button",
+        "name": "",
+        "id": "btn-select-mode",
+        "text": "Выбрать",
+        "width": 80,
+        "height": 36,
+        "top": 64,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
         "name": "",
         "id": "btn-toggle-view",
         "text": "Компактный",
-        "width": 106,
+        "width": 102,
         "height": 36,
-        "top": 52,
+        "top": 64,
         "is_fab": false
       },
       {
@@ -70,9 +82,9 @@
         "name": "q",
         "id": "",
         "text": "",
-        "width": 342,
+        "width": 147,
         "height": 36,
-        "top": 102,
+        "top": 120,
         "is_fab": false
       },
       {
@@ -81,25 +93,14 @@
         "name": "",
         "id": "select-sort",
         "text": "Недавно изменённые\nДольше всех",
-        "width": 191,
+        "width": 195,
         "height": 36,
-        "top": 146,
-        "is_fab": false
-      },
-      {
-        "tag": "input",
-        "type": "checkbox",
-        "name": "",
-        "id": "",
-        "text": "283",
-        "width": 18,
-        "height": 18,
-        "top": 259,
+        "top": 120,
         "is_fab": false
       }
     ],
-    "first_item_top": 246,
-    "visible_text": "⚡\nNextLife\nСклад\nКомпактный\n+ Предмет\nСортировка:\nНедавно изменённые\nДольше всех на складе\nЦена ↓\nМесто на складе\nВсе активные (1)\nНовые (1)\nПодготовка (0)\nГотовы (0)\nНа продаже (0)\nПроданы (0)\nАрхив (0)\n#283\nОценён\nMobile Pre M-AUDIO (preamp / audio interface / zvuková karta)\n899.00 CZK\n📍 На полке с одеждой\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
+    "first_item_top": 206,
+    "visible_text": "⚡\nNextLife\nСклад\nВыбрать\nКомпактный\n+ Предмет\nНедавно изменённые\nДольше всех на складе\nЦена ↓\nМесто на складе\nВсе активные\n1\nНовые\n1\nПодготовка\n0\nГотовы\n0\nНа продаже\n0\nПроданы\n0\nАрхив\n0\n#283\nMobile Pre M-AUDIO (preamp / audio interface / zvuková karta)\nОценён\n⋯\n899.00 CZK\n📍 На полке с одеждой\n5/8\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "stock",
     "viewport": "390",
@@ -262,24 +263,13 @@
       },
       {
         "tag": "button",
-        "type": "",
+        "type": "button",
         "name": "",
         "id": "",
-        "text": "Утилизировать",
-        "width": 119,
-        "height": 36,
-        "top": -326,
-        "is_fab": false
-      },
-      {
-        "tag": "button",
-        "type": "",
-        "name": "",
-        "id": "",
-        "text": "Удалить",
-        "width": 75,
-        "height": 36,
-        "top": -326,
+        "text": "",
+        "width": 138,
+        "height": 32,
+        "top": -1319,
         "is_fab": false
       },
       {
@@ -287,10 +277,10 @@
         "type": "button",
         "name": "",
         "id": "",
-        "text": "‹\nВернуться",
-        "width": 109,
-        "height": 36,
-        "top": -112,
+        "text": "",
+        "width": 138,
+        "height": 32,
+        "top": -1287,
         "is_fab": false
       },
       {
@@ -298,10 +288,54 @@
         "type": "button",
         "name": "",
         "id": "",
-        "text": "Вперёд\n›",
-        "width": 86,
+        "text": "‹ Вернуться",
+        "width": 105,
         "height": 36,
-        "top": -112,
+        "top": -1241,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "Вперёд ›",
+        "width": 82,
+        "height": 36,
+        "top": -1241,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "price",
+        "id": "",
+        "text": "899.00",
+        "width": 187,
+        "height": 36,
+        "top": -1070,
+        "is_fab": false
+      },
+      {
+        "tag": "select",
+        "type": "",
+        "name": "currency",
+        "id": "",
+        "text": "CZK\nEUR",
+        "width": 80,
+        "height": 36,
+        "top": -1070,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "✓",
+        "width": 31,
+        "height": 36,
+        "top": -1070,
         "is_fab": false
       },
       {
@@ -312,7 +346,7 @@
         "text": "899.00",
         "width": 140,
         "height": 38,
-        "top": 143,
+        "top": -1012,
         "is_fab": false
       },
       {
@@ -323,7 +357,7 @@
         "text": "CZK\nEUR\nPLN",
         "width": 72,
         "height": 38,
-        "top": 143,
+        "top": -1013,
         "is_fab": false
       },
       {
@@ -334,7 +368,7 @@
         "text": "",
         "width": 40,
         "height": 38,
-        "top": 143,
+        "top": -1017,
         "is_fab": false
       },
       {
@@ -343,9 +377,9 @@
         "name": "q",
         "id": "",
         "text": "Mobile Pre M-AUDIO",
-        "width": 270,
+        "width": 290,
         "height": 38,
-        "top": 206,
+        "top": -944,
         "is_fab": false
       },
       {
@@ -356,7 +390,7 @@
         "text": "",
         "width": 44,
         "height": 38,
-        "top": 206,
+        "top": -944,
         "is_fab": false
       },
       {
@@ -365,9 +399,9 @@
         "name": "",
         "id": "research-sort-select",
         "text": "По умолчанию\nПо цене (сначала ",
-        "width": 148,
+        "width": 158,
         "height": 36,
-        "top": 351,
+        "top": -799,
         "is_fab": false
       },
       {
@@ -378,7 +412,7 @@
         "text": "‹\nВернуться",
         "width": 109,
         "height": 36,
-        "top": 709,
+        "top": -441,
         "is_fab": false
       },
       {
@@ -389,12 +423,694 @@
         "text": "Вперёд\n›",
         "width": 86,
         "height": 36,
-        "top": 709,
+        "top": -441,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "btn-slider-prev",
+        "text": "‹",
+        "width": 36,
+        "height": 36,
+        "top": -89,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "btn-slider-next",
+        "text": "›",
+        "width": 36,
+        "height": 36,
+        "top": -89,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "btn-slider-fullscreen",
+        "text": "",
+        "width": 36,
+        "height": 36,
+        "top": -184,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 68,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 68,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 68,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 68,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 68,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 68,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 68,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 68,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 68,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 68,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 68,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 68,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "",
+        "width": 36,
+        "height": 36,
+        "top": 3100,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "",
+        "width": 36,
+        "height": 36,
+        "top": 3100,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "",
+        "width": 36,
+        "height": 36,
+        "top": 3100,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "",
+        "width": 36,
+        "height": 36,
+        "top": 3100,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "★ Обложка",
+        "width": 95,
+        "height": 32,
+        "top": 3102,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "",
+        "width": 36,
+        "height": 36,
+        "top": 3100,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "‹\nВернуться",
+        "width": 120,
+        "height": 44,
+        "top": 3327,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "Вперёд\n›",
+        "width": 96,
+        "height": 44,
+        "top": 3327,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "weight_g",
+        "id": "stock-weight",
+        "text": "950",
+        "width": 166,
+        "height": 36,
+        "top": 3508,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "packed_weight_g",
+        "id": "stock-packed-weight",
+        "text": "1100",
+        "width": 166,
+        "height": 36,
+        "top": 3508,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "dim_l_mm",
+        "id": "stock-dim-l",
+        "text": "300",
+        "width": 109,
+        "height": 36,
+        "top": 3594,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "dim_w_mm",
+        "id": "stock-dim-w",
+        "text": "200",
+        "width": 109,
+        "height": 36,
+        "top": 3594,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "dim_h_mm",
+        "id": "stock-dim-h",
+        "text": "50",
+        "width": 109,
+        "height": 36,
+        "top": 3594,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "Сохранить МГХ",
+        "width": 344,
+        "height": 36,
+        "top": 3654,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "‹\nВернуться",
+        "width": 120,
+        "height": 44,
+        "top": 3738,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "Вперёд\n›",
+        "width": 96,
+        "height": 44,
+        "top": 3738,
+        "is_fab": false
+      },
+      {
+        "tag": "select",
+        "type": "",
+        "name": "shipping_policy",
+        "id": "stock-shipping-policy",
+        "text": "Покупатель оплачивает доставку",
+        "width": 344,
+        "height": 36,
+        "top": 3881,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "Сохранить политику доставки",
+        "width": 344,
+        "height": 36,
+        "top": 3945,
+        "is_fab": false
+      },
+      {
+        "tag": "select",
+        "type": "",
+        "name": "",
+        "id": "select-carrier-to-add",
+        "text": "Личная встреча / Osobní odběr ",
+        "width": 208,
+        "height": 36,
+        "top": 4168,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "+ Добавить",
+        "width": 106,
+        "height": 36,
+        "top": 4168,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "✕",
+        "width": 32,
+        "height": 36,
+        "top": 4232,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "",
+        "id": "",
+        "text": "0",
+        "width": 140,
+        "height": 36,
+        "top": 4322,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "✕",
+        "width": 32,
+        "height": 36,
+        "top": 4475,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "",
+        "id": "",
+        "text": "89",
+        "width": 140,
+        "height": 36,
+        "top": 4565,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "Сохранить опции доставки",
+        "width": 318,
+        "height": 36,
+        "top": 4706,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "‹\nВернуться",
+        "width": 120,
+        "height": 44,
+        "top": 4803,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "Вперёд\n›",
+        "width": 96,
+        "height": 44,
+        "top": 4803,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "Готов к продаже",
+        "width": 148,
+        "height": 36,
+        "top": 5053,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "title",
+        "id": "stock-title",
+        "text": "Mobile Pre M-AUDIO (preamp / a",
+        "width": 348,
+        "height": 36,
+        "top": 5171,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "storage_location",
+        "id": "stock-storage",
+        "text": "На полке с одеждой",
+        "width": 348,
+        "height": 36,
+        "top": 5245,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "target_price",
+        "id": "stock-price",
+        "text": "899.00",
+        "width": 168,
+        "height": 36,
+        "top": 5319,
+        "is_fab": false
+      },
+      {
+        "tag": "select",
+        "type": "",
+        "name": "target_currency",
+        "id": "stock-currency",
+        "text": "CZK\nEUR\nPLN",
+        "width": 168,
+        "height": 36,
+        "top": 5319,
+        "is_fab": false
+      },
+      {
+        "tag": "select",
+        "type": "",
+        "name": "description_lang",
+        "id": "stock-desc-lang",
+        "text": "Русский\nЧешский\nАнглийский\nНем",
+        "width": 348,
+        "height": 36,
+        "top": 5405,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "warranty_months",
+        "id": "stock-warranty-months",
+        "text": "",
+        "width": 348,
+        "height": 36,
+        "top": 6267,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "Сохранить",
+        "width": 374,
+        "height": 36,
+        "top": 6488,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "‹\nВернуться",
+        "width": 120,
+        "height": 44,
+        "top": 6557,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "Вперёд\n›",
+        "width": 96,
+        "height": 44,
+        "top": 6557,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "🔄 Ревизия",
+        "width": 96,
+        "height": 36,
+        "top": 6667,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "⚡ Подготовить",
+        "width": 125,
+        "height": 36,
+        "top": 6667,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "btn-facebook-pack",
+        "text": "Пакет для Facebook",
+        "width": 151,
+        "height": 36,
+        "top": 6709,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "⚡ Подготовить объявления для п",
+        "width": 330,
+        "height": 36,
+        "top": 7167,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "‹\nВернуться",
+        "width": 120,
+        "height": 44,
+        "top": 7260,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "Вперёд\n›",
+        "width": 96,
+        "height": 44,
+        "top": 7260,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "✓ Отметить проданным",
+        "width": 208,
+        "height": 36,
+        "top": 7494,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "‹\nВернуться",
+        "width": 120,
+        "height": 44,
+        "top": 7563,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "Вперёд\n›",
+        "width": 96,
+        "height": 44,
+        "top": 7563,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "‹\nВернуться",
+        "width": 120,
+        "height": 44,
+        "top": 7797,
         "is_fab": false
       }
     ],
-    "first_item_top": null,
-    "visible_text": "⚡\nNextLife\n← Склад\nУтилизировать\nУдалить\n#283\nMobile Pre M-AUDIO (preamp / audio interface / zvuková karta)\n📍 На полке с одеждой\nОценён\n‹\nВернуться\nЭтап 1/8: Оценка\nВперёд\n›\nОценка\nФото\nМГХ\nДоставка\nОписание\nОбъявления\nПродажа\nГарантия\nЭтап 1. Оценка цены аналогов\nТекущая целевая цена:\n899.00 CZK\nЦена продажи:\nCZK\nEUR\nPLN\n💡 Теги: +слово или +\"фраза\" — обязательно, -слово или -\"фраза\" — исключить.\nНайдено предложений: 3\nПо умолчанию\nПо цене (сначала дешевле)\nПо цене (сначала дороже)\nПо наименованию (А – Я)\nПо наименованию (Я – А)\nVINTED\nДругое\nLine 6 POD UX1 interfejs audio ↗\n952.59 CZK\nVINTED\nДругое\n🎧 MEE audio Connect HUB – Bluetooth vysielač/prijímač k TV a audio systému ↗\n1895.23 CZK\nAUKRO_CZ\nДругое\nŠIKOVNÝ 70W BLUETOOTH AUDIO SYSTÉM SENCOR SSS 3900 - VÝHODNÁ KOUPĚ ↗\nАукцион\n‹\nВернуться\nЭтап 1/8: Оценка\nВперёд\n›\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
+    "first_item_top": 3149,
+    "visible_text": "⚡\nNextLife\n←\n#283\nОценён\n⋯\nMobile Pre M-AUDIO (preamp / audio interface / zvuková karta)\n📍 На полке с одеждой\n‹ Вернуться\nЭтап 1/8: Оценка\nВперёд ›\nОценка\nФото\nМГХ\nДоставка\nОписание\nОбъявления\nПродажа\nГарантия\nЭтап 1. Оценка цены аналогов\nЦена продажи:\nCZK\nEUR\n✓\n \nCZK\nEUR\nPLN\n \n💡 Теги: +слово или +\"фраза\" — обязательно, -слово или -\"фраза\" — исключить.\nНайдено предложений: 3\nПо умолчанию\nПо цене (сначала дешевле)\nПо цене (сначала дороже)\nПо наименованию (А – Я)\nПо наименованию (Я – А)\nVINTED\nДругое\nLine 6 POD UX1 interfejs audio ↗\n952.59 CZK\nVINTED\nДругое\n🎧 MEE audio Connect HUB – Bluetooth vysielač/prijímač k TV a audio systému ↗\n1895.23 CZK\nAUKRO_CZ\nДругое\nŠIKOVNÝ 70W BLUETOOTH AUDIO SYSTÉM SENCOR SSS 3900 - VÝHODNÁ KOUPĚ ↗\nАукцион\n‹\nВернуться\nЭтап 1/8: Оценка\nВперёд\n›\nЭтап 2. Фотографии\n📷 Фотостенд\nФотогалерея (12)\n12 фото\n‹\n›\n1 / 12\nОбработано\nобработано\nобложка\n×\nобработано\n×\nобработано\n×\n×\nобработано\n×\nобработано\n×\n×\nобработано\n×\nобработано\n×\nобработано\n×\nобработано\n×\nобработано\n×\n★ Обложка\nДобавить фотографии\n📸 Снять на камеру\n🖼 Загрузить из галереи\n‹\nВернуться\nЭтап /:\nВперёд\n›\nЭтап 3. МГХ (массо-габаритные характеристики)\nВЕС ТОВАРА (Г)\nВЕС В УПАКОВКЕ (Г)\nДЛИНА (ММ)\nШИРИНА (ММ)\nВЫСОТА (ММ)\nСохранить МГХ\n‹\nВернуться\nЭтап /:\nВперёд\n›\nЭтап 4. Доставка\nКТО ПЛАТИТ ЗА ДОСТАВКУ\nПокупатель оплачивает доставку сверху\nДоставка включена в стоимость\nТолько личный самовывоз\nСохранить политику доставки\nПеревозчики\nКонструктор автоматически подбирает базовые тарифы чешских служб (Zásilkovna, Balíkovna, Česká pošta). При ручном изменении тарифа он помечается как Ручная цена.\nДОБАВИТЬ СЛУЖБУ ДОСТАВКИ:\nЛичная встреча / Osobní odběr (уже выбран)\nZásilkovna (výdejní místo / Z-BOX) (уже выбран)\nBalíkovna (Česká pošta / AlzaBox) (от 79 Kč)\nČeská pošta (Balík Do ruky) (от 129 Kč)\nKurýr DPD / PPL (na adresu) (от 129 Kč)\nPPL (Parcelshop / Parcelbox) (от 76 Kč)\nGLS (ParcelShop / ParcelBox) (от 69 Kč)\n+ Добавить\nЛичная встреча / Osobní odběr\nБазовый авто-тариф: 0 Kč\nАвто-тариф\n✕\nТАРИФ ДОСТАВКИ\nKč\nИТОГО ПОКУПАТЕЛЮ\n899 Kč\nНА РУКИ ПРОДАВЦУ\n899 Kč\nZásilkovna (výdejní místo / Z-BOX)\nБазовый авто-тариф: 89 Kč\nАвто-тариф\n✕\nТАРИФ ДОСТАВКИ\nKč\nИТОГО ПОКУПАТЕЛЮ\n988 Kč\nНА РУКИ ПРОДАВЦУ\n899 Kč\nСохранить опции доставки\n‹\nВернуться\nЭтап /:\nВперёд\n›\nЧек-лист «Готов к продаже»\n✓ ≥ 1 фото предмета\n✓ Указаны МГХ (вес и габариты)\n✓ Выбрана политика доставки\n✓ Заполнено описание\n✓ Задана цена продажи\nГотов к продаже\nОсновное\nНАИМЕНОВАНИЕ\nМЕСТО НА СКЛАДЕ\nЦЕНА\nВАЛЮТА\nCZK\nEUR\nPLN\nЯЗЫК ОПИСАНИЯ\nРусский\nЧешский\nАнглийский\nНемецкий\nПольский\nТекст объявления\nОПИСАНИЕ\nИСПОЛЬЗОВАНИЕ\nТЕХНИЧЕСКИЕ ХАРАКТЕРИСТИКИ\nЗаметки оператора\nВидны только вам, в объявления не попадают\nГарантия\nСРОК ГАРАНТИИ (МЕСЯЦЕВ, ОСТАВЬТЕ ПУСТЫМ ЕСЛИ БЕЗ ГАРАНТИИ)\nУСЛОВИЯ ГАРАНТИИ ДЛЯ ТЕКСТА ОБЪЯВЛЕНИЙ\nСохранить\n‹\nВернуться\nЭтап /:\nВперёд\n›\nЭтап 6. Объявления на площадках (0)\n🔄 Ревизия\n⚡ Подготовить\nПакет для Facebook\nНе ставится в очередь\nTrhKnih.cz — TrhKnih.cz принимает исключительно книги: «Na webových stránkách www.trhknih.cz je umístěno internetové tržiště, prostřednictvím kterého mohou jeho uživatelé nakupovat a prodávat knihy. Kniha znamená knihu v listinné originální podobě» (Obchodní podmínky čl. 1.2). Видеокарта в очередь публикации не ставится. Доказательство: evidence/trhknih_cz/rules/obchodni_podminky.html\nMimibazar.cz — Mimibazar.cz specializes exclusively in baby, children and family goods. Computer hardware is prohibited.\nОбъявления ещё не подготовлены.\n\n\n⚡ Подготовить объявления для площадок\n‹\nВернуться\nЭтап /:\nВперёд\n›\nЭтап 7. Продажа\n\nКогда предмет продан покупателю, нажмите кнопку ниже. Объявления будут автоматически сняты со всех площадок, и статус перейдёт в «Продан».\n\n✓ Отметить проданным\n‹\nВернуться\nЭтап /:\nВперёд\n›\nЭтап 8. Гарантия\nДля этого предмета гарантия не указана (срок гарантии: пусто).\n‹\nВернуться\nЭтап /:\n✓ На склад\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "stock_item",
     "viewport": "390",
@@ -426,6 +1142,7 @@
       "lightbox-next",
       "lightbox-prev",
       "lightbox-strip",
+      "recent-locations-container",
       "stock-new-form",
       "tasks-drawer-list",
       "tasks-drawer-overlay",
@@ -453,9 +1170,9 @@
         "name": "title",
         "id": "input-title",
         "text": "",
-        "width": 300,
+        "width": 203,
         "height": 36,
-        "top": 155,
+        "top": 145,
         "is_fab": false
       },
       {
@@ -464,9 +1181,9 @@
         "name": "storage_location",
         "id": "input-location",
         "text": "",
-        "width": 300,
+        "width": 203,
         "height": 36,
-        "top": 236,
+        "top": 202,
         "is_fab": false
       },
       {
@@ -475,9 +1192,9 @@
         "name": "action",
         "id": "",
         "text": "Создать",
-        "width": 92,
+        "width": 134,
         "height": 36,
-        "top": 296,
+        "top": 254,
         "is_fab": false
       },
       {
@@ -486,14 +1203,14 @@
         "name": "action",
         "id": "",
         "text": "Создать и следующий",
-        "width": 204,
+        "width": 182,
         "height": 36,
-        "top": 296,
+        "top": 254,
         "is_fab": false
       }
     ],
-    "first_item_top": 106,
-    "visible_text": "⚡\nNextLife\nНовый предмет\nНазвание предмета *\n📍 Место на складе\nСоздать\nСоздать и следующий\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
+    "first_item_top": 111,
+    "visible_text": "⚡\nNextLife\nНовый предмет\nНазвание предмета * \n📍 Место на складе \nСоздать\nСоздать и следующий\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "stock_new",
     "viewport": "390",
@@ -906,7 +1623,7 @@
       }
     ],
     "first_item_top": 156,
-    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.91\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМои данные\nИмя продавца \nПочтовый индекс (PSČ) \nТелефон \nМесто встреч по умолчанию \nСохранить\nВерсия: 2026.11.91\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
+    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.93\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМои данные\nИмя продавца \nПочтовый индекс (PSČ) \nТелефон \nМесто встреч по умолчанию \nСохранить\nВерсия: 2026.11.93\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "settings_profile",
     "viewport": "390",
@@ -1693,7 +2410,7 @@
       }
     ],
     "first_item_top": 319,
-    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.91\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМатрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен\n·\nПск поиск · Рзм размещение · Изм изменение · Снт снятие · Прв перевыставление · Сбщ сообщения · Дст доставка\nСрок жизни по умолчанию (дней): \nПубликация\nTrhKnih.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nHyperinzerce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nSbazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nFacebook Marketplace\nНедоступен\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAnnonce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAukro.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nVinted\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.sk\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nMimibazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\neBay\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nТолько мониторинг цен\nПлощадка\tМониторинг\tТип коннектора\tСайт\n Willhaben\t\nПоиск\n\tЧерез приложение\t↗\n Kleinanzeigen\t\nПоиск\n\tЧерез приложение\t↗\n OLX\t\nПоиск\n\tЧерез приложение\t↗\nСохранить площадки\nВерсия: 2026.11.91\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
+    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.93\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМатрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен\n·\nПск поиск · Рзм размещение · Изм изменение · Снт снятие · Прв перевыставление · Сбщ сообщения · Дст доставка\nСрок жизни по умолчанию (дней): \nПубликация\nTrhKnih.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nHyperinzerce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nSbazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nFacebook Marketplace\nНедоступен\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAnnonce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAukro.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nVinted\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.sk\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nMimibazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\neBay\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nТолько мониторинг цен\nПлощадка\tМониторинг\tТип коннектора\tСайт\n Willhaben\t\nПоиск\n\tЧерез приложение\t↗\n Kleinanzeigen\t\nПоиск\n\tЧерез приложение\t↗\n OLX\t\nПоиск\n\tЧерез приложение\t↗\nСохранить площадки\nВерсия: 2026.11.93\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "settings_marketplaces",
     "viewport": "390",
@@ -2480,7 +3197,7 @@
       }
     ],
     "first_item_top": 319,
-    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.91\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМатрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен\n·\nПск поиск · Рзм размещение · Изм изменение · Снт снятие · Прв перевыставление · Сбщ сообщения · Дст доставка\nСрок жизни по умолчанию (дней): \nПубликация\nTrhKnih.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nАвтоснятие: ✓ Поддерживается\nАвтоперевыставление: ✓ Поддерживается\nПрямой доступ 🔗 Войти ↗\nСрок публикации на площадке (дней): \nСпособы доставки:\nЛичная встреча / Osobní odběr\nZásilkovna / Packeta\nBalíkovna (Česká pošta)\nČeská pošta\nPPL CZ\nGLS\nКурьер DPD / PPL\nEmail аккаунта TrhKnih.cz\nСтереть\nПароль аккаунта TrhKnih.cz\nСтереть\nHyperinzerce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nSbazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nFacebook Marketplace\nНедоступен\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAnnonce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAukro.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nVinted\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.sk\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nMimibazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\neBay\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nТолько мониторинг цен\nПлощадка\tМониторинг\tТип коннектора\tСайт\n Willhaben\t\nПоиск\n\tЧерез приложение\t↗\n Kleinanzeigen\t\nПоиск\n\tЧерез приложение\t↗\n OLX\t\nПоиск\n\tЧерез приложение\t↗\nСохранить площадки\nВерсия: 2026.11.91\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
+    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.93\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМатрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен\n·\nПск поиск · Рзм размещение · Изм изменение · Снт снятие · Прв перевыставление · Сбщ сообщения · Дст доставка\nСрок жизни по умолчанию (дней): \nПубликация\nTrhKnih.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nАвтоснятие: ✓ Поддерживается\nАвтоперевыставление: ✓ Поддерживается\nПрямой доступ 🔗 Войти ↗\nСрок публикации на площадке (дней): \nСпособы доставки:\nЛичная встреча / Osobní odběr\nZásilkovna / Packeta\nBalíkovna (Česká pošta)\nČeská pošta\nPPL CZ\nGLS\nКурьер DPD / PPL\nEmail аккаунта TrhKnih.cz\nСтереть\nПароль аккаунта TrhKnih.cz\nСтереть\nHyperinzerce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nSbazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nFacebook Marketplace\nНедоступен\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAnnonce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAukro.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nVinted\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.sk\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nMimibazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\neBay\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nТолько мониторинг цен\nПлощадка\tМониторинг\tТип коннектора\tСайт\n Willhaben\t\nПоиск\n\tЧерез приложение\t↗\n Kleinanzeigen\t\nПоиск\n\tЧерез приложение\t↗\n OLX\t\nПоиск\n\tЧерез приложение\t↗\nСохранить площадки\nВерсия: 2026.11.93\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "settings_marketplaces_open",
     "viewport": "390",
@@ -2821,7 +3538,7 @@
       }
     ],
     "first_item_top": 184,
-    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.91\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nЕдиная модель для всех операций\nТекстовый ИИ (Text LLM)\n\nOpenAI-совместимый эндпоинт POST /v1/chat/completions.\n\nТип эндпоинта (Provider) \nOpenAI совместимый (POST /v1/chat/completions)\nGoogle Gemini (generateContent REST API)\nURL эндпоинта \nURL OpenAI-совместимого эндпоинта (например, https://api.openai.com/v1/chat/completions).\nAPI Key \nМодель \nНапример: gpt-4o-mini, gpt-4o\nГрафический ИИ (Image AI)\n\nCloudflare Workers AI (прямой REST API /ai/run/{model} или ваш прокси-воркер).\n\nТип эндпоинта (Provider) \nOpenAI совместимый (POST /v1/images/edits)\nGoogle Gemini (gemini-2.5-flash-image / Imagen 3)\nCloudflare Workers AI (/ai/run/ или Workers)\nURL эндпоинта / Account ID \nУкажите ваш Cloudflare Account ID (из панели dash.cloudflare.com) или полный URL: https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/run/\nAPI Key / Token \nИндивидуальные настройки функций ИИ (пыль, студия, фон)\nСохранить настройки ИИ\nПроверить Text LLM\nПроверить Image AI\nВерсия: 2026.11.91\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
+    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.93\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nЕдиная модель для всех операций\nТекстовый ИИ (Text LLM)\n\nOpenAI-совместимый эндпоинт POST /v1/chat/completions.\n\nТип эндпоинта (Provider) \nOpenAI совместимый (POST /v1/chat/completions)\nGoogle Gemini (generateContent REST API)\nURL эндпоинта \nURL OpenAI-совместимого эндпоинта (например, https://api.openai.com/v1/chat/completions).\nAPI Key \nМодель \nНапример: gpt-4o-mini, gpt-4o\nГрафический ИИ (Image AI)\n\nCloudflare Workers AI (прямой REST API /ai/run/{model} или ваш прокси-воркер).\n\nТип эндпоинта (Provider) \nOpenAI совместимый (POST /v1/images/edits)\nGoogle Gemini (gemini-2.5-flash-image / Imagen 3)\nCloudflare Workers AI (/ai/run/ или Workers)\nURL эндпоинта / Account ID \nУкажите ваш Cloudflare Account ID (из панели dash.cloudflare.com) или полный URL: https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/run/\nAPI Key / Token \nИндивидуальные настройки функций ИИ (пыль, студия, фон)\nСохранить настройки ИИ\nПроверить Text LLM\nПроверить Image AI\nВерсия: 2026.11.93\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "settings_ai",
     "viewport": "390",
@@ -2941,7 +3658,7 @@
       }
     ],
     "first_item_top": 156,
-    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.91\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nИнтеграция с Notion\nNotion Token \nDatabase ID \nСвойство заголовка (Title Property) \nСвойство даты (Date Property) \nСохранить Notion\nПроверить подключение к Notion\nВерсия: 2026.11.91\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
+    "visible_text": "⚡\nNextLife\nВерсия: 2026.11.93\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nИнтеграция с Notion\nNotion Token \nDatabase ID \nСвойство заголовка (Title Property) \nСвойство даты (Date Property) \nСохранить Notion\nПроверить подключение к Notion\nВерсия: 2026.11.93\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "settings_notion",
     "viewport": "390",
@@ -3373,6 +4090,7 @@
       "badge-buy",
       "badge-listings",
       "badge-messages",
+      "btn-select-mode",
       "btn-tasks",
       "btn-toggle-view",
       "bulk-location-input",
@@ -3414,13 +4132,24 @@
       },
       {
         "tag": "button",
-        "type": "",
+        "type": "button",
+        "name": "",
+        "id": "btn-select-mode",
+        "text": "Выбрать",
+        "width": 80,
+        "height": 36,
+        "top": 64,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
         "name": "",
         "id": "btn-toggle-view",
         "text": "Компактный",
-        "width": 106,
+        "width": 102,
         "height": 36,
-        "top": 52,
+        "top": 64,
         "is_fab": false
       },
       {
@@ -3429,9 +4158,9 @@
         "name": "q",
         "id": "",
         "text": "",
-        "width": 342,
+        "width": 147,
         "height": 36,
-        "top": 102,
+        "top": 120,
         "is_fab": false
       },
       {
@@ -3440,25 +4169,14 @@
         "name": "",
         "id": "select-sort",
         "text": "Недавно изменённые\nДольше всех",
-        "width": 191,
+        "width": 195,
         "height": 36,
-        "top": 146,
-        "is_fab": false
-      },
-      {
-        "tag": "input",
-        "type": "checkbox",
-        "name": "",
-        "id": "",
-        "text": "283",
-        "width": 18,
-        "height": 18,
-        "top": 259,
+        "top": 120,
         "is_fab": false
       }
     ],
-    "first_item_top": 246,
-    "visible_text": "⚡\nNextLife\nСклад\nКомпактный\n+ Предмет\nСортировка:\nНедавно изменённые\nДольше всех на складе\nЦена ↓\nМесто на складе\nВсе активные (1)\nНовые (1)\nПодготовка (0)\nГотовы (0)\nНа продаже (0)\nПроданы (0)\nАрхив (0)\n#283\nОценён\nMobile Pre M-AUDIO (preamp / audio interface / zvuková karta)\n899.00 CZK\n📍 На полке с одеждой\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
+    "first_item_top": 206,
+    "visible_text": "⚡\nNextLife\nСклад\nВыбрать\nКомпактный\n+ Предмет\nНедавно изменённые\nДольше всех на складе\nЦена ↓\nМесто на складе\nВсе активные\n1\nНовые\n1\nПодготовка\n0\nГотовы\n0\nНа продаже\n0\nПроданы\n0\nАрхив\n0\n#283\nMobile Pre M-AUDIO (preamp / audio interface / zvuková karta)\nОценён\n⋯\n899.00 CZK\n📍 На полке с одеждой\n5/8\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "photo_stand",
     "viewport": "390",
@@ -3524,7 +4242,7 @@
         "text": "💾 Сохранить правки текста",
         "width": 206,
         "height": 36,
-        "top": 869,
+        "top": 878,
         "is_fab": false
       },
       {
@@ -3535,7 +4253,7 @@
         "text": "✅ Утвердить публикацию",
         "width": 211,
         "height": 36,
-        "top": 917,
+        "top": 926,
         "is_fab": false
       },
       {
@@ -3546,7 +4264,7 @@
         "text": "Запустить разведку",
         "width": 164,
         "height": 36,
-        "top": 1007,
+        "top": 1016,
         "is_fab": false
       },
       {
@@ -3557,7 +4275,7 @@
         "text": "Использовать этот текст",
         "width": 182,
         "height": 36,
-        "top": 1353,
+        "top": 1362,
         "is_fab": false
       },
       {
@@ -3568,7 +4286,7 @@
         "text": "Использовать этот текст",
         "width": 182,
         "height": 36,
-        "top": 1477,
+        "top": 1486,
         "is_fab": false
       },
       {
@@ -3579,11 +4297,11 @@
         "text": "Использовать этот текст",
         "width": 182,
         "height": 36,
-        "top": 1601,
+        "top": 1610,
         "is_fab": false
       }
     ],
-    "first_item_top": 142,
+    "first_item_top": 151,
     "visible_text": "⚡\nNextLife\n← К карточке предмета\nУтверждение черновика\n\nПроверьте чешский текст, цену и фотографии перед публикацией на площадки.\n\n#283\nMobile Pre M-AUDIO (preamp / audio interface / zvuková karta)\n899 Kč\nСлужебный блок: хэш пэйлоада (SHA-256)\nПлощадки:\naukro_cz\nbazos_cz\nТЕКСТ ОБЪЯВЛЕНИЯ (CZECH LISTING TEXT)\n💡 Ограничение площадки: 3000 символов\nСимволов: 1445 / 3000\n💾 Сохранить правки текста\n✅ Утвердить публикацию\nРазведка рынка\nЗапустить разведку\nНайдено аналогов: 3\nВыборка недостаточна для рыночной оценки: найдено 2 (требуется 5).\nLine 6 POD UX1 interfejs audio — vinted\n🎧 MEE audio Connect HUB – Bluetooth vysielač/prijímač k TV a audio systému — vinted\nŠIKOVNÝ 70W BLUETOOTH AUDIO SYSTÉM SENCOR SSS 3900 - VÝHODNÁ KOUPĚ — aukro_cz\n\nГотовые варианты текста объявления по найденным аналогам (редактируются):\n\n Использовать этот текст\n Использовать этот текст\n Использовать этот текст\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки",
     "console_errors": [],
     "screen": "draft",
@@ -3634,7 +4352,7 @@
         "text": "",
         "width": 334,
         "height": 36,
-        "top": 189,
+        "top": 198,
         "is_fab": false
       },
       {
@@ -3645,7 +4363,7 @@
         "text": "Войти в систему",
         "width": 142,
         "height": 36,
-        "top": 253,
+        "top": 262,
         "is_fab": false
       }
     ],
@@ -3674,6 +4392,7 @@
       "badge-buy",
       "badge-listings",
       "badge-messages",
+      "btn-select-mode",
       "btn-tasks",
       "btn-toggle-view",
       "bulk-location-input",
@@ -3715,13 +4434,24 @@
       },
       {
         "tag": "button",
-        "type": "",
+        "type": "button",
+        "name": "",
+        "id": "btn-select-mode",
+        "text": "Выбрать",
+        "width": 80,
+        "height": 36,
+        "top": 64,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
         "name": "",
         "id": "btn-toggle-view",
         "text": "Компактный",
-        "width": 106,
+        "width": 102,
         "height": 36,
-        "top": 52,
+        "top": 64,
         "is_fab": false
       },
       {
@@ -3730,9 +4460,9 @@
         "name": "q",
         "id": "",
         "text": "",
-        "width": 637,
+        "width": 725,
         "height": 36,
-        "top": 102,
+        "top": 120,
         "is_fab": false
       },
       {
@@ -3741,25 +4471,14 @@
         "name": "",
         "id": "select-sort",
         "text": "Недавно изменённые\nДольше всех",
-        "width": 191,
+        "width": 195,
         "height": 36,
-        "top": 102,
-        "is_fab": false
-      },
-      {
-        "tag": "input",
-        "type": "checkbox",
-        "name": "",
-        "id": "",
-        "text": "283",
-        "width": 18,
-        "height": 18,
-        "top": 215,
+        "top": 120,
         "is_fab": false
       }
     ],
-    "first_item_top": 202,
-    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nСклад\nКомпактный\n+ Предмет\nСортировка:\nНедавно изменённые\nДольше всех на складе\nЦена ↓\nМесто на складе\nВсе активные (1)\nНовые (1)\nПодготовка (0)\nГотовы (0)\nНа продаже (0)\nПроданы (0)\nАрхив (0)\n#283\nОценён\nMobile Pre M-AUDIO (preamp / audio interface / zvuková karta)\n899.00 CZK\n📍 На полке с одеждой",
+    "first_item_top": 206,
+    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nСклад\nВыбрать\nКомпактный\n+ Предмет\nНедавно изменённые\nДольше всех на складе\nЦена ↓\nМесто на складе\nВсе активные\n1\nНовые\n1\nПодготовка\n0\nГотовы\n0\nНа продаже\n0\nПроданы\n0\nАрхив\n0\n#283\nMobile Pre M-AUDIO (preamp / audio interface / zvuková karta)\nОценён\n⋯\n899.00 CZK\n📍 На полке с одеждой\n5/8",
     "console_errors": [],
     "screen": "stock",
     "viewport": "1366",
@@ -3922,24 +4641,13 @@
       },
       {
         "tag": "button",
-        "type": "",
+        "type": "button",
         "name": "",
         "id": "",
-        "text": "Утилизировать",
-        "width": 119,
-        "height": 36,
-        "top": -338,
-        "is_fab": false
-      },
-      {
-        "tag": "button",
-        "type": "",
-        "name": "",
-        "id": "",
-        "text": "Удалить",
-        "width": 75,
-        "height": 36,
-        "top": -338,
+        "text": "",
+        "width": 138,
+        "height": 32,
+        "top": -1704,
         "is_fab": false
       },
       {
@@ -3947,10 +4655,10 @@
         "type": "button",
         "name": "",
         "id": "",
-        "text": "‹\nВернуться",
-        "width": 116,
-        "height": 36,
-        "top": -186,
+        "text": "",
+        "width": 138,
+        "height": 32,
+        "top": -1672,
         "is_fab": false
       },
       {
@@ -3958,10 +4666,54 @@
         "type": "button",
         "name": "",
         "id": "",
-        "text": "Вперёд\n›",
-        "width": 92,
+        "text": "‹ Вернуться",
+        "width": 109,
         "height": 36,
-        "top": -186,
+        "top": -1645,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "Вперёд ›",
+        "width": 85,
+        "height": 36,
+        "top": -1645,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "price",
+        "id": "",
+        "text": "899.00",
+        "width": 713,
+        "height": 36,
+        "top": -1474,
+        "is_fab": false
+      },
+      {
+        "tag": "select",
+        "type": "",
+        "name": "currency",
+        "id": "",
+        "text": "CZK\nEUR",
+        "width": 80,
+        "height": 36,
+        "top": -1474,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "✓",
+        "width": 31,
+        "height": 36,
+        "top": -1474,
         "is_fab": false
       },
       {
@@ -3972,7 +4724,7 @@
         "text": "899.00",
         "width": 140,
         "height": 38,
-        "top": 68,
+        "top": -1418,
         "is_fab": false
       },
       {
@@ -3983,7 +4735,7 @@
         "text": "CZK\nEUR\nPLN",
         "width": 72,
         "height": 38,
-        "top": 68,
+        "top": -1417,
         "is_fab": false
       },
       {
@@ -3994,7 +4746,7 @@
         "text": "",
         "width": 40,
         "height": 38,
-        "top": 68,
+        "top": -1421,
         "is_fab": false
       },
       {
@@ -4003,9 +4755,9 @@
         "name": "q",
         "id": "",
         "text": "Mobile Pre M-AUDIO",
-        "width": 796,
+        "width": 816,
         "height": 38,
-        "top": 131,
+        "top": -1349,
         "is_fab": false
       },
       {
@@ -4016,7 +4768,7 @@
         "text": "",
         "width": 44,
         "height": 38,
-        "top": 131,
+        "top": -1349,
         "is_fab": false
       },
       {
@@ -4025,9 +4777,9 @@
         "name": "",
         "id": "research-sort-select",
         "text": "По умолчанию\nПо цене (сначала ",
-        "width": 411,
+        "width": 421,
         "height": 36,
-        "top": 259,
+        "top": -1222,
         "is_fab": false
       },
       {
@@ -4038,7 +4790,7 @@
         "text": "‹\nВернуться",
         "width": 116,
         "height": 36,
-        "top": 617,
+        "top": -864,
         "is_fab": false
       },
       {
@@ -4049,12 +4801,694 @@
         "text": "Вперёд\n›",
         "width": 92,
         "height": 36,
-        "top": 617,
+        "top": -864,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "btn-slider-prev",
+        "text": "‹",
+        "width": 36,
+        "height": 36,
+        "top": -295,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "btn-slider-next",
+        "text": "›",
+        "width": 36,
+        "height": 36,
+        "top": -295,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "btn-slider-fullscreen",
+        "text": "",
+        "width": 36,
+        "height": 36,
+        "top": -607,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 78,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 78,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 78,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 78,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 78,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 78,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 78,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 78,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 78,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 78,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 78,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "×",
+        "width": 28,
+        "height": 28,
+        "top": 78,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "",
+        "width": 36,
+        "height": 36,
+        "top": 3110,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "",
+        "width": 36,
+        "height": 36,
+        "top": 3110,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "",
+        "width": 36,
+        "height": 36,
+        "top": 3110,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "",
+        "width": 36,
+        "height": 36,
+        "top": 3110,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "★ Обложка",
+        "width": 95,
+        "height": 32,
+        "top": 3112,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "",
+        "width": 36,
+        "height": 36,
+        "top": 3110,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "‹\nВернуться",
+        "width": 120,
+        "height": 44,
+        "top": 3291,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "Вперёд\n›",
+        "width": 96,
+        "height": 44,
+        "top": 3291,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "weight_g",
+        "id": "stock-weight",
+        "text": "950",
+        "width": 455,
+        "height": 36,
+        "top": 3445,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "packed_weight_g",
+        "id": "stock-packed-weight",
+        "text": "1100",
+        "width": 455,
+        "height": 36,
+        "top": 3445,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "dim_l_mm",
+        "id": "stock-dim-l",
+        "text": "300",
+        "width": 302,
+        "height": 36,
+        "top": 3531,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "dim_w_mm",
+        "id": "stock-dim-w",
+        "text": "200",
+        "width": 302,
+        "height": 36,
+        "top": 3531,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "dim_h_mm",
+        "id": "stock-dim-h",
+        "text": "50",
+        "width": 302,
+        "height": 36,
+        "top": 3531,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "Сохранить МГХ",
+        "width": 922,
+        "height": 36,
+        "top": 3591,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "‹\nВернуться",
+        "width": 120,
+        "height": 44,
+        "top": 3675,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "Вперёд\n›",
+        "width": 96,
+        "height": 44,
+        "top": 3675,
+        "is_fab": false
+      },
+      {
+        "tag": "select",
+        "type": "",
+        "name": "shipping_policy",
+        "id": "stock-shipping-policy",
+        "text": "Покупатель оплачивает доставку",
+        "width": 922,
+        "height": 36,
+        "top": 3818,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "Сохранить политику доставки",
+        "width": 922,
+        "height": 36,
+        "top": 3882,
+        "is_fab": false
+      },
+      {
+        "tag": "select",
+        "type": "",
+        "name": "",
+        "id": "select-carrier-to-add",
+        "text": "Личная встреча / Osobní odběr ",
+        "width": 786,
+        "height": 36,
+        "top": 4068,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "+ Добавить",
+        "width": 106,
+        "height": 36,
+        "top": 4068,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "✕",
+        "width": 32,
+        "height": 36,
+        "top": 4132,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "",
+        "id": "",
+        "text": "0",
+        "width": 140,
+        "height": 36,
+        "top": 4201,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "✕",
+        "width": 32,
+        "height": 36,
+        "top": 4336,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "",
+        "id": "",
+        "text": "89",
+        "width": 140,
+        "height": 36,
+        "top": 4405,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "Сохранить опции доставки",
+        "width": 896,
+        "height": 36,
+        "top": 4528,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "‹\nВернуться",
+        "width": 120,
+        "height": 44,
+        "top": 4625,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "Вперёд\n›",
+        "width": 96,
+        "height": 44,
+        "top": 4625,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "Готов к продаже",
+        "width": 148,
+        "height": 36,
+        "top": 4876,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "title",
+        "id": "stock-title",
+        "text": "Mobile Pre M-AUDIO (preamp / a",
+        "width": 926,
+        "height": 36,
+        "top": 4994,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "storage_location",
+        "id": "stock-storage",
+        "text": "На полке с одеждой",
+        "width": 926,
+        "height": 36,
+        "top": 5068,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "target_price",
+        "id": "stock-price",
+        "text": "899.00",
+        "width": 457,
+        "height": 36,
+        "top": 5142,
+        "is_fab": false
+      },
+      {
+        "tag": "select",
+        "type": "",
+        "name": "target_currency",
+        "id": "stock-currency",
+        "text": "CZK\nEUR\nPLN",
+        "width": 457,
+        "height": 36,
+        "top": 5142,
+        "is_fab": false
+      },
+      {
+        "tag": "select",
+        "type": "",
+        "name": "description_lang",
+        "id": "stock-desc-lang",
+        "text": "Русский\nЧешский\nАнглийский\nНем",
+        "width": 926,
+        "height": 36,
+        "top": 5228,
+        "is_fab": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "warranty_months",
+        "id": "stock-warranty-months",
+        "text": "",
+        "width": 926,
+        "height": 36,
+        "top": 6051,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "Сохранить",
+        "width": 952,
+        "height": 36,
+        "top": 6272,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "‹\nВернуться",
+        "width": 120,
+        "height": 44,
+        "top": 6341,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "Вперёд\n›",
+        "width": 96,
+        "height": 44,
+        "top": 6341,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "🔄 Ревизия",
+        "width": 96,
+        "height": 36,
+        "top": 6416,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "⚡ Подготовить",
+        "width": 125,
+        "height": 36,
+        "top": 6416,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "btn-facebook-pack",
+        "text": "Пакет для Facebook",
+        "width": 151,
+        "height": 36,
+        "top": 6416,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "⚡ Подготовить объявления для п",
+        "width": 330,
+        "height": 36,
+        "top": 6685,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "‹\nВернуться",
+        "width": 120,
+        "height": 44,
+        "top": 6778,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "Вперёд\n›",
+        "width": 96,
+        "height": 44,
+        "top": 6778,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "text": "✓ Отметить проданным",
+        "width": 208,
+        "height": 36,
+        "top": 6966,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "‹\nВернуться",
+        "width": 120,
+        "height": 44,
+        "top": 7035,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "Вперёд\n›",
+        "width": 96,
+        "height": 44,
+        "top": 7035,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
+        "name": "",
+        "id": "",
+        "text": "‹\nВернуться",
+        "width": 120,
+        "height": 44,
+        "top": 7248,
         "is_fab": false
       }
     ],
-    "first_item_top": null,
-    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\n← Склад\nУтилизировать\nУдалить\n#283\nMobile Pre M-AUDIO (preamp / audio interface / zvuková karta)\n📍 На полке с одеждой\nОценён\n‹\nВернуться\nЭтап 1/8: Оценка\nВперёд\n›\nОценка\nФото\nМГХ\nДоставка\nОписание\nОбъявления\nПродажа\nГарантия\nЭтап 1. Оценка цены аналогов\nТекущая целевая цена:\n899.00 CZK\nЦена продажи:\nCZK\nEUR\nPLN\n💡 Теги: +слово или +\"фраза\" — обязательно, -слово или -\"фраза\" — исключить.\nНайдено предложений: 3\nПо умолчанию\nПо цене (сначала дешевле)\nПо цене (сначала дороже)\nПо наименованию (А – Я)\nПо наименованию (Я – А)\nVINTED\nДругое\nLine 6 POD UX1 interfejs audio ↗\n952.59 CZK\nVINTED\nДругое\n🎧 MEE audio Connect HUB – Bluetooth vysielač/prijímač k TV a audio systému ↗\n1895.23 CZK\nAUKRO_CZ\nДругое\nŠIKOVNÝ 70W BLUETOOTH AUDIO SYSTÉM SENCOR SSS 3900 - VÝHODNÁ KOUPĚ ↗\nАукцион\n‹\nВернуться\nЭтап 1/8: Оценка\nВперёд\n›",
+    "first_item_top": 3159,
+    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\n←\n#283\nОценён\n⋯\nMobile Pre M-AUDIO (preamp / audio interface / zvuková karta)\n📍 На полке с одеждой\n‹ Вернуться\nЭтап 1/8: Оценка\nВперёд ›\nОценка\nФото\nМГХ\nДоставка\nОписание\nОбъявления\nПродажа\nГарантия\nЭтап 1. Оценка цены аналогов\nЦена продажи:\nCZK\nEUR\n✓\n \nCZK\nEUR\nPLN\n \n💡 Теги: +слово или +\"фраза\" — обязательно, -слово или -\"фраза\" — исключить.\nНайдено предложений: 3\nПо умолчанию\nПо цене (сначала дешевле)\nПо цене (сначала дороже)\nПо наименованию (А – Я)\nПо наименованию (Я – А)\nVINTED\nДругое\nLine 6 POD UX1 interfejs audio ↗\n952.59 CZK\nVINTED\nДругое\n🎧 MEE audio Connect HUB – Bluetooth vysielač/prijímač k TV a audio systému ↗\n1895.23 CZK\nAUKRO_CZ\nДругое\nŠIKOVNÝ 70W BLUETOOTH AUDIO SYSTÉM SENCOR SSS 3900 - VÝHODNÁ KOUPĚ ↗\nАукцион\n‹\nВернуться\nЭтап 1/8: Оценка\nВперёд\n›\nЭтап 2. Фотографии\n📷 Фотостенд\nФотогалерея (12)\n12 фото\n‹\n›\n1 / 12\nОбработано\nобработано\nобложка\n×\nобработано\n×\nобработано\n×\n×\nобработано\n×\nобработано\n×\n×\nобработано\n×\nобработано\n×\nобработано\n×\nобработано\n×\nобработано\n×\n★ Обложка\nДобавить фотографии\n📸 Снять на камеру\n🖼 Загрузить из галереи\n‹\nВернуться\nЭтап /:\nВперёд\n›\nЭтап 3. МГХ (массо-габаритные характеристики)\nВЕС ТОВАРА (Г)\nВЕС В УПАКОВКЕ (Г)\nДЛИНА (ММ)\nШИРИНА (ММ)\nВЫСОТА (ММ)\nСохранить МГХ\n‹\nВернуться\nЭтап /:\nВперёд\n›\nЭтап 4. Доставка\nКТО ПЛАТИТ ЗА ДОСТАВКУ\nПокупатель оплачивает доставку сверху\nДоставка включена в стоимость\nТолько личный самовывоз\nСохранить политику доставки\nПеревозчики\nКонструктор автоматически подбирает базовые тарифы чешских служб (Zásilkovna, Balíkovna, Česká pošta). При ручном изменении тарифа он помечается как Ручная цена.\nДОБАВИТЬ СЛУЖБУ ДОСТАВКИ:\nЛичная встреча / Osobní odběr (уже выбран)\nZásilkovna (výdejní místo / Z-BOX) (уже выбран)\nBalíkovna (Česká pošta / AlzaBox) (от 79 Kč)\nČeská pošta (Balík Do ruky) (от 129 Kč)\nKurýr DPD / PPL (na adresu) (от 129 Kč)\nPPL (Parcelshop / Parcelbox) (от 76 Kč)\nGLS (ParcelShop / ParcelBox) (от 69 Kč)\n+ Добавить\nЛичная встреча / Osobní odběr\nБазовый авто-тариф: 0 Kč\nАвто-тариф\n✕\nТАРИФ ДОСТАВКИ\nKč\nИТОГО ПОКУПАТЕЛЮ\n899 Kč\nНА РУКИ ПРОДАВЦУ\n899 Kč\nZásilkovna (výdejní místo / Z-BOX)\nБазовый авто-тариф: 89 Kč\nАвто-тариф\n✕\nТАРИФ ДОСТАВКИ\nKč\nИТОГО ПОКУПАТЕЛЮ\n988 Kč\nНА РУКИ ПРОДАВЦУ\n899 Kč\nСохранить опции доставки\n‹\nВернуться\nЭтап /:\nВперёд\n›\nЧек-лист «Готов к продаже»\n✓ ≥ 1 фото предмета\n✓ Указаны МГХ (вес и габариты)\n✓ Выбрана политика доставки\n✓ Заполнено описание\n✓ Задана цена продажи\nГотов к продаже\nОсновное\nНАИМЕНОВАНИЕ\nМЕСТО НА СКЛАДЕ\nЦЕНА\nВАЛЮТА\nCZK\nEUR\nPLN\nЯЗЫК ОПИСАНИЯ\nРусский\nЧешский\nАнглийский\nНемецкий\nПольский\nТекст объявления\nОПИСАНИЕ\nИСПОЛЬЗОВАНИЕ\nТЕХНИЧЕСКИЕ ХАРАКТЕРИСТИКИ\nЗаметки оператора\nВидны только вам, в объявления не попадают\nГарантия\nСРОК ГАРАНТИИ (МЕСЯЦЕВ, ОСТАВЬТЕ ПУСТЫМ ЕСЛИ БЕЗ ГАРАНТИИ)\nУСЛОВИЯ ГАРАНТИИ ДЛЯ ТЕКСТА ОБЪЯВЛЕНИЙ\nСохранить\n‹\nВернуться\nЭтап /:\nВперёд\n›\nЭтап 6. Объявления на площадках (0)\n🔄 Ревизия\n⚡ Подготовить\nПакет для Facebook\nНе ставится в очередь\nTrhKnih.cz — TrhKnih.cz принимает исключительно книги: «Na webových stránkách www.trhknih.cz je umístěno internetové tržiště, prostřednictvím kterého mohou jeho uživatelé nakupovat a prodávat knihy. Kniha znamená knihu v listinné originální podobě» (Obchodní podmínky čl. 1.2). Видеокарта в очередь публикации не ставится. Доказательство: evidence/trhknih_cz/rules/obchodni_podminky.html\nMimibazar.cz — Mimibazar.cz specializes exclusively in baby, children and family goods. Computer hardware is prohibited.\nОбъявления ещё не подготовлены.\n\n\n⚡ Подготовить объявления для площадок\n‹\nВернуться\nЭтап /:\nВперёд\n›\nЭтап 7. Продажа\n\nКогда предмет продан покупателю, нажмите кнопку ниже. Объявления будут автоматически сняты со всех площадок, и статус перейдёт в «Продан».\n\n✓ Отметить проданным\n‹\nВернуться\nЭтап /:\nВперёд\n›\nЭтап 8. Гарантия\nДля этого предмета гарантия не указана (срок гарантии: пусто).\n‹\nВернуться\nЭтап /:\n✓ На склад",
     "console_errors": [],
     "screen": "stock_item",
     "viewport": "1366",
@@ -4086,6 +5520,7 @@
       "lightbox-next",
       "lightbox-prev",
       "lightbox-strip",
+      "recent-locations-container",
       "stock-new-form",
       "tasks-drawer-list",
       "tasks-drawer-overlay",
@@ -4113,9 +5548,9 @@
         "name": "title",
         "id": "input-title",
         "text": "",
-        "width": 526,
+        "width": 203,
         "height": 36,
-        "top": 155,
+        "top": 124,
         "is_fab": false
       },
       {
@@ -4124,9 +5559,9 @@
         "name": "storage_location",
         "id": "input-location",
         "text": "",
-        "width": 526,
+        "width": 203,
         "height": 36,
-        "top": 236,
+        "top": 160,
         "is_fab": false
       },
       {
@@ -4135,9 +5570,9 @@
         "name": "action",
         "id": "",
         "text": "Создать",
-        "width": 257,
+        "width": 271,
         "height": 36,
-        "top": 296,
+        "top": 212,
         "is_fab": false
       },
       {
@@ -4146,14 +5581,14 @@
         "name": "action",
         "id": "",
         "text": "Создать и следующий",
-        "width": 257,
+        "width": 271,
         "height": 36,
-        "top": 296,
+        "top": 212,
         "is_fab": false
       }
     ],
-    "first_item_top": 106,
-    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nНовый предмет\nНазвание предмета *\n📍 Место на складе\nСоздать\nСоздать и следующий",
+    "first_item_top": 111,
+    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nНовый предмет\nНазвание предмета * \n📍 Место на складе \nСоздать\nСоздать и следующий",
     "console_errors": [],
     "screen": "stock_new",
     "viewport": "1366",
@@ -4566,7 +6001,7 @@
       }
     ],
     "first_item_top": 156,
-    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.91\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМои данные\nИмя продавца \nПочтовый индекс (PSČ) \nТелефон \nМесто встреч по умолчанию \nСохранить\nВерсия: 2026.11.91",
+    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.93\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМои данные\nИмя продавца \nПочтовый индекс (PSČ) \nТелефон \nМесто встреч по умолчанию \nСохранить\nВерсия: 2026.11.93",
     "console_errors": [],
     "screen": "settings_profile",
     "viewport": "1366",
@@ -5353,7 +6788,7 @@
       }
     ],
     "first_item_top": 256,
-    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.91\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМатрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен\n·\nПск поиск · Рзм размещение · Изм изменение · Снт снятие · Прв перевыставление · Сбщ сообщения · Дст доставка\nСрок жизни по умолчанию (дней): \nПубликация\nTrhKnih.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nHyperinzerce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nSbazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nFacebook Marketplace\nНедоступен\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAnnonce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAukro.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nVinted\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.sk\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nMimibazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\neBay\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nТолько мониторинг цен\nПлощадка\tМониторинг\tТип коннектора\tСайт\n Willhaben\t\nПоиск\n\tЧерез приложение\t↗\n Kleinanzeigen\t\nПоиск\n\tЧерез приложение\t↗\n OLX\t\nПоиск\n\tЧерез приложение\t↗\nСохранить площадки\nВерсия: 2026.11.91",
+    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.93\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМатрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен\n·\nПск поиск · Рзм размещение · Изм изменение · Снт снятие · Прв перевыставление · Сбщ сообщения · Дст доставка\nСрок жизни по умолчанию (дней): \nПубликация\nTrhKnih.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nHyperinzerce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nSbazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nFacebook Marketplace\nНедоступен\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAnnonce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAukro.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nVinted\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.sk\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nMimibazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\neBay\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nТолько мониторинг цен\nПлощадка\tМониторинг\tТип коннектора\tСайт\n Willhaben\t\nПоиск\n\tЧерез приложение\t↗\n Kleinanzeigen\t\nПоиск\n\tЧерез приложение\t↗\n OLX\t\nПоиск\n\tЧерез приложение\t↗\nСохранить площадки\nВерсия: 2026.11.93",
     "console_errors": [],
     "screen": "settings_marketplaces",
     "viewport": "1366",
@@ -6140,7 +7575,7 @@
       }
     ],
     "first_item_top": 256,
-    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.91\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМатрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен\n·\nПск поиск · Рзм размещение · Изм изменение · Снт снятие · Прв перевыставление · Сбщ сообщения · Дст доставка\nСрок жизни по умолчанию (дней): \nПубликация\nTrhKnih.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nАвтоснятие: ✓ Поддерживается\nАвтоперевыставление: ✓ Поддерживается\nПрямой доступ 🔗 Войти ↗\nСрок публикации на площадке (дней): \nСпособы доставки:\nЛичная встреча / Osobní odběr\nZásilkovna / Packeta\nBalíkovna (Česká pošta)\nČeská pošta\nPPL CZ\nGLS\nКурьер DPD / PPL\nEmail аккаунта TrhKnih.cz\nСтереть\nПароль аккаунта TrhKnih.cz\nСтереть\nHyperinzerce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nSbazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nFacebook Marketplace\nНедоступен\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAnnonce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAukro.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nVinted\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.sk\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nMimibazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\neBay\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nТолько мониторинг цен\nПлощадка\tМониторинг\tТип коннектора\tСайт\n Willhaben\t\nПоиск\n\tЧерез приложение\t↗\n Kleinanzeigen\t\nПоиск\n\tЧерез приложение\t↗\n OLX\t\nПоиск\n\tЧерез приложение\t↗\nСохранить площадки\nВерсия: 2026.11.91",
+    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.93\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nМатрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен\n·\nПск поиск · Рзм размещение · Изм изменение · Снт снятие · Прв перевыставление · Сбщ сообщения · Дст доставка\nСрок жизни по умолчанию (дней): \nПубликация\nTrhKnih.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nАвтоснятие: ✓ Поддерживается\nАвтоперевыставление: ✓ Поддерживается\nПрямой доступ 🔗 Войти ↗\nСрок публикации на площадке (дней): \nСпособы доставки:\nЛичная встреча / Osobní odběr\nZásilkovna / Packeta\nBalíkovna (Česká pošta)\nČeská pošta\nPPL CZ\nGLS\nКурьер DPD / PPL\nEmail аккаунта TrhKnih.cz\nСтереть\nПароль аккаунта TrhKnih.cz\nСтереть\nHyperinzerce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nSbazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nFacebook Marketplace\nНедоступен\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAnnonce.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nAukro.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nVinted\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nBazoš.sk\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nMimibazar.cz\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\neBay\nПолный доступ\nПск\nРзм\nИзм\nСнт\nПрв\nСбщ\nДст\nПоиск\nРазмещение\n↗\nТолько мониторинг цен\nПлощадка\tМониторинг\tТип коннектора\tСайт\n Willhaben\t\nПоиск\n\tЧерез приложение\t↗\n Kleinanzeigen\t\nПоиск\n\tЧерез приложение\t↗\n OLX\t\nПоиск\n\tЧерез приложение\t↗\nСохранить площадки\nВерсия: 2026.11.93",
     "console_errors": [],
     "screen": "settings_marketplaces_open",
     "viewport": "1366",
@@ -6481,7 +7916,7 @@
       }
     ],
     "first_item_top": 184,
-    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.91\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nЕдиная модель для всех операций\nТекстовый ИИ (Text LLM)\n\nOpenAI-совместимый эндпоинт POST /v1/chat/completions.\n\nТип эндпоинта (Provider) \nOpenAI совместимый (POST /v1/chat/completions)\nGoogle Gemini (generateContent REST API)\nURL эндпоинта \nURL OpenAI-совместимого эндпоинта (например, https://api.openai.com/v1/chat/completions).\nAPI Key \nМодель \nНапример: gpt-4o-mini, gpt-4o\nГрафический ИИ (Image AI)\n\nCloudflare Workers AI (прямой REST API /ai/run/{model} или ваш прокси-воркер).\n\nТип эндпоинта (Provider) \nOpenAI совместимый (POST /v1/images/edits)\nGoogle Gemini (gemini-2.5-flash-image / Imagen 3)\nCloudflare Workers AI (/ai/run/ или Workers)\nURL эндпоинта / Account ID \nУкажите ваш Cloudflare Account ID (из панели dash.cloudflare.com) или полный URL: https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/run/\nAPI Key / Token \nИндивидуальные настройки функций ИИ (пыль, студия, фон)\nСохранить настройки ИИ\nПроверить Text LLM\nПроверить Image AI\nВерсия: 2026.11.91",
+    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.93\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nЕдиная модель для всех операций\nТекстовый ИИ (Text LLM)\n\nOpenAI-совместимый эндпоинт POST /v1/chat/completions.\n\nТип эндпоинта (Provider) \nOpenAI совместимый (POST /v1/chat/completions)\nGoogle Gemini (generateContent REST API)\nURL эндпоинта \nURL OpenAI-совместимого эндпоинта (например, https://api.openai.com/v1/chat/completions).\nAPI Key \nМодель \nНапример: gpt-4o-mini, gpt-4o\nГрафический ИИ (Image AI)\n\nCloudflare Workers AI (прямой REST API /ai/run/{model} или ваш прокси-воркер).\n\nТип эндпоинта (Provider) \nOpenAI совместимый (POST /v1/images/edits)\nGoogle Gemini (gemini-2.5-flash-image / Imagen 3)\nCloudflare Workers AI (/ai/run/ или Workers)\nURL эндпоинта / Account ID \nУкажите ваш Cloudflare Account ID (из панели dash.cloudflare.com) или полный URL: https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/run/\nAPI Key / Token \nИндивидуальные настройки функций ИИ (пыль, студия, фон)\nСохранить настройки ИИ\nПроверить Text LLM\nПроверить Image AI\nВерсия: 2026.11.93",
     "console_errors": [],
     "screen": "settings_ai",
     "viewport": "1366",
@@ -6601,7 +8036,7 @@
       }
     ],
     "first_item_top": 156,
-    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.91\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nИнтеграция с Notion\nNotion Token \nDatabase ID \nСвойство заголовка (Title Property) \nСвойство даты (Date Property) \nСохранить Notion\nПроверить подключение к Notion\nВерсия: 2026.11.91",
+    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nВерсия: 2026.11.93\nНастройки\nМои данные\nПлощадки\nИИ\nNotion\nПокупки\nИнтеграция с Notion\nNotion Token \nDatabase ID \nСвойство заголовка (Title Property) \nСвойство даты (Date Property) \nСохранить Notion\nПроверить подключение к Notion\nВерсия: 2026.11.93",
     "console_errors": [],
     "screen": "settings_notion",
     "viewport": "1366",
@@ -7033,6 +8468,7 @@
       "badge-buy",
       "badge-listings",
       "badge-messages",
+      "btn-select-mode",
       "btn-tasks",
       "btn-toggle-view",
       "bulk-location-input",
@@ -7074,13 +8510,24 @@
       },
       {
         "tag": "button",
-        "type": "",
+        "type": "button",
+        "name": "",
+        "id": "btn-select-mode",
+        "text": "Выбрать",
+        "width": 80,
+        "height": 36,
+        "top": 64,
+        "is_fab": false
+      },
+      {
+        "tag": "button",
+        "type": "button",
         "name": "",
         "id": "btn-toggle-view",
         "text": "Компактный",
-        "width": 106,
+        "width": 102,
         "height": 36,
-        "top": 52,
+        "top": 64,
         "is_fab": false
       },
       {
@@ -7089,9 +8536,9 @@
         "name": "q",
         "id": "",
         "text": "",
-        "width": 637,
+        "width": 725,
         "height": 36,
-        "top": 102,
+        "top": 120,
         "is_fab": false
       },
       {
@@ -7100,25 +8547,14 @@
         "name": "",
         "id": "select-sort",
         "text": "Недавно изменённые\nДольше всех",
-        "width": 191,
+        "width": 195,
         "height": 36,
-        "top": 102,
-        "is_fab": false
-      },
-      {
-        "tag": "input",
-        "type": "checkbox",
-        "name": "",
-        "id": "",
-        "text": "283",
-        "width": 18,
-        "height": 18,
-        "top": 215,
+        "top": 120,
         "is_fab": false
       }
     ],
-    "first_item_top": 202,
-    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nСклад\nКомпактный\n+ Предмет\nСортировка:\nНедавно изменённые\nДольше всех на складе\nЦена ↓\nМесто на складе\nВсе активные (1)\nНовые (1)\nПодготовка (0)\nГотовы (0)\nНа продаже (0)\nПроданы (0)\nАрхив (0)\n#283\nОценён\nMobile Pre M-AUDIO (preamp / audio interface / zvuková karta)\n899.00 CZK\n📍 На полке с одеждой",
+    "first_item_top": 206,
+    "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\nСклад\nВыбрать\nКомпактный\n+ Предмет\nНедавно изменённые\nДольше всех на складе\nЦена ↓\nМесто на складе\nВсе активные\n1\nНовые\n1\nПодготовка\n0\nГотовы\n0\nНа продаже\n0\nПроданы\n0\nАрхив\n0\n#283\nMobile Pre M-AUDIO (preamp / audio interface / zvuková karta)\nОценён\n⋯\n899.00 CZK\n📍 На полке с одеждой\n5/8",
     "console_errors": [],
     "screen": "photo_stand",
     "viewport": "1366",
@@ -7184,7 +8620,7 @@
         "text": "💾 Сохранить правки текста",
         "width": 206,
         "height": 36,
-        "top": 1234,
+        "top": 1243,
         "is_fab": false
       },
       {
@@ -7195,7 +8631,7 @@
         "text": "✅ Утвердить публикацию",
         "width": 211,
         "height": 36,
-        "top": 1282,
+        "top": 1291,
         "is_fab": false
       },
       {
@@ -7206,7 +8642,7 @@
         "text": "Запустить разведку",
         "width": 164,
         "height": 36,
-        "top": 1372,
+        "top": 1381,
         "is_fab": false
       },
       {
@@ -7217,7 +8653,7 @@
         "text": "Использовать этот текст",
         "width": 182,
         "height": 36,
-        "top": 1586,
+        "top": 1595,
         "is_fab": false
       },
       {
@@ -7228,7 +8664,7 @@
         "text": "Использовать этот текст",
         "width": 182,
         "height": 36,
-        "top": 1682,
+        "top": 1691,
         "is_fab": false
       },
       {
@@ -7239,11 +8675,11 @@
         "text": "Использовать этот текст",
         "width": 182,
         "height": 36,
-        "top": 1777,
+        "top": 1786,
         "is_fab": false
       }
     ],
-    "first_item_top": 123,
+    "first_item_top": 132,
     "visible_text": "⚡\nNextLife\nВнимание\nСклад\nОбъявления\nСообщения\nПокупки\n← К карточке предмета\nУтверждение черновика\n\nПроверьте чешский текст, цену и фотографии перед публикацией на площадки.\n\n#283\nMobile Pre M-AUDIO (preamp / audio interface / zvuková karta)\n899 Kč\nСлужебный блок: хэш пэйлоада (SHA-256)\nПлощадки:\naukro_cz\nbazos_cz\nТЕКСТ ОБЪЯВЛЕНИЯ (CZECH LISTING TEXT)\n💡 Ограничение площадки: 3000 символов\nСимволов: 1445 / 3000\n💾 Сохранить правки текста\n✅ Утвердить публикацию\nРазведка рынка\nЗапустить разведку\nНайдено аналогов: 3\nВыборка недостаточна для рыночной оценки: найдено 2 (требуется 5).\nLine 6 POD UX1 interfejs audio — vinted\n🎧 MEE audio Connect HUB – Bluetooth vysielač/prijímač k TV a audio systému — vinted\nŠIKOVNÝ 70W BLUETOOTH AUDIO SYSTÉM SENCOR SSS 3900 - VÝHODNÁ KOUPĚ — aukro_cz\n\nГотовые варианты текста объявления по найденным аналогам (редактируются):\n\n Использовать этот текст\n Использовать этот текст\n Использовать этот текст",
     "console_errors": [],
     "screen": "draft",
@@ -7294,7 +8730,7 @@
         "text": "",
         "width": 334,
         "height": 36,
-        "top": 189,
+        "top": 198,
         "is_fab": false
       },
       {
@@ -7305,7 +8741,7 @@
         "text": "Войти в систему",
         "width": 142,
         "height": 36,
-        "top": 253,
+        "top": 262,
         "is_fab": false
       }
     ],

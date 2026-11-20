@@ -138,6 +138,7 @@ def status_hex(level: str) -> str:
         "green": "#f0fdf4",
         "yellow": "#fefce8",
         "red": "#fef2f2",
+        "white": "#ffffff",
     }
     return colors.get(str(level).lower(), "#f8fafc")
 

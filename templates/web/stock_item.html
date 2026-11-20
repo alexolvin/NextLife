@@ -1,75 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-<style>
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  .stepper-bar {
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    padding-bottom: 8px;
-    margin-bottom: 16px;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-  .stepper-bar::-webkit-scrollbar {
-    display: none;
-  }
-  .stepper-pill {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-    padding: 6px 12px !important;
-    border-radius: 16px !important;
-    text-decoration: none !important;
-    font-size: 0.85rem !important;
-    font-weight: 500 !important;
-    flex-shrink: 0 !important;
-    scroll-snap-align: center !important;
-    transition: all 0.15s ease !important;
-    background: #f1f5f9 !important;
-    color: #334155 !important;
-    border: none !important;
-    box-shadow: none !important;
-    cursor: pointer !important;
-    box-sizing: border-box !important;
-  }
-  .stepper-pill:hover {
-    background: #e2e8f0 !important;
-    color: #0f172a !important;
-  }
-  .stepper-pill:active {
-    transform: scale(0.97) !important;
-  }
-  .stepper-pill.active,
-  .stepper-pill.is-active {
-    background: #2563eb !important;
-    color: #ffffff !important;
-    font-weight: 600 !important;
-    box-shadow: none !important;
-  }
-  @media (max-width: 480px) {
-    .stepper-nav-bar button {
-      min-width: 80px !important;
-      padding: 6px 10px !important;
-      font-size: 0.88rem !important;
-    }
-    .stepper-nav-bar [data-testid="stepper-stage-indicator"] {
-      font-size: 0.88rem !important;
-    }
-    .stepper-pill {
-      padding: 6px 12px !important;
-      border-radius: 16px !important;
-      font-size: 0.85rem !important;
-    }
-  }
-</style>
-
 <script>
 function stockItemMaster(itemCode) {
   return {
@@ -329,124 +260,114 @@ function stockItemMaster(itemCode) {
     </div>
   {% endif %}
 
-  <!-- Persistent Header (§5.1) -->
-  <div style="margin-bottom: 16px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-      <a href="/ui/stock" class="btn btn-secondary btn-sm" style="padding: 6px 12px; font-size: 0.85rem;" data-testid="btn-back-stock">
-        ← Склад
-      </a>
-      <div style="display: flex; gap: 8px; align-items: center;">
-        <button onclick="document.getElementById('dispose-modal').classList.remove('hidden')" class="btn btn-sm" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem;" data-testid="btn-dispose">
-          Утилизировать
-        </button>
-        <button onclick="document.getElementById('delete-modal').classList.remove('hidden')" class="btn btn-sm" style="background: #fee2e2; color: #991b1b; border: 1px solid #f87171; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem;" data-testid="btn-delete" data-testid="btn-delete-item">
-          Удалить
-        </button>
+  <!-- Persistent Header (§5.2) -->
+  <div class="item-header-compact">
+    <div class="item-top-bar">
+      <div class="item-top-left">
+        <a href="/ui/stock" class="btn-icon btn-sm" title="На склад" data-testid="btn-back-stock">
+          ←
+        </a>
+        <span class="badge badge-neutral">#{{ item.code }}</span>
+        <span class="badge badge-{{ item.status | status_tone }}" data-testid="item-status-badge">
+          {{ item.status | status_label }}
+        </span>
+      </div>
+      <div class="item-top-right">
+        <details class="overflow-menu">
+          <summary class="btn-icon btn-sm" title="Действия">⋯</summary>
+          <div class="menu-dropdown">
+            <button type="button" onclick="document.getElementById('dispose-modal').classList.remove('hidden')" data-testid="btn-dispose">
+              Утилизировать
+            </button>
+            <button type="button" class="text-danger" onclick="document.getElementById('delete-modal').classList.remove('hidden')" data-testid="btn-delete" data-testid="btn-delete-item">
+              Удалить
+            </button>
+          </div>
+        </details>
       </div>
     </div>
 
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
-      <div>
-        <span class="badge" style="font-size: 0.85rem; padding: 2px 8px; background: #e2e8f0; border-radius: 4px;">#{{ item.code }}</span>
-        <h1 style="font-size: 1.3rem; font-weight: 700; margin: 4px 0 0 0; color: #0f172a;" data-testid="item-title">{{ item.title }}</h1>
-        {% if item.storage_location %}
-          <div style="font-size: 0.85rem; color: #64748b; margin-top: 2px;">📍 {{ item.storage_location }}</div>
-        {% endif %}
-      </div>
-      <div>
-        <span class="{{ item.status_badge_cls }}" style="font-size: 0.85rem; padding: 4px 10px; border-radius: 6px;" data-testid="item-status-badge">
-          {{ item.status | status_ru }}
-        </span>
-      </div>
+    <div class="item-title-block">
+      <h1 class="item-compact-title" data-testid="item-title" onclick="this.classList.toggle('expanded')">
+        {{ item.title }}
+      </h1>
+      {% if item.storage_location %}
+        <div class="item-location-chip">📍 {{ item.storage_location }}</div>
+      {% endif %}
     </div>
   </div>
 
-  <!-- Navigation Toolbar: Вернуться / Индикатор / Вперёд (§5.1 mobile-friendly) -->
-  <div class="stepper-nav-bar" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; background: #ffffff; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+  <!-- Stepper toolbar (Preserving required testids) -->
+  <div class="stepper-nav-bar">
     <button type="button" @click="goToPrev()" :disabled="!prevTab"
-            class="btn btn-secondary"
-            :style="!prevTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-            style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+            class="btn btn-secondary btn-sm"
             data-testid="btn-stepper-prev">
-      <span style="font-size: 1.15rem; line-height: 1;">‹</span> Вернуться
+      ‹ Вернуться
     </button>
 
-    <div style="text-align: center; font-size: 0.92rem; color: #1e293b; font-weight: 600; flex: 1; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" data-testid="stepper-stage-indicator">
-      <span style="color: var(--c-accent, #0a3d7a); font-weight: 700;">Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName" style="font-weight: 600;"></span>
+    <div class="stepper-indicator-text" data-testid="stepper-stage-indicator" style="font-size: {{ '0.92rem' }};">
+      <span>Этап <span x-text="currentStageNum"></span>/<span x-text="stages.length"></span>:</span> <span x-text="currentStageName"></span>
     </div>
 
     <button type="button" @click="goToNext()" :disabled="!nextTab"
-            class="btn btn-primary"
-            :style="!nextTab ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-            style="min-height: 44px; min-width: 96px; padding: 8px 14px; font-weight: 600; font-size: 0.92rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+            class="btn btn-primary btn-sm"
             data-testid="btn-stepper-next">
-      Вперёд <span style="font-size: 1.15rem; line-height: 1;">›</span>
+      Вперёд ›
     </button>
   </div>
 
-  <!-- 8-Stage Stepper Buttons (§5.1) -->
-  <div class="stepper-bar filter-chips" data-testid="item-stepper" style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px;">
+  <!-- 8-Stage Stepper Buttons (§5.1/§5.2) -->
+  <div class="tabs filter-chips stepper-bar" data-testid="item-stepper">
     <a href="#price" @click.prevent="goToTab('#price')"
-       class="stepper-pill chip" :class="{ 'active': activeTab === '#price' }"
-       data-tab="#price"
-       style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
-       data-testid="tab-price"><span>Оценка</span></a>
+       class="tab-item stepper-pill" :class="{ 'active': activeTab === '#price' }"
+       data-tab="#price" style="{{ 'justify-content: center; text-align: center;' }}" data-testid="tab-price"><span>Оценка</span></a>
     <a href="#photos" @click.prevent="goToTab('#photos')"
-       class="stepper-pill chip" :class="{ 'active': activeTab === '#photos' }"
-       data-tab="#photos"
-       style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
-       data-testid="tab-photos"><span>Фото</span></a>
+       class="tab-item stepper-pill" :class="{ 'active': activeTab === '#photos' }"
+       data-tab="#photos" style="{{ 'justify-content: center; text-align: center;' }}" data-testid="tab-photos"><span>Фото</span></a>
     <a href="#mgh" @click.prevent="goToTab('#mgh')"
-       class="stepper-pill chip" :class="{ 'active': activeTab === '#mgh' }"
-       data-tab="#mgh"
-       style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
-       data-testid="tab-mgh"><span>МГХ</span></a>
+       class="tab-item stepper-pill" :class="{ 'active': activeTab === '#mgh' }"
+       data-tab="#mgh" style="{{ 'justify-content: center; text-align: center;' }}" data-testid="tab-mgh"><span>МГХ</span></a>
     <a href="#shipping" @click.prevent="goToTab('#shipping')"
-       class="stepper-pill chip" :class="{ 'active': activeTab === '#shipping' }"
-       data-tab="#shipping"
-       style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
-       data-testid="tab-shipping"><span>Доставка</span></a>
+       class="tab-item stepper-pill" :class="{ 'active': activeTab === '#shipping' }"
+       data-tab="#shipping" style="{{ 'justify-content: center; text-align: center;' }}" data-testid="tab-shipping"><span>Доставка</span></a>
     <a href="#describe" @click.prevent="goToTab('#describe')"
-       class="stepper-pill chip" :class="{ 'active': activeTab === '#describe' }"
-       data-tab="#describe"
-       style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
-       data-testid="tab-describe"><span>Описание</span></a>
+       class="tab-item stepper-pill" :class="{ 'active': activeTab === '#describe' }"
+       data-tab="#describe" style="{{ 'justify-content: center; text-align: center;' }}" data-testid="tab-describe"><span>Описание</span></a>
     <a href="#listings" @click.prevent="goToTab('#listings')"
-       class="stepper-pill chip" :class="{ 'active': activeTab === '#listings' }"
-       data-tab="#listings"
-       style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
-       data-testid="tab-listings"><span>Объявления</span></a>
+       class="tab-item stepper-pill" :class="{ 'active': activeTab === '#listings' }"
+       data-tab="#listings" style="{{ 'justify-content: center; text-align: center;' }}" data-testid="tab-listings"><span>Объявления</span></a>
     <a href="#sale" @click.prevent="goToTab('#sale')"
-       class="stepper-pill chip" :class="{ 'active': activeTab === '#sale' }"
-       data-tab="#sale"
-       style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
-       data-testid="tab-sale"><span>Продажа</span></a>
+       class="tab-item stepper-pill" :class="{ 'active': activeTab === '#sale' }"
+       data-tab="#sale" style="{{ 'justify-content: center; text-align: center;' }}" data-testid="tab-sale"><span>Продажа</span></a>
     <a href="#warranty" @click.prevent="goToTab('#warranty')"
-       class="stepper-pill chip" :class="{ 'active': activeTab === '#warranty' }"
-       data-tab="#warranty"
-       style="padding: 6px 12px; border-radius: 16px; text-decoration: none; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center;"
-       data-testid="tab-warranty"><span>Гарантия</span></a>
+       class="tab-item stepper-pill" :class="{ 'active': activeTab === '#warranty' }"
+       data-tab="#warranty" style="{{ 'justify-content: center; text-align: center;' }}" data-testid="tab-warranty"><span>Гарантия</span></a>
   </div>
 
   <!-- ================= STAGE 1: PRICE RESEARCH (#price) ================= -->
-  <div x-show="activeTab === '#price'" data-testid="stage-price-panel" class="stack-3">
-    <div class="card" style="padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;">
-      <h2 style="font-size: 1.1rem; font-weight: 700; margin-top: 0; margin-bottom: 8px;">Этап 1. Оценка цены аналогов</h2>
-
-      {% if item.target_price %}
-        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 6px 10px; border-radius: 8px; margin-bottom: 8px;">
-          <div style="font-size: 0.8rem; color: #166534;">Текущая целевая цена:</div>
-          <div style="font-size: 1.3rem; font-weight: 700; color: #15803d; line-height: 1.2;">
-            {{ item.target_price }} {{ item.target_currency or 'CZK' }}
-          </div>
-        </div>
-      {% endif %}
+  <div x-show="activeTab === '#price'" data-testid="stage-price-panel" class="stack-md">
+    <div class="card">
+      <h2 class="section-title">Этап 1. Оценка цены аналогов</h2>
 
       <!-- Price Decisions: owner determines price -->
-      <div style="background: #f8fafc; padding: 7px 8px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 8px;">
-        <div style="font-size: 0.88rem; font-weight: 600; margin-bottom: 6px; color: #1e293b;">Цена продажи:</div>
+      <div class="card-soft">
+        <div class="label">Цена продажи:</div>
         
-        <form method="post" action="/api/stock/{{ item.code }}/price-estimate" style="display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; width: 100%;">
+        <form method="post" action="/api/stock/{{ item.code }}/price-estimate" class="price-input-row">
+          <input type="number" step="1" name="price" placeholder="Своя цена" value="{{ item.target_price or '' }}" required
+                 class="input input-sm price-field" data-testid="input-price-estimate">
+          <select name="currency" class="input input-sm currency-select" data-testid="select-price-currency">
+            <option value="CZK" {{ 'selected' if (item.target_currency or 'CZK') == 'CZK' else '' }}>CZK</option>
+            <option value="EUR" {{ 'selected' if item.target_currency == 'EUR' else '' }}>EUR</option>
+          </select>
+          <button type="submit" class="btn btn-primary btn-sm" title="Сохранить цену" data-testid="btn-save-price">
+            ✓
+          </button>
+        </form>
+        {% if item.target_price and item.price_estimate_median and item.target_price != item.price_estimate_median %}
+          <div class="text-muted text-xs meta-price">целевая: {{ item.price_estimate_median }} {{ item.target_currency or 'CZK' }}</div>
+        {% endif %}
+      </div>
           <input type="number" step="1" name="price" placeholder="Своя цена" value="{{ item.target_price or '' }}" required
                  class="input-field" style="flex: 1 1 110px; min-width: 0; max-width: 140px; height: 38px; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem;" data-testid="input-custom-price">
           <select name="currency" class="input-field" style="width: 72px; flex-shrink: 0; height: 38px; padding: 6px 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem; background: #fff;">
@@ -915,8 +836,8 @@ function stockItemMaster(itemCode) {
         <div style="padding: 24px 16px; text-align: center; color: #64748b; background: #f8fafc; border-radius: 8px;">
           Объявления ещё не подготовлены.<br><br>
           <form method="post" action="/ui/stock/{{ item.code }}/listings/prepare" style="margin: 0; width: 100%; display: flex; justify-content: center;">
-            <button type="submit" class="btn btn-primary" style="white-space: normal; height: auto; min-height: 44px; padding: 12px 18px; line-height: 1.35; width: 100%; max-width: 480px; box-sizing: border-box; text-align: center;" data-testid="btn-prepare-listings-empty">
-              ⚡ Подготовить объявления для рекомендованных площадок
+            <button type="submit" class="btn btn-primary" data-testid="btn-prepare-listings-empty">
+              ⚡ Подготовить объявления для площадок
             </button>
           </form>
         </div>

@@ -20,7 +20,7 @@
       </a>
       {% if active_tab != 'login' %}
       <div class="header-actions">
-        <a href="/ui/search" class="header-btn" title="Поиск" data-testid="header-search">
+        <a href="/ui/search" class="header-btn" title="Поиск" style="color: {{ 'white'|status_hex }};" data-testid="header-search">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         </a>
         <button id="btn-tasks" class="header-btn tasks-indicator-idle" onclick="toggleTasksDrawer(event)" title="Нет фоновых задач" aria-label="Нет фоновых задач" data-testid="header-tasks">
