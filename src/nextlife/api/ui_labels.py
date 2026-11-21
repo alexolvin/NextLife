@@ -67,6 +67,7 @@ STATUS_TONE_MAP: dict[str, str] = {
     ItemStatus.MEDIA_READY.value: "info",
     ItemStatus.IN_WARRANTY.value: "info",
     "DISPATCHED": "info",
+    "PROCESSED": "info",
     # Warning
     ListingStatus.EXPIRED.value: "warning",
     ItemStatus.RESERVED.value: "warning",

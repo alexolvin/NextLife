@@ -304,6 +304,7 @@ STATUS_LABELS_RU: dict[str, str] = {
     "CANCELLED": "Отменён",
     "DELETED": "Удалён",
     "ACTIVE": "Активен",  # legacy-статус предмета (вне переходов)
+    "PROCESSED": "Обработан",  # legacy-статус предмета
 }
 
 DEAL_STATUS_LABELS_RU: dict[str, str] = {

@@ -2,55 +2,6 @@
 {% set missing_src = "data:image/svg+xml;utf8," ~ "<svg xmlns='http://www.w3.org/2000/svg' width='480' height='360'><rect width='100%25' height='100%25' fill='%23e9ecef'/><text x='50%25' y='54%25' font-size='24' text-anchor='middle' fill='%236c757d'>файл не найден</text></svg>" %}
 {% set role_labels = {'PUBLISH': 'Обработано', 'PROCESSED': 'Обработано', 'DEFECT': 'Дефект', 'ORIGINAL': 'Оригинал'} %}
 
-<style>
-  .btn-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px 10px;
-    line-height: 1;
-  }
-  .btn-icon svg {
-    display: block;
-  }
-  .thumb-card[draggable="true"] {
-    cursor: grab;
-    user-select: none;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  .thumb-card.dragging {
-    opacity: 0.45;
-    cursor: grabbing;
-  }
-  .thumb-card.drag-over {
-    border: 2px dashed var(--c-accent);
-    transform: scale(1.05);
-  }
-  .slider-fullscreen-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: rgba(15, 23, 42, 0.65);
-    color: var(--c-surface);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 5;
-    transition: background 0.2s, transform 0.15s;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-  }
-  .slider-fullscreen-btn:hover {
-    background: rgba(15, 23, 42, 0.95);
-    transform: scale(1.08);
-  }
-</style>
-
 <div class="card" id="gallery-card">
   <div class="stack-3">
   <div class="row between">

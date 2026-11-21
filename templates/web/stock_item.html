@@ -412,10 +412,10 @@ function stockItemMaster(itemCode) {
         <form method="post" action="/ui/stock/{{ item.code }}/research"
               x-data="{ searching: false }"
               @submit="searching = true"
-              class="flex gap-1 items-center mb-1 w-full">
+              class="research-search-form">
           <input type="hidden" name="next" value="/ui/stock/{{ item.code }}#price">
           <input type="text" name="q" value="{{ (research and research.query) or item.title }}" placeholder="Модель для поиска аналогов..."
-                 class="input input-sm flex-1" data-testid="input-research-query">
+                 class="input input-sm grow" data-testid="input-research-query">
           <button type="submit" class="btn btn-primary btn-sm btn-icon flex-shrink-0"
                   title="Найти аналоги" aria-label="Найти аналоги"
                   data-testid="btn-run-research" :disabled="searching">
@@ -427,7 +427,7 @@ function stockItemMaster(itemCode) {
             </template>
           </button>
         </form>
-        <div class="text-dim text-xs mb-2" data-testid="research-tags-hint">
+        <div class="research-tags-hint text-dim text-xs" data-testid="research-tags-hint">
           💡 Теги: <code>+слово</code> или <code>+"фраза"</code> — обязательно, <code>-слово</code> или <code>-"фраза"</code> — исключить.
         </div>
 
@@ -442,10 +442,10 @@ function stockItemMaster(itemCode) {
               {% endif %}
             </div>
 
-            <div class="flex items-center justify-between gap-1 mb-2 p-1 bg-surface border rounded" data-testid="research-filter-container">
+            <div class="research-filter-row" data-testid="research-filter-container">
               <!-- Left: Category filter (dropdown only, no label) -->
               {% if research.categories and research.categories|length > 1 %}
-                <div class="flex-1 min-w-0">
+                <div class="grow min-w-0">
                   <select id="research-category-select" x-model="selectedCategory" aria-label="Категория"
                           class="input input-sm w-full text-xs"
                           data-testid="select-research-category">
@@ -455,11 +455,11 @@ function stockItemMaster(itemCode) {
                   </select>
                 </div>
               {% else %}
-                <div class="flex-1 min-w-0"></div>
+                <div class="grow min-w-0"></div>
               {% endif %}
 
               <!-- Right: Sort control (dropdown only, no label) -->
-              <div class="flex-1 min-w-0">
+              <div class="grow min-w-0">
                 <select id="research-sort-select" x-model="sortBy" @change="sortResearchRows()" aria-label="Сортировка"
                         class="input input-sm w-full text-xs"
                         data-testid="select-research-sort">
@@ -472,9 +472,9 @@ function stockItemMaster(itemCode) {
               </div>
             </div>
 
-            <div x-ref="researchLinksList" class="flex flex-col gap-1" data-testid="research-links-list">
+            <div x-ref="researchLinksList" class="research-links-list" data-testid="research-links-list">
               {% for l in research.links %}
-                <div class="research-row flex row-between items-center p-2 bg-surface border rounded text-xs gap-2"
+                <div class="research-row"
                      data-orig-index="{{ loop.index0 }}"
                      data-category="{{ l.category }}"
                      data-price="{{ l.price or '' }}"
@@ -482,26 +482,26 @@ function stockItemMaster(itemCode) {
                      data-title="{{ l.title|escape }}"
                      x-show="!selectedCategory || selectedCategory === 'Показать все' || selectedCategory === '{{ l.category|escape }}'">
                   
-                  <div class="flex items-center gap-2 overflow-hidden flex-1">
+                  <div class="research-item-info">
                     <!-- Thumbnail (§5.2) -->
                     {% if l.image_url %}
                       <img src="{{ l.image_url }}" alt="" loading="lazy"
-                           class="w-10 h-10 object-cover rounded border flex-shrink-0"
+                           class="research-thumb-img"
                            onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');"
                            data-testid="research-thumb">
-                      <div class="hidden w-10 h-10 rounded bg-subtle border flex items-center justify-center text-sm flex-shrink-0">
+                      <div class="hidden research-thumb-placeholder">
                         📷
                       </div>
                     {% else %}
-                      <div class="w-10 h-10 rounded bg-subtle border flex items-center justify-center text-sm flex-shrink-0 text-muted" data-testid="research-thumb-placeholder">
+                      <div class="research-thumb-placeholder" data-testid="research-thumb-placeholder">
                         📷
                       </div>
                     {% endif %}
 
                     <!-- Info -->
-                    <div class="flex flex-col gap-0.5 overflow-hidden min-w-0">
-                      <div class="flex items-center gap-1 flex-wrap">
-                        <span class="badge badge-neutral text-xs uppercase font-bold" data-marketplace="{{ l.marketplace }}">
+                    <div class="research-item-details">
+                      <div class="row tight wrap">
+                        <span class="badge badge-neutral text-xs uppercase fw-bold" data-marketplace="{{ l.marketplace }}">
                           {{ l.marketplace | platform_name }}
                         </span>
                         {% if l.category and l.category != 'Показать все' %}
@@ -511,7 +511,7 @@ function stockItemMaster(itemCode) {
                         {% endif %}
                       </div>
                       <a href="{{ l.url }}" target="_blank" rel="noopener noreferrer"
-                         class="text-accent hover:underline truncate font-medium"
+                         class="text-accent hover:underline truncate fw-medium fs-xs"
                          title="{{ l.title }}">
                         {{ l.title }} ↗
                       </a>
@@ -519,13 +519,13 @@ function stockItemMaster(itemCode) {
                   </div>
 
                   <!-- Price -->
-                  <div class="font-bold text-primary whitespace-nowrap ml-2 text-right flex-shrink-0">
+                  <div class="research-price-block">
                     {% if l.price and not l.is_auction %}
-                      <span class="text-sm font-bold">{{ l.price }}</span> <span class="text-xs text-muted">{{ l.currency }}</span>
+                      <span class="research-price-value">{{ l.price }}</span> <span class="research-price-currency">{{ l.currency }}</span>
                     {% elif l.is_auction %}
-                      <span class="text-xs text-muted font-medium bg-subtle px-1.5 py-0.5 rounded" data-testid="auction-no-price">Аукцион</span>
+                      <span class="research-auction-badge" data-testid="auction-no-price">Аукцион</span>
                     {% else %}
-                      <span class="text-xs text-muted font-normal">Цена не указана</span>
+                      <span class="research-no-price">Цена не указана</span>
                     {% endif %}
                   </div>
                 </div>
