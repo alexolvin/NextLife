@@ -665,35 +665,36 @@ function stockItemMaster(itemCode) {
 
   <!-- ================= STAGE 4: ДОСТАВКА (#shipping) ================= -->
   <div x-show="activeTab === '#shipping'" data-testid="stage-shipping-panel" class="stack-3">
-    <div class="card p-3">
-      <h2 class="section-title mb-3">Этап 4. Доставка</h2>
-      <form method="POST" action="/api/stock/{{ item.code }}" class="stack-3" data-testid="shipping-form">
+    <!-- Frame 1: Shipping Policy Frame -->
+    <div class="card p-3 mb-4" data-testid="shipping-policy-frame">
+      <h2 class="section-title mb-2">Этап 4. Доставка</h2>
+      <form method="POST" action="/api/stock/{{ item.code }}" class="m-0" data-testid="shipping-form">
         <input type="hidden" name="next" value="/ui/stock/{{ item.code }}#shipping">
 
-        <div class="field">
-          <label for="stock-shipping-policy">Кто платит за доставку</label>
-          <select id="stock-shipping-policy" name="shipping_policy" class="wz-select" data-testid="stock-shipping-policy">
+        <div class="mb-2">
+          <label for="stock-shipping-policy" class="wz-label mb-1">Кто платит за доставку</label>
+          <select id="stock-shipping-policy" name="shipping_policy" class="wz-select w-full" data-testid="stock-shipping-policy">
             {% for p in shipping_policy_options %}
             <option value="{{ p.value }}" {% if item.get('shipping_policy') == p.value %}selected{% endif %}>{{ p.label }}</option>
             {% endfor %}
           </select>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-full" data-testid="btn-save-shipping-policy">
+        <button type="submit" class="btn btn-primary btn-sm" data-testid="btn-save-shipping-policy">
           Сохранить политику доставки
         </button>
       </form>
-
-      <div class="mt-3">
-        {# Блок перевозчиков (§3.3): частичный шаблон, сервис shipping_options. #}
-        {% if item and item.get('shipping_summary_json') %}
-        {% include "_shipping_constructor.html" %}
-        {% endif %}
-      </div>
     </div>
 
+    <!-- Frame 2: Carriers Frame (§3.3) -->
+    {% if item and item.get('shipping_summary_json') %}
+    <div class="mt-4" data-testid="carriers-frame-wrapper">
+      {% include "_shipping_constructor.html" %}
+    </div>
+    {% endif %}
+
     <!-- Stage 4 Footer Navigation -->
-    <div class="stepper-nav-bar stage-footer-nav mt-3">
+    <div class="stepper-nav-bar stage-footer-nav mt-4">
       <button type="button" @click="goToPrev()" :disabled="!prevTab"
               class="btn btn-secondary btn-sm"
               data-testid="btn-stage-footer-prev">
@@ -806,7 +807,7 @@ function stockItemMaster(itemCode) {
         </div>
       {% else %}
         {% set approved_count = item.listings | selectattr('is_approved') | list | length %}
-        <div class="flex flex-col gap-2 mb-3">
+        <div class="listings-frame-list" data-testid="listings-frame-list">
           {% for l in item.listings %}
             <div class="card listing-item-card {{ l | listing_card_class }}" data-testid="listing-card-{{ l.id }}" data-marketplace="{{ l.marketplace_key }}">
               <div class="p-2 flex-1">
