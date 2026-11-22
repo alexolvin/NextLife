@@ -51,6 +51,10 @@ function stockItemMaster(itemCode) {
 
     init() {
       this.initFormTracking();
+      this.$nextTick(() => {
+        const el = document.querySelector(`.stepper-pill[data-tab='${this.activeTab}']`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      });
       window.addEventListener('hashchange', (e) => {
         let h = (window.location.hash ? window.location.hash.split('?')[0] : '#price');
         if (h === '#delivery') h = '#shipping';
@@ -680,7 +684,7 @@ function stockItemMaster(itemCode) {
           </select>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-sm" data-testid="btn-save-shipping-policy">
+        <button type="submit" class="btn btn-primary btn-sm w-full-mobile" data-testid="btn-save-shipping-policy">
           Сохранить политику доставки
         </button>
       </form>
@@ -765,7 +769,7 @@ function stockItemMaster(itemCode) {
             <input type="hidden" name="item_code" value="{{ item.code }}">
             <input type="hidden" name="return_to" value="/ui/stock/{{ item.code }}#listings">
             <button type="submit" class="btn btn-secondary btn-sm" data-testid="btn-recheck-item-listings" title="Сверить статусы с реальными площадками">
-              🔄 Ревизия
+              🔄 <span class="hidden-xs">Ревизия</span>
             </button>
           </form>
           <form method="post" action="/ui/stock/{{ item.code }}/listings/prepare" class="inline-form">
@@ -773,7 +777,9 @@ function stockItemMaster(itemCode) {
               ⚡ Подготовить
             </button>
           </form>
-          <button type="button" class="btn btn-secondary btn-sm" id="btn-facebook-pack" data-testid="btn-facebook-pack">Пакет для Facebook</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-facebook-pack" data-testid="btn-facebook-pack">
+            📁 <span class="hidden-xs">Пакет </span>Facebook ZIP
+          </button>
         </div>
       </div>
 
@@ -782,7 +788,15 @@ function stockItemMaster(itemCode) {
         document.getElementById("btn-facebook-pack")?.addEventListener("click", async function () {
           const raw = document.getElementById("facebook-pack-text").textContent || "";
           const text = JSON.parse(raw);
-          try { await navigator.clipboard.writeText(text); } catch (err) { /* download still works */ }
+          const btn = document.getElementById("btn-facebook-pack");
+          const origText = btn ? btn.innerHTML : "";
+          try {
+            await navigator.clipboard.writeText(text);
+            if (btn) btn.innerHTML = "✓ Скопировано!";
+          } catch (err) {
+            if (btn) btn.innerHTML = "⏳ Скачивание...";
+          }
+          setTimeout(() => { if (btn) btn.innerHTML = origText; }, 2500);
           window.location = "/ui/stock/{{ item.code }}/facebook-pack.zip";
         });
       </script>

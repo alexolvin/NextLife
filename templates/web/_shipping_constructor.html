@@ -13,13 +13,13 @@
 
     <div class="field">
       <label for="select-carrier-to-add">Добавить службу доставки:</label>
-      <div class="row tight">
-        <select id="select-carrier-to-add" x-model="selectedCarrier" @change="errorMessage = ''" class="wz-select grow" data-testid="select-carrier-to-add">
+      <div class="row tight carrier-add-row">
+        <select id="select-carrier-to-add" x-model="selectedCarrier" @change="errorMessage = ''" class="wz-select grow w-full" data-testid="select-carrier-to-add">
           <template x-for="c in availableCarriers" :key="c.key">
             <option :value="c.key" x-text="c.title + (isCarrierAdded(c.key) ? ' (уже выбран)' : ' (от ' + fmtCzk(c.default_cost) + ')')"></option>
           </template>
         </select>
-        <button type="button" @click="addOption()" class="btn btn-primary btn-inline" data-testid="btn-add-option">
+        <button type="button" @click="addOption()" class="btn btn-primary btn-inline carrier-add-btn" data-testid="btn-add-option">
           + Добавить
         </button>
       </div>

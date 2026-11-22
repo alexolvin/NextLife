@@ -511,5 +511,36 @@
       }
     })();
   </script>
+
+  <!-- Global Form Submission & Loading Feedback -->
+  <script>
+    (function () {
+      document.addEventListener('submit', function (e) {
+        var form = e.target;
+        if (!form || form.tagName !== 'FORM') return;
+        var btn = e.submitter || form.querySelector('button[type="submit"]');
+        if (!btn || btn.disabled) return;
+
+        setTimeout(function () {
+          btn.classList.add('is-submitting');
+          var text = btn.getAttribute('data-loading-text');
+          if (!text) {
+            var raw = btn.innerText.trim();
+            if (raw.indexOf('Опубликовать') !== -1) text = 'Публикация...';
+            else if (raw.indexOf('Разместить') !== -1) text = 'Размещение...';
+            else if (raw.indexOf('Подготовить') !== -1) text = 'Подготовка...';
+            else if (raw.indexOf('Ревизия') !== -1) text = 'Ревизия...';
+            else if (raw.indexOf('Сохранить') !== -1) text = 'Сохранение...';
+            else if (raw.indexOf('Готов к продаже') !== -1) text = 'Применение...';
+            else if (raw.indexOf('Отметить проданным') !== -1) text = 'Сохранение...';
+            else if (raw.indexOf('Утвердить') !== -1) text = 'Утверждение...';
+          }
+          if (text) {
+            btn.innerHTML = '<span class="spin-icon inline-block">⏳</span> ' + text;
+          }
+        }, 10);
+      });
+    })();
+  </script>
 </body>
 </html>

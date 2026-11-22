@@ -77,14 +77,19 @@
   <!-- 2. ПЛОЩАДКИ (Marketplaces) -->
   {% if tab == 'marketplaces' %}
   <div class="stack-md">
-    <!-- Легенда возможностей и цветов в одну meta-строку -->
-    <div class="meta-legend" data-testid="mp-status-legend">
-      <span class="meta-status-colors" data-colors="{{ 'green'|status_hex }} {{ 'yellow'|status_hex }} {{ 'red'|status_hex }}">
-        Матрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен
-      </span>
-      <span class="text-muted">·</span>
-      <span><span class="cap-badge active">Пск</span> поиск · <span class="cap-badge active">Рзм</span> размещение · <span class="cap-badge active">Изм</span> изменение · <span class="cap-badge active">Снт</span> снятие · <span class="cap-badge active">Прв</span> перевыставление · <span class="cap-badge active">Сбщ</span> сообщения · <span class="cap-badge active">Дст</span> доставка</span>
-    </div>
+    <!-- Легенда возможностей и цветов в компактный спойлер -->
+    <details class="meta-legend-details mb-2" data-testid="mp-status-legend">
+      <summary class="text-xs text-muted cursor-pointer font-medium py-1">
+        ℹ️ Матрица возможностей площадок и статусов (нажмите для расшифровки)
+      </summary>
+      <div class="meta-legend p-2 rounded bg-base mt-1">
+        <span class="meta-status-colors" data-colors="{{ 'green'|status_hex }} {{ 'yellow'|status_hex }} {{ 'red'|status_hex }}">
+          Матрица возможностей площадок: Светло-зелёный: Полный доступ · Светло-жёлтый: Только просмотр · Светло-красный: Недоступен
+        </span>
+        <span class="text-muted">·</span>
+        <span><span class="cap-badge active">Пск</span> поиск · <span class="cap-badge active">Рзм</span> размещение · <span class="cap-badge active">Изм</span> изменение · <span class="cap-badge active">Снт</span> снятие · <span class="cap-badge active">Прв</span> перевыставление · <span class="cap-badge active">Сбщ</span> сообщения · <span class="cap-badge active">Дст</span> доставка</span>
+      </div>
+    </details>
 
     <!-- Marketplaces Accordions & Config Form -->
     <form method="POST" action="/ui/settings/marketplaces" class="card" data-testid="form-marketplaces">
