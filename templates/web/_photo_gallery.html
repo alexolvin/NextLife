@@ -1,6 +1,6 @@
 {# ТЗ «Склад» §3.3, §5.3, §5.4: фото, слайдер, Image AI, управление порядком #}
 {% set missing_src = "data:image/svg+xml;utf8," ~ "<svg xmlns='http://www.w3.org/2000/svg' width='480' height='360'><rect width='100%25' height='100%25' fill='%23e9ecef'/><text x='50%25' y='54%25' font-size='24' text-anchor='middle' fill='%236c757d'>файл не найден</text></svg>" %}
-{% set role_labels = {'PUBLISH': 'Обработано', 'PROCESSED': 'Обработано', 'DEFECT': 'Дефект', 'ORIGINAL': 'Оригинал'} %}
+{% set role_labels = {'PUBLISH': '', 'PROCESSED': '', 'DEFECT': 'Дефект', 'ORIGINAL': 'Оригинал'} %}
 
 <div class="card" id="gallery-card">
   <div class="stack-3">
@@ -23,7 +23,7 @@
       </svg>
     </button>
     <span class="slider-counter" id="slider-counter" data-testid="slider-counter">1 / {{ photos|length }}</span>
-    <span class="slider-role-tag badge badge-active" id="slider-role-tag" data-testid="slider-role">{{ role_labels.get(photos[0].role, 'Фото') }}</span>
+    <span class="slider-role-tag badge badge-active {% if not role_labels.get(photos[0].role) %}hidden{% endif %}" id="slider-role-tag" data-testid="slider-role">{{ role_labels.get(photos[0].role, '') }}</span>
   </div>
 
   <!-- Thumbnails strip with drag-and-drop -->
@@ -34,9 +34,6 @@
       <div class="thumb-broken" data-testid="photo-broken-mark" title="Файл фото не найден">🚫 файл не найден</div>
       {% else %}
       <img src="{{ photo.url }}" alt="Миниатюра {{ loop.index }}">
-      {% endif %}
-      {% if photo.role in ('PUBLISH', 'PROCESSED') %}
-      <span class="thumb-processed-badge" data-testid="thumb-processed-badge">обработано</span>
       {% endif %}
       {% if photo.is_cover %}
       <span class="thumb-cover-badge" data-testid="photo-cover-mark" title="Обложка предмета">обложка</span>
@@ -276,13 +273,17 @@
     mainImg.src = cur.url || MISSING_SRC;
     if (counter) counter.textContent = (currentIndex + 1) + ' / ' + photos.length;
     if (roleTag) {
-      roleTag.textContent = cur.label;
-      if (cur.role === 'DEFECT') {
-        roleTag.className = 'slider-role-tag badge badge-defect';
-      } else if (cur.role === 'PUBLISH') {
-        roleTag.className = 'slider-role-tag badge badge-approved';
+      if (cur.label) {
+        roleTag.textContent = cur.label;
+        roleTag.classList.remove('hidden');
+        if (cur.role === 'DEFECT') {
+          roleTag.className = 'slider-role-tag badge badge-defect';
+        } else {
+          roleTag.className = 'slider-role-tag badge badge-active';
+        }
       } else {
-        roleTag.className = 'slider-role-tag badge badge-active';
+        roleTag.textContent = '';
+        roleTag.classList.add('hidden');
       }
     }
 

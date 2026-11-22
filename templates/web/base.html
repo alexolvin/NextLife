@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>NextLife — Консоль рекомендации</title>
+  <title>{% block title %}NextLife — Консоль рекомендации{% endblock %}</title>
   <link rel="stylesheet" href="/static/app.css?v={{ asset_ver }}">
   <script src="/static/vendor/htmx.min.js"></script>
   <script defer src="/static/vendor/alpine.min.js"></script>
@@ -118,13 +118,13 @@
   {% endif %}
 
   <!-- Lightbox -->
-  <div id="lightbox">
-    <button id="lightbox-close" onclick="closeLightbox(event)" aria-label="Close">&times;</button>
-    <div id="lightbox-counter" class="lightbox-counter" data-testid="lightbox-counter">1 / 1</div>
-    <button id="lightbox-prev" onclick="prevLightbox(event)" aria-label="Previous">&lsaquo;</button>
+  <div id="lightbox" onclick="closeLightbox(event)">
+    <button type="button" id="lightbox-close" onclick="forceCloseLightbox(event)" aria-label="Close" data-testid="btn-lightbox-close">&times;</button>
+    <div id="lightbox-counter" class="lightbox-counter" data-testid="lightbox-counter" onclick="event.stopPropagation()">1 / 1</div>
+    <button type="button" id="lightbox-prev" onclick="prevLightbox(event)" aria-label="Previous">&lsaquo;</button>
     <img id="lightbox-img" src="" alt="Zoomed" draggable="false" onclick="event.stopPropagation()">
-    <button id="lightbox-next" onclick="nextLightbox(event)" aria-label="Next">&rsaquo;</button>
-    <div id="lightbox-strip" class="lightbox-strip thumbnails-strip" data-testid="lightbox-strip"></div>
+    <button type="button" id="lightbox-next" onclick="nextLightbox(event)" aria-label="Next">&rsaquo;</button>
+    <div id="lightbox-strip" class="lightbox-strip thumbnails-strip" data-testid="lightbox-strip" onclick="event.stopPropagation()"></div>
   </div>
   <script>
     let currentGalleryImages = [];
@@ -229,10 +229,21 @@
       }
     }
 
+    function forceCloseLightbox(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      const lb = document.getElementById('lightbox');
+      if (lb) lb.style.display = 'none';
+    }
+
     function closeLightbox(e) {
+      if (e && e.target && e.target.id !== 'lightbox') return;
       if (lbSwiped) return;
       if (e) e.stopPropagation();
-      document.getElementById('lightbox').style.display = 'none';
+      const lb = document.getElementById('lightbox');
+      if (lb) lb.style.display = 'none';
     }
 
     (function() {
@@ -295,7 +306,7 @@
       } else if (e.key === 'ArrowLeft' || e.code === 'ArrowLeft') {
         prevLightbox(e);
       } else if (e.key === 'Escape' || e.code === 'Escape') {
-        closeLightbox(e);
+        forceCloseLightbox(e);
       }
     });
 

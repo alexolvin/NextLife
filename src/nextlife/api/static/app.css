@@ -10,12 +10,12 @@
   --c-brand:         #801432;
   --c-brand-hover:   #6a1029;
   --c-brand-soft:    #fbeef2;
-  --c-accent:        #6e4114;
-  --c-accent-hov:    #52300e;
-  --c-accent-light:  #fefce8;
-  --c-accent-ring:   #fef08a;
-  --c-header:        #6e4114;
-  --c-header-2:      #52300e;
+  --c-accent:        #0e6239;
+  --c-accent-hov:    #0a482a;
+  --c-accent-light:  #ecfdf5;
+  --c-accent-ring:   #a7f3d0;
+  --c-header:        #0e6239;
+  --c-header-2:      #0a482a;
 
   /* Ссылки (единственное применение синего цвета) */
   --c-link:          #2563eb;
@@ -105,6 +105,14 @@
   --h-btn-xs:  28px;
   --h-nav:     56px;
   --h-header:  48px;
+
+  /* Z-index слои */
+  --z-nav:      1000;
+  --z-modal:    2000;
+  --z-lightbox: 99999;
+  --c-lightbox-bg:      rgba(0, 0, 0, 0.9);
+  --c-lightbox-btn-bg:  rgba(0, 0, 0, 0.65);
+  --c-lightbox-btn-bdr: rgba(255, 255, 255, 0.35);
 }
 
 /* ------------------------------------------------------------------
@@ -601,7 +609,7 @@ code {
 .wz-select:focus {
   outline: none;
   border-color: var(--c-accent);
-  box-shadow: 0 0 0 3px rgba(110, 65, 20, 0.1);
+  box-shadow: 0 0 0 3px rgba(14, 98, 57, 0.1);
 }
 
 textarea.input-text,
@@ -1401,48 +1409,83 @@ select.input-text {
   position: fixed;
   inset: 0;
   z-index: var(--z-lightbox);
-  background: var(--c-overlay-strong);
+  background: var(--c-lightbox-bg);
   align-items: center;
   justify-content: center;
   flex-direction: column;
+  cursor: pointer;
+  padding: env(safe-area-inset-top, 16px) env(safe-area-inset-right, 16px) env(safe-area-inset-bottom, 16px) env(safe-area-inset-left, 16px);
 }
 #lightbox img {
   max-width: 95vw;
   max-height: 80vh;
   object-fit: contain;
   border-radius: var(--r-sm);
+  cursor: default;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 #lightbox-close {
   position: absolute;
-  top: var(--sp-4);
-  right: var(--sp-4);
-  font-size: 32px;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  width: 44px;
+  height: 44px;
+  font-size: 28px;
+  line-height: 1;
   color: var(--c-surface-white);
-  background: none;
-  border: none;
+  background: var(--c-lightbox-btn-bg);
+  border: 1px solid var(--c-lightbox-btn-bdr);
+  border-radius: 50%;
   cursor: pointer;
-  z-index: var(--z-lightbox);
+  z-index: 100001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, transform 0.15s;
+}
+#lightbox-close:hover {
+  background: var(--c-overlay-strong);
+  transform: scale(1.08);
+}
+#lightbox-close:active {
+  transform: scale(0.95);
 }
 #lightbox-counter {
   position: absolute;
-  top: var(--sp-4);
-  left: var(--sp-4);
+  top: max(16px, env(safe-area-inset-top));
+  left: max(16px, env(safe-area-inset-left));
   color: var(--c-surface-white);
   font-size: var(--fs-sm);
+  background: var(--c-lightbox-btn-bg);
+  padding: 4px 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--c-lightbox-btn-bdr);
 }
 #lightbox-prev, #lightbox-next {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 40px;
+  width: 44px;
+  height: 44px;
+  font-size: 32px;
+  line-height: 1;
   color: var(--c-surface-white);
-  background: none;
-  border: none;
+  background: var(--c-lightbox-btn-bg);
+  border: 1px solid var(--c-lightbox-btn-bdr);
+  border-radius: 50%;
   cursor: pointer;
-  padding: var(--sp-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100000;
+  transition: background 0.15s, transform 0.15s;
 }
-#lightbox-prev { left: var(--sp-2); }
-#lightbox-next { right: var(--sp-2); }
+#lightbox-prev:hover, #lightbox-next:hover {
+  background: var(--c-overlay-strong);
+  transform: translateY(-50%) scale(1.08);
+}
+#lightbox-prev { left: max(16px, env(safe-area-inset-left)); }
+#lightbox-next { right: max(16px, env(safe-area-inset-right)); }
 
 .lightbox-strip {
   position: absolute;
@@ -2495,7 +2538,7 @@ select.input-text {
   max-width: 380px;
   height: 100%;
   background: var(--c-surface);
-  box-shadow: -4px 0 16px rgba(110, 65, 20, 0.1);
+  box-shadow: -4px 0 16px rgba(14, 98, 57, 0.1);
   display: flex;
   flex-direction: column;
 }
@@ -2999,6 +3042,38 @@ input[type="checkbox"] {
   font-weight: 700;
   color: var(--c-success-dk);
   font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  .list-row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    padding: 10px 12px;
+    gap: var(--sp-2);
+  }
+  .list-row-thumb {
+    width: 44px;
+    height: 44px;
+  }
+  .list-row-body {
+    flex: 1 1 calc(100% - 56px);
+    min-width: 0;
+  }
+  .list-row-title {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+    line-height: 1.35;
+  }
+  .list-row-right {
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px solid var(--c-border);
+  }
 }
 
 /* Слим-полоса */
@@ -3814,33 +3889,46 @@ input[type="checkbox"] {
 .stock-card-row1 {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--sp-2);
   min-width: 0;
+  margin-bottom: var(--sp-2);
 }
 .stock-code-badge {
   flex-shrink: 0;
 }
-.stock-item-link {
-  flex: 1;
+.stock-card-row2 {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  font-size: var(--fs-caption);
+  color: var(--c-text-2);
+}
+.stock-body-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   min-width: 0;
+  flex: 1;
+}
+.stock-title-wrap {
+  min-width: 0;
+  width: 100%;
+}
+.stock-item-link {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   text-decoration: none;
   color: var(--c-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   font-weight: 600;
   font-size: var(--fs-body);
+  line-height: 1.35;
+  word-break: break-word;
 }
 .stock-item-link:hover {
   color: var(--c-brand);
-}
-.stock-card-row2 {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  margin-top: var(--sp-2);
-  font-size: var(--fs-caption);
-  color: var(--c-text-2);
 }
 .stock-thumb-small {
   width: 44px;
@@ -3980,20 +4068,28 @@ input[type="checkbox"] {
 }
 .item-title-block {
   margin-top: var(--sp-1);
+  width: 100%;
 }
 .item-compact-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.35;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   cursor: pointer;
+  word-break: break-word;
 }
 .item-compact-title.expanded {
   -webkit-line-clamp: unset;
+}
+#stock-description,
+#textarea-listing-desc {
+  width: 100%;
+  min-height: 140px;
+  box-sizing: border-box;
 }
 .item-location-chip {
   font-size: var(--fs-caption);

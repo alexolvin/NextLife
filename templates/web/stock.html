@@ -50,25 +50,25 @@
   <div class="tabs filter-chips" data-testid="stock-filter-chips">
     {% set gc = group_counts or {} %}
     <a href="/ui/stock?group=all&sort={{ sort }}{{ '&q=' + q if q else '' }}" class="tab-item {% if group == 'all' %}active{% endif %}">
-      Все активные <span class="tab-counter">{{ gc.get('all', 0) }}</span>
+      Все активные ({{ gc.get('all', 0) }})
     </a>
     <a href="/ui/stock?group=new&sort={{ sort }}{{ '&q=' + q if q else '' }}" class="tab-item {% if group == 'new' %}active{% endif %}">
-      Новые <span class="tab-counter">{{ gc.get('new', 0) }}</span>
+      Новые ({{ gc.get('new', 0) }})
     </a>
     <a href="/ui/stock?group=prep&sort={{ sort }}{{ '&q=' + q if q else '' }}" class="tab-item {% if group in ('prep', 'drafts') %}active{% endif %}">
-      Подготовка <span class="tab-counter">{{ gc.get('prep', 0) }}</span>
+      Подготовка ({{ gc.get('prep', 0) }})
     </a>
     <a href="/ui/stock?group=ready&sort={{ sort }}{{ '&q=' + q if q else '' }}" class="tab-item {% if group == 'ready' %}active{% endif %}">
-      Готовы <span class="tab-counter">{{ gc.get('ready', 0) }}</span>
+      Готовы ({{ gc.get('ready', 0) }})
     </a>
     <a href="/ui/stock?group=on_sale&sort={{ sort }}{{ '&q=' + q if q else '' }}" class="tab-item {% if group == 'on_sale' %}active{% endif %}">
-      На продаже <span class="tab-counter">{{ gc.get('on_sale', 0) }}</span>
+      На продаже ({{ gc.get('on_sale', 0) }})
     </a>
     <a href="/ui/stock?group=sold&sort={{ sort }}{{ '&q=' + q if q else '' }}" class="tab-item {% if group == 'sold' %}active{% endif %}">
-      Проданы <span class="tab-counter">{{ gc.get('sold', 0) }}</span>
+      Проданы ({{ gc.get('sold', 0) }})
     </a>
     <a href="/ui/stock?group=archive&sort={{ sort }}{{ '&q=' + q if q else '' }}" class="tab-item {% if group == 'archive' %}active{% endif %}">
-      Архив <span class="tab-counter">{{ gc.get('archive', 0) }}</span>
+      Архив ({{ gc.get('archive', 0) }})
     </a>
   </div>
 
@@ -98,16 +98,14 @@
     {% for it in items %}
       <div class="card stock-card" data-code="{{ it.code }}" data-title="{{ it.title }}" data-loc="{{ it.storage_location or '' }}" data-testid="stock-card-{{ it.code }}" onclick="if(!event.target.closest('.stock-item-checkbox, .overflow-menu, a, button')) window.location='/ui/stock/{{ it.code }}'">
         <div class="stock-card-row1">
-          <!-- Checkbox for bulk mode -->
-          <div class="item-checkbox-container">
-            <input type="checkbox" class="stock-item-checkbox" value="{{ it.code }}" onchange="onItemSelectionChange()">
+          <div class="flex items-center gap-2 min-w-0">
+            <!-- Checkbox for bulk mode -->
+            <div class="item-checkbox-container">
+              <input type="checkbox" class="stock-item-checkbox" value="{{ it.code }}" onchange="onItemSelectionChange()">
+            </div>
+            <span class="badge stock-code-badge">#{{ it.code }}</span>
+            <span class="badge badge-{{ it.status | status_tone }}">{{ it.status | status_label }}</span>
           </div>
-
-          <span class="badge stock-code-badge">#{{ it.code }}</span>
-          <a href="/ui/stock/{{ it.code }}" class="stock-item-link" title="{{ it.title }}">
-            {{ it.title }}
-          </a>
-          <span class="badge badge-{{ it.status | status_tone }}">{{ it.status | status_label }}</span>
 
           <details class="overflow-menu" onclick="event.stopPropagation()">
             <summary class="btn-icon btn-xs" title="Действия">⋯</summary>
@@ -125,12 +123,19 @@
             <div class="stock-thumb-small">📦</div>
           {% endif %}
 
-          <div class="stock-meta-info">
-            <span class="stock-price-val">{{ it.price_display or 'цена не задана' }}</span>
-            <span class="stock-loc-chip" title="{{ it.storage_location or '' }}">📍 {{ it.storage_location or 'место не задано' }}</span>
-            <span class="badge badge-outline stock-progress-badge" title="Пройдено этапов">
-              {{ it.stages | select | list | length }}/8
-            </span>
+          <div class="stock-body-col min-w-0 flex-1">
+            <div class="stock-title-wrap">
+              <a href="/ui/stock/{{ it.code }}" class="stock-item-link" title="{{ it.title }}" data-testid="stock-card-title">
+                {{ it.title }}
+              </a>
+            </div>
+            <div class="stock-meta-info">
+              <span class="stock-price-val">{{ it.price_display or 'цена не задана' }}</span>
+              <span class="stock-loc-chip" title="{{ it.storage_location or '' }}">📍 {{ it.storage_location or 'место не задано' }}</span>
+              <span class="badge badge-outline stock-progress-badge" title="Пройдено этапов">
+                {{ it.stages | select | list | length }}/8
+              </span>
+            </div>
           </div>
         </div>
 
