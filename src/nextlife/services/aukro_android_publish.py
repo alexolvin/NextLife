@@ -87,6 +87,45 @@ def _make_result(
     }
 
 
+def shorten_title_smart(title: str, max_len: int = 50) -> str:
+    """Shorten title to <= max_len.
+    First tries LLM (if configured) to preserve essential brand, model, and key attributes.
+    Falls back to smart word-boundary truncation (never cutting words in half).
+    """
+    clean = title.strip()
+    if len(clean) <= max_len:
+        return clean
+
+    # 1. Try LLM compression
+    try:
+        from nextlife.services.llm_filter import call_llm, get_llm_config, is_llm_configured
+        llm = get_llm_config()
+        if is_llm_configured(llm):
+            prompt = (
+                f"Сократи заголовок товара до максимум {max_len} символов для размещения на Aukro.\n"
+                f"Сохрани бренд, модель и ключевой тип товара. Не добавляй кавычек, точек и лишних слов.\n"
+                f"Исходный заголовок: {clean}\n"
+                f"Сокращённый заголовок (строго до {max_len} символов):"
+            )
+            res = call_llm(
+                llm.get("endpoint", ""),
+                llm.get("api_key", ""),
+                llm.get("model", ""),
+                prompt,
+                llm.get("provider", ""),
+            ).strip().strip('"').strip("'")
+            if res and len(res) <= max_len:
+                return res
+    except Exception as exc:
+        log.warning("LLM title shortening failed, using word-boundary fallback: %s", exc)
+
+    # 2. Smart word-boundary fallback
+    cut = clean[:max_len]
+    if " " in cut:
+        cut = cut.rsplit(" ", 1)[0].rstrip(" ,.-/()")
+    return cut or clean[:max_len]
+
+
 def aukro_android_publish_listing(
     *,
     title: str,
@@ -101,10 +140,8 @@ def aukro_android_publish_listing(
     steps: list[str] = []
     errors: list[str] = []
 
-    # Aukro title limit: 50 characters
-    short_title = title.strip()
-    if len(short_title) > 50:
-        short_title = short_title[:50].strip()
+    # Aukro title limit: 50 characters (smart LLM or word-boundary truncation)
+    short_title = shorten_title_smart(title, max_len=50)
 
     clean_price = re.sub(r"\D", "", str(price) or "")
     if not short_title or not description.strip() or not clean_price:
