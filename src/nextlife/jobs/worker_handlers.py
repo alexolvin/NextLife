@@ -110,6 +110,27 @@ def handle_publish_listing(payload: dict[str, Any], session: Session) -> None:
             listing.external_url = res["final_url"]
         if res.get("external_id"):
             listing.external_id = res["external_id"]
+    elif listing.marketplace_key == "aukro_cz":
+        from nextlife.services.aukro_android_publish import aukro_android_publish_listing
+        res = aukro_android_publish_listing(
+            title=listing.title or "",
+            description=listing.description or "",
+            price=str(listing.price or 0),
+            category=listing.category_path or listing.category_key or "",
+            dry_run=False,
+            item_code=listing.item_code or "",
+        )
+        if not res.get("ok"):
+            err_msg = "; ".join(res.get("errors") or ["Aukro publication failed"])
+            listing.status = ListingStatus.FAILED.value
+            listing.last_error_text = err_msg
+            listing.last_error_hint = "Проверьте подключение телефона к PhoneBroker и состояние приложения Aukro."
+            session.flush()
+            raise RuntimeError(err_msg)
+        if res.get("final_url"):
+            listing.external_url = res["final_url"]
+        if res.get("external_id"):
+            listing.external_id = res["external_id"]
     else:
         if hasattr(conn, "post_listing"):
             res = conn.post_listing(listing)
