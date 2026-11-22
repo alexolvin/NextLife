@@ -130,12 +130,18 @@ def handle_publish_listing(payload: dict[str, Any], session: Session) -> None:
                     listing.external_id = pub_res.external_id
             except Exception as exc:
                 listing.status = ListingStatus.FAILED.value
-                listing.last_error_text = str(exc)
+                if listing.marketplace_key == "aukro_cz":
+                    listing.last_error_text = "Автоматическая публикация на Aukro.cz не поддерживается API площадки"
+                    listing.last_error_hint = "Aukro.cz не предоставляет открытого API для физических лиц (вход защищён Cloudflare Turnstile). Используйте подготовленный текст и фото для ручного размещения."
+                else:
+                    listing.last_error_text = str(exc)
+                    listing.last_error_hint = "Проверьте параметры объявления или статус подключения площадки."
                 session.flush()
                 raise
         else:
             listing.status = ListingStatus.FAILED.value
-            listing.last_error_text = f"Коннектор {listing.marketplace_key} не имеет метода публикации"
+            listing.last_error_text = f"Площадка {listing.marketplace_key} не имеет метода автоматической публикации"
+            listing.last_error_hint = "Используйте подготовленный текст и фото для ручного размещения на площадке."
             session.flush()
             raise RuntimeError(listing.last_error_text)
 

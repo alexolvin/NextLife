@@ -112,17 +112,17 @@ def get_batch_summary(session: Session, batch_id: str) -> dict[str, Any]:
 
 
 def _purge_inactive_jobs(session: Session) -> None:
-    """Purge completed/stale jobs — background task history is not retained indefinitely."""
+    """Purge stale jobs older than 24 hours."""
     try:
         from datetime import timedelta
-        cutoff = datetime.now(UTC) - timedelta(hours=2)
+        cutoff = datetime.now(UTC) - timedelta(hours=24)
         from sqlalchemy import delete
         session.execute(
             delete(Job).where(
                 (Job.kind == "BUY_SEARCH")
                 | (
                     (Job.state.notin_(["PENDING", "RUNNING"]))
-                    & ((Job.batch_id.is_(None)) | (Job.created_at < cutoff))
+                    & (Job.created_at < cutoff)
                 )
             )
         )
@@ -158,6 +158,34 @@ def get_active_jobs(session: Session, limit: int = 10) -> list[dict[str, Any]]:
             "state": j.state,
             "attempts": j.attempts,
             "batch_id": j.batch_id,
+            "item_code": (j.payload or {}).get("item_code"),
+            "marketplace_key": (j.payload or {}).get("marketplace_key"),
+            "listing_id": (j.payload or {}).get("listing_id"),
+            "created_at": j.created_at.isoformat() if j.created_at else None,
+        }
+        for j in jobs
+    ]
+
+
+def get_recent_jobs(session: Session, limit: int = 15) -> list[dict[str, Any]]:
+    """List of recent jobs (active, completed, failed) for queue/task journal inspection."""
+    jobs = session.scalars(
+        select(Job)
+        .where(Job.kind != "BUY_SEARCH")
+        .order_by(Job.created_at.desc())
+        .limit(limit)
+    ).all()
+    return [
+        {
+            "id": j.id,
+            "kind": j.kind,
+            "state": j.state,
+            "attempts": j.attempts,
+            "last_error": j.last_error,
+            "batch_id": j.batch_id,
+            "item_code": (j.payload or {}).get("item_code"),
+            "marketplace_key": (j.payload or {}).get("marketplace_key"),
+            "listing_id": (j.payload or {}).get("listing_id"),
             "created_at": j.created_at.isoformat() if j.created_at else None,
         }
         for j in jobs

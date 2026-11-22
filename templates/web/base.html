@@ -312,10 +312,6 @@
 
     function toggleTasksDrawer(e) {
       if (e) e.preventDefault();
-      const btn = document.getElementById('btn-tasks');
-      if (btn && btn.classList.contains('tasks-indicator-idle')) {
-        return;
-      }
       const drawer = document.getElementById('tasks-drawer-overlay');
       if (drawer) {
         drawer.classList.toggle('hidden');
@@ -331,10 +327,7 @@
         .then(data => {
           const list = document.getElementById('tasks-drawer-list');
           if (!list) return;
-          if (!data.jobs || data.jobs.length === 0) {
-            list.innerHTML = '<div class="empty p-3 text-muted text-xs">Нет активных задач</div>';
-            return;
-          }
+
           const kindTitles = {
             'PUBLISH_LISTING': 'Публикация объявления',
             'UPDATE_LISTING': 'Обновление объявления',
@@ -345,21 +338,68 @@
           };
           const stateTitles = {
             'PENDING': 'В очереди',
-            'RUNNING': 'Выполняется'
+            'RUNNING': 'Выполняется',
+            'DONE': 'Выполнено',
+            'FAILED': 'Ошибка'
           };
+
+          const activeJobs = data.jobs || [];
+          const recentJobs = (data.recent || []).filter(rj => !activeJobs.some(aj => aj.id === rj.id));
+
+          if (activeJobs.length === 0 && recentJobs.length === 0) {
+            list.innerHTML = '<div class="empty p-4 text-muted text-xs text-center">Нет активных или недавних задач</div>';
+            return;
+          }
+
           let html = '<div class="stack-tight">';
-          data.jobs.forEach(j => {
-            const kindText = kindTitles[j.kind] || j.kind;
-            const stateText = stateTitles[j.state] || j.state;
-            html += `<div class="card card-nested p-2">
-              <div class="row-between gap-2">
-                <div class="font-bold text-xs">${kindText}</div>
-                <span class="badge badge-info text-xs">${stateText}</span>
-              </div>
-              ${j.created_at ? `<div class="text-dim text-xs mt-1">Создано: ${new Date(j.created_at).toLocaleTimeString()}</div>` : ''}
-              ${j.batch_id ? `<a href="/ui/jobs/batches/${j.batch_id}" class="text-accent text-xs mt-1 inline-block">Открыть отчёт пакета →</a>` : ''}
-            </div>`;
-          });
+
+          if (activeJobs.length > 0) {
+            html += '<div class="font-bold text-xs uppercase text-dim px-1 mb-1">⏳ Активные задачи (' + activeJobs.length + ')</div>';
+            activeJobs.forEach(j => {
+              const kindText = kindTitles[j.kind] || j.kind;
+              const stateText = stateTitles[j.state] || j.state;
+              const mpBadge = j.marketplace_key ? `<span class="badge badge-neutral text-xs uppercase">${j.marketplace_key}</span>` : '';
+              const codeBadge = j.item_code ? `<span class="badge badge-neutral text-xs">#${j.item_code}</span>` : '';
+              html += `<div class="card card-nested p-2 mb-2 border border-info">
+                <div class="row-between gap-2 items-center">
+                  <div class="font-bold text-xs flex items-center gap-1">
+                    <span class="waiting-circle-spin inline-block">⏳</span> ${kindText}
+                  </div>
+                  <span class="badge badge-info text-xs">${stateText}</span>
+                </div>
+                <div class="flex gap-1 mt-1">${codeBadge} ${mpBadge}</div>
+                ${j.created_at ? `<div class="text-dim text-xs mt-1">Запущено: ${new Date(j.created_at).toLocaleTimeString()}</div>` : ''}
+              </div>`;
+            });
+          }
+
+          if (recentJobs.length > 0) {
+            html += '<div class="font-bold text-xs uppercase text-dim px-1 mt-3 mb-1">📋 Журнал недавних задач</div>';
+            recentJobs.forEach(j => {
+              const kindText = kindTitles[j.kind] || j.kind;
+              const isFailed = j.state === 'FAILED';
+              const isDone = j.state === 'DONE';
+              const stateBadgeCls = isFailed ? 'badge-danger' : (isDone ? 'badge-success' : 'badge-neutral');
+              const stateText = stateTitles[j.state] || j.state;
+              const mpBadge = j.marketplace_key ? `<span class="badge badge-neutral text-xs uppercase">${j.marketplace_key}</span>` : '';
+              const codeBadge = j.item_code ? `<span class="badge badge-neutral text-xs">#${j.item_code}</span>` : '';
+              const errorBlock = j.last_error ? `<div class="p-1.5 mt-1 bg-danger-light text-danger text-xs rounded border border-danger-subtle font-medium">⚠️ ${j.last_error}</div>` : '';
+              
+              html += `<div class="card card-nested p-2 mb-2 ${isFailed ? 'border border-danger' : ''}">
+                <div class="row-between gap-2 items-center">
+                  <div class="font-bold text-xs">${kindText}</div>
+                  <span class="badge ${stateBadgeCls} text-xs">${stateText}</span>
+                </div>
+                <div class="flex gap-1 mt-1">${codeBadge} ${mpBadge}</div>
+                ${errorBlock}
+                <div class="row-between items-center text-dim text-xs mt-1">
+                  <span>${j.created_at ? new Date(j.created_at).toLocaleTimeString() : ''}</span>
+                  ${j.batch_id ? `<a href="/ui/jobs/batches/${j.batch_id}" class="text-accent text-xs">Отчёт пакета →</a>` : ''}
+                </div>
+              </div>`;
+            });
+          }
+
           html += '</div>';
           list.innerHTML = html;
         }).catch(() => {});
@@ -377,28 +417,22 @@
           const iconActive = document.getElementById('tasks-icon-active');
           if (!btn) return;
           const count = Number(data.count) || 0;
+          btn.style.pointerEvents = 'auto';
+          btn.style.cursor = 'pointer';
           if (count > 0) {
             btn.classList.remove('tasks-indicator-idle');
             btn.classList.add('tasks-indicator-active');
-            btn.setAttribute('title', 'Фоновые задачи: ' + count + ' (нажмите для списка)');
+            btn.setAttribute('title', 'Фоновые задачи: ' + count + ' (нажмите для просмотра)');
             btn.setAttribute('aria-label', 'Фоновые задачи: ' + count);
-            btn.style.pointerEvents = 'auto';
-            btn.style.cursor = 'pointer';
             if (iconIdle) iconIdle.style.display = 'none';
             if (iconActive) iconActive.style.display = 'inline-block';
           } else {
             btn.classList.remove('tasks-indicator-active');
             btn.classList.add('tasks-indicator-idle');
-            btn.setAttribute('title', 'Нет фоновых задач');
-            btn.setAttribute('aria-label', 'Нет фоновых задач');
-            btn.style.pointerEvents = 'none';
-            btn.style.cursor = 'default';
+            btn.setAttribute('title', 'Задачи и журнал (нажмите для просмотра)');
+            btn.setAttribute('aria-label', 'Задачи и журнал');
             if (iconIdle) iconIdle.style.display = 'inline-block';
             if (iconActive) iconActive.style.display = 'none';
-            const drawer = document.getElementById('tasks-drawer-overlay');
-            if (drawer && !drawer.classList.contains('hidden')) {
-              drawer.classList.add('hidden');
-            }
           }
         }).catch(() => {});
     }

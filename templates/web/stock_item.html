@@ -800,16 +800,6 @@ function stockItemMaster(itemCode) {
           window.location = "/ui/stock/{{ item.code }}/facebook-pack.zip";
         });
       </script>
-      {% if item.category_rejections %}
-        <div data-testid="category-rejections" class="mb-3 p-2 bg-warning-soft border border-warning rounded">
-          <strong>Не ставится в очередь</strong>
-          <ul class="mt-1 pl-4">
-            {% for row in item.category_rejections %}
-              <li data-testid="category-rejection-{{ row.marketplace }}"><strong>{{ row.title }}</strong> — {{ row.reason }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-      {% endif %}
       {% if not item.listings %}
         <div class="p-4 text-center text-muted bg-surface rounded">
           Объявления ещё не подготовлены.<br><br>
@@ -847,6 +837,26 @@ function stockItemMaster(itemCode) {
                     <span class="badge badge-accent text-xs" data-testid="listing-category-badge">
                       📁 {{ l.category_path or l.category_key }}
                     </span>
+                  </div>
+                {% endif %}
+
+                {% if l.status in ('QUEUED', 'PUBLISHING', 'UPDATING') %}
+                  <div class="mt-2 p-1.5 bg-info-soft border border-info rounded text-xs flex items-center justify-between gap-2" data-testid="listing-queue-status">
+                    <span class="flex items-center gap-1 font-medium text-info-dk">
+                      <span class="waiting-circle-spin inline-block">⏳</span> В очереди на публикацию...
+                    </span>
+                    <button type="button" onclick="toggleTasksDrawer(event)" class="btn btn-xs btn-secondary">
+                      Задачи
+                    </button>
+                  </div>
+                {% endif %}
+
+                {% if l.status == 'FAILED' or l.last_error_text %}
+                  <div class="mt-2 p-2 bg-danger-soft border border-danger rounded text-xs" data-testid="listing-card-error">
+                    <div class="font-semibold text-danger">⚠️ {{ l.last_error_text or 'Ошибка выполнения задачи на площадке' }}</div>
+                    {% if l.last_error_hint %}
+                      <div class="text-dim mt-0.5">💡 {{ l.last_error_hint }}</div>
+                    {% endif %}
                   </div>
                 {% endif %}
               </div>

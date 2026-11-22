@@ -6,7 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
 from nextlife.api.routes import check_auth, templates
-from nextlife.jobs.manager import get_active_jobs, get_active_jobs_count, get_batch_summary
+from nextlife.jobs.manager import (
+    get_active_jobs,
+    get_active_jobs_count,
+    get_batch_summary,
+    get_recent_jobs,
+)
 from nextlife.storage.db import get_db_session
 from nextlife.storage.models import Job
 
@@ -45,7 +50,8 @@ def api_active_jobs(
     with get_db_session() as session:
         count = get_active_jobs_count(session)
         jobs = get_active_jobs(session, limit=10)
-        return {"count": count, "active": count > 0, "jobs": jobs}
+        recent = get_recent_jobs(session, limit=15)
+        return {"count": count, "active": count > 0, "jobs": jobs, "recent": recent}
 
 
 @router.get("/api/jobs/batches/{batch_id}")

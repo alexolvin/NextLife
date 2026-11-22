@@ -14,7 +14,11 @@
       </a>
     </nav>
     <div class="header-badges">
-      <span class="badge badge-{{ listing.status | status_tone }}">{{ listing.status | status_label }}</span>
+      <span class="badge badge-{{ listing.status | status_tone }} {% if listing.status == 'FAILED' or listing.last_error_text %}cursor-pointer{% endif %}"
+            {% if listing.status == 'FAILED' or listing.last_error_text %}onclick="document.getElementById('listing-error-banner')?.scrollIntoView({behavior: 'smooth'})" title="Нажмите для просмотра ошибки"{% endif %}
+            data-testid="listing-status-badge">
+        {{ listing.status | status_label }}
+      </span>
       {% set open_url = listing.external_url or (listing | marketplace_url) if (listing.status in ('PUBLISHED', 'UPDATING') or listing.external_url) else None %}
       {% if open_url %}
         <a href="{{ open_url }}" target="_blank" rel="noopener" class="btn btn-secondary btn-xs btn-icon"
@@ -29,6 +33,53 @@
       {% endif %}
     </div>
   </div>
+
+  <!-- Queue & Progress Alerts -->
+  {% if listing.status in ('QUEUED', 'PUBLISHING', 'UPDATING') or request.query_params.get('notice') == 'publish_queued' %}
+    <div class="card p-3 mb-3 border border-info bg-info-soft" data-testid="listing-queue-banner">
+      <div class="row-between items-center gap-2 flex-wrap">
+        <div class="flex items-center gap-2 text-sm font-semibold">
+          <span class="waiting-circle-spin inline-block">⏳</span>
+          <span>Объявление находится в очереди выполнения задачи...</span>
+        </div>
+        <button type="button" onclick="toggleTasksDrawer(event)" class="btn btn-xs btn-secondary">
+          📋 Открыть задачи
+        </button>
+      </div>
+      <div class="text-xs text-muted mt-1">Страница автоматически обновится после завершения задачи.</div>
+    </div>
+    <script>
+      setTimeout(function() { window.location.reload(); }, 3500);
+    </script>
+  {% endif %}
+
+  <!-- Failure & Error Alerts -->
+  {% if listing.status == 'FAILED' or listing.last_error_text %}
+    <div class="card p-3 mb-3 border border-danger bg-danger-soft" id="listing-error-banner" data-testid="listing-error-banner">
+      <div class="flex items-start gap-3">
+        <span class="fs-lg">⚠️</span>
+        <div class="flex-1">
+          <div class="font-bold text-sm text-danger">Ошибка: {{ listing.last_error_text or 'Не удалось выполнить операцию на площадке' }}</div>
+          {% if listing.last_error_hint %}
+            <div class="text-xs text-muted mt-1.5 p-2 bg-surface rounded border border-subtle">
+              💡 <strong>Рекомендация:</strong> {{ listing.last_error_hint }}
+            </div>
+          {% endif %}
+          <div class="mt-2.5 flex gap-2 flex-wrap">
+            <form method="post" action="/ui/listings/{{ listing.id }}/publish" class="inline-form">
+              <input type="hidden" name="return_to" value="/ui/listings/{{ listing.id }}">
+              <button type="submit" class="btn btn-sm btn-primary" data-testid="btn-retry-publish">
+                🔄 Повторить попытку
+              </button>
+            </form>
+            <button type="button" onclick="toggleTasksDrawer(event)" class="btn btn-sm btn-secondary">
+              📋 Открыть журнал задач
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
 
   <!-- Notice Alerts -->
   {% if request.query_params.get('notice') == 'delete_forbidden' %}
