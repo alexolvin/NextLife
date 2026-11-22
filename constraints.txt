@@ -7,7 +7,7 @@
 #       .venv/bin/python -m pip install -c constraints.txt '.[dev]'
 # Scope: all runtime + dev + transitive deps exactly as installed (56 packages).
 
-alembic==1.20.0
+alembic==1.20.1
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.15.1
